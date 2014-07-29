@@ -1,0 +1,135 @@
+#######################################################################
+#   Copyright [2014] [Cisco Systems, Inc.]
+# 
+#   Licensed under the Apache License, Version 2.0 (the \"License\");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+# 
+#       http://www.apache.org/licenses/LICENSE-2.0
+# 
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an \"AS IS\" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#######################################################################
+
+#
+include $(CCSP_ROOT_DIR)/arch/ccsp_common.mk
+
+INCPATH += $(CCSP_ROOT_DIR)/hal/include
+CFLAGS += $(addprefix -I, $(INCPATH))
+
+
+BUILD_HAL_WIFI ?= 1
+BUILD_HAL_MOCA ?= 1
+BUILD_HAL_CM ?= 1
+BUILD_HAL_MTA ?= 1
+
+#
+#	Set up include directories
+#
+
+hal_targets := 
+
+ifeq ($(BUILD_HAL_WIFI),1)
+#
+#	Hal Wifi
+#
+target_libhal_wifi := $(ComponentBuildDir)/libhal_wifi.so
+source_files_libhal_wifi := $(call add_files_from_board,wifi,'*.c')
+obj_files_libhal_wifi := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_wifi:%.c=%.o))
+-include $(obj_files_libhal_wifi:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_wifi)),)
+$(target_libhal_wifi): $(obj_files_libhal_wifi)
+hal_targets += $(target_libhal_wifi)
+endif
+
+endif # BUILD_HAL_WIFI
+
+ifeq ($(BUILD_HAL_MOCA),1)
+#
+#	Hal MoCA
+#
+target_libhal_moca := $(ComponentBuildDir)/libmoca_mgnt.so
+source_files_libhal_moca := $(call add_files_from_board,moca,'*.c')
+obj_files_libhal_moca := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_moca:%.c=%.o))
+-include $(obj_files_libhal_moca:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_moca)),)
+$(target_libhal_moca): $(obj_files_libhal_moca)
+hal_targets += $(target_libhal_moca)
+endif
+
+endif # BUILD_HAL_MOCA
+
+ifeq ($(BUILD_HAL_CM),1)
+#
+#	Hal CM
+#
+target_libhal_cm := $(ComponentBuildDir)/libhal_cm.so
+source_files_libhal_cm := $(call add_files_from_board,cm,'*.c')
+obj_files_libhal_cm := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_cm:%.c=%.o))
+-include $(obj_files_libhal_cm:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_cm)),)
+$(target_libhal_cm): $(obj_files_libhal_cm)
+hal_targets += $(target_libhal_cm)
+endif
+
+endif # BUILD_HAL_CM
+
+ifeq ($(BUILD_HAL_MTA),1)
+
+#
+#	Hal MTA
+#
+target_libhal_mta := $(ComponentBuildDir)/libhal_mta.so
+source_files_libhal_mta := $(call add_files_from_board,mta,'*.c')
+obj_files_libhal_mta := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_mta:%.c=%.o))
+-include $(obj_files_libhal_mta:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_mta)),)
+$(target_libhal_mta): $(obj_files_libhal_mta)
+hal_targets += $(target_libhal_mta)
+endif
+
+endif # BUILD_HAL_MTA
+
+#
+#	Build targets
+#
+all: $(hal_targets) install
+
+clean:
+	rm -Rf $(ComponentBuildDir)
+
+install: install_fs stage
+
+install_fs:
+ifneq ($(hal_targets),)
+	@echo "Installing...[$(hal_targets) to $(CCSP_INSTALL_ROOT)/lib]"
+	@[ -d $(CCSP_INSTALL_ROOT)/lib ] || mkdir -p $(CCSP_INSTALL_ROOT)/lib
+	@cp -f $(hal_targets) $(CCSP_INSTALL_ROOT)/lib
+else
+	@echo "Installing...[Nothing]"
+endif
+
+stage:
+ifneq ($(hal_targets),)
+	@echo "Installing...[$(hal_targets) to $(CCSP_STAGING_ROOT)/lib]"
+	@[ -d $(CCSP_STAGING_ROOT)/lib ] || mkdir -p $(CCSP_STAGING_ROOT)/lib
+	@cp -f $(hal_targets) $(CCSP_STAGING_ROOT)/lib
+else
+	@echo "Installing...[Nothing]"
+endif
+
+.PHONY: all clean install install_fs stage
+
+#
+# include custom post makefile, if exists
+#
+ifneq ($(findstring $(CCSP_CMPNT_BUILD_CUSTOM_MK_POST), $(wildcard $(ComponentBoardDir)/*.mk)), )
+    include $(ComponentBoardDir)/$(CCSP_CMPNT_BUILD_CUSTOM_MK_POST)
+endif
