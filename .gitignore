@@ -1,4 +1,4 @@
-	COPYING
+COPYING
 INSTALL
 Makefile
 Makefile.in
@@ -49,4 +49,3 @@ source/wifi/libhalwifi.la
 source/wifi/libhalwifi_la-wifi_hal.lo
 source/wifi/libhalwifi_la-wifi_hal.o
 stamp-h1
-COPYING
