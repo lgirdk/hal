@@ -1,4 +1,4 @@
-AM_CFLAGS = -g -O0
+AM_CFLAGS = 
 
 AM_CPPFLAGS = -Wall -Werror
 
@@ -10,10 +10,10 @@ hardware_platform = i686-linux-gnu
 lib_LTLIBRARIES = libhalmoca.la
 #bin_PROGRAMS =
 
-libhalmoca_ladir = $(includedir)/hal/$(MACHINE)/moca
+libhalmoca_ladir = $(top_builddir)/source/moca/.libs
 
-libhalmoca_la_CPPFLAGS = -I. $(CPPFLAGS)
+libhalmoca_la_CPPFLAGS = -I$(top_builddir)/include $(CPPFLAGS)
 
-libhalmoca_la_SOURCES = -I. $(CPPFLAGS)
+libhalmoca_la_SOURCES = moca_hal.c
 
 libhalmoca_la_LIBADD = 

@@ -1,4 +1,4 @@
-AM_CFLAGS = -g -O0
+AM_CFLAGS = 
 
 AM_CPPFLAGS = -Wall -Werror
 
@@ -10,10 +10,10 @@ hardware_platform = i686-linux-gnu
 lib_LTLIBRARIES = libhalmta.la
 #bin_PROGRAMS =
 
-libhalmta_ladir = $(includedir)/hal/$(MACHINE)/mta
+libhalmta_ladir = $(top_builddir)/source/mta/.libs
 
-libhalmta_la_CPPFLAGS = -I. $(CPPFLAGS)
+libhalmta_la_CPPFLAGS = -I$(top_builddir)/include $(CPPFLAGS)
 
-libhalmta_la_SOURCES = -I. $(CPPFLAGS)
+libhalmta_la_SOURCES = mta_hal.c
 
 libhalmta_la_LIBADD = 

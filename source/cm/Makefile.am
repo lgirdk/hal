@@ -1,4 +1,4 @@
-AM_CFLAGS = -g -O0
+AM_CFLAGS = 
 
 AM_CPPFLAGS = -Wall -Werror
 
@@ -10,10 +10,10 @@ hardware_platform = i686-linux-gnu
 lib_LTLIBRARIES = libhalcm.la
 #bin_PROGRAMS =
 
-libhalcm_ladir = $(includedir)/hal/$(MACHINE)/cm
+libhalcm_ladir = $(top_builddir)/source/cm/.libs
 
-libhalcm_la_CPPFLAGS = -I. $(CPPFLAGS)
+libhalcm_la_CPPFLAGS = -I$(top_builddir)/include $(CPPFLAGS)
 
-libhalcm_la_SOURCES = -I. $(CPPFLAGS)
+libhalcm_la_SOURCES = cm_hal.c
 
 libhalcm_la_LIBADD = 

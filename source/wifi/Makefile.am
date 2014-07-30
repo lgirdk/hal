@@ -1,4 +1,4 @@
-AM_CFLAGS = -g -O0
+AM_CFLAGS = 
 
 AM_CPPFLAGS = -Wall -Werror
 
@@ -10,10 +10,10 @@ hardware_platform = i686-linux-gnu
 lib_LTLIBRARIES = libhalwifi.la
 #bin_PROGRAMS =
 
-libhalwifi_ladir = $(includedir)/hal/$(MACHINE)/wifi
+libhalwifi_ladir = $(top_builddir)/source/wifi/.libs
 
-libhalwifi_la_CPPFLAGS = -I. $(CPPFLAGS)
+libhalwifi_la_CPPFLAGS = -I$(top_builddir)/include $(CPPFLAGS)
 
-libhalwifi_la_SOURCES = -I. $(CPPFLAGS)
+libhalwifi_la_SOURCES = wifi_hal.c
 
 libhalwifi_la_LIBADD = 
