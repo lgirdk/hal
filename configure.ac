@@ -6,7 +6,6 @@ AC_INIT([hal], [1.0], [BUG-REPORT-ADDRESS])
 AM_INIT_AUTOMAKE
 LT_INIT
 
-#AC_CONFIG_SRCDIR([$top_builddir/include/*.h])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
