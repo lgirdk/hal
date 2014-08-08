@@ -1,3 +1,1 @@
-
-SUBDIRS = cm moca mta wifi
-
+SUBDIRS = cm wifi moca mta
