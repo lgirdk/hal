@@ -7,6 +7,6 @@ ACLOCAL_AMFLAGS = -I m4
 hardware_platform = i686-linux-gnu
 
 lib_LTLIBRARIES = libhal_moca.la
-libhal_moca_la_CPPFLAGS = -I$(top_builddir)/./include $(CPPFLAGS)
+libhal_moca_la_CPPFLAGS = -I$(top_srcdir)/./include $(CPPFLAGS)
 libhal_moca_la_SOURCES = moca_hal.c
 libhal_moca_la_LDFLAGS = 
