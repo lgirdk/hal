@@ -6,7 +6,7 @@ AM_CPPFLAGS = -Wall -Werror
 ACLOCAL_AMFLAGS = -I m4
 hardware_platform = i686-linux-gnu
 
-lib_LTLIBRARIES = libcm_mgnt.la
-libcm_mgnt_la_CPPFLAGS = -I$(top_srcdir)/./include $(CPPFLAGS)
-libcm_mgnt_la_SOURCES = cm_hal.c
-libcm_mgnt_la_LDFLAGS = 
+lib_LTLIBRARIES = libapi_dhcpv4c.la
+libapi_dhcpv4c_la_CPPFLAGS = -I$(top_srcdir)/./include $(CPPFLAGS)
+libapi_dhcpv4c_la_SOURCES = dhcpv4c_api.c
+libapi_dhcpv4c_la_LDFLAGS = 

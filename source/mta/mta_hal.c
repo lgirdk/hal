@@ -128,6 +128,8 @@ INT   mta_hal_LineTableGetEntry(ULONG Index, PMTAMGMT_MTA_LINETABLE_INFO pEntry)
 
     memset(pEntry, 0, sizeof(MTAMGMT_MTA_LINETABLE_INFO));
 
+	pEntry->InstanceNumber = Index + 1;	
+
     pEntry->LineNumber = 6;
     pEntry->Status = 1;
     pEntry->CAPort = 6;
@@ -233,6 +235,11 @@ INT   mta_hal_GetCalls(ULONG InstanceNumber, ULONG *pulCount, PMTAMGMT_MTA_CALLS
     strcpy((*ppCfg)->PktLossConcealment, "Standard");
     strcpy((*ppCfg)->CWErrorRate, "CWErrorRate");
 
+	strcpy((*ppCfg)->CWErrors, "CWErrors");
+	strcpy((*ppCfg)->SNR, "122");
+	strcpy((*ppCfg)->DownstreamPower, "5.1");	
+	strcpy((*ppCfg)->RemoteJBAbsMaxDelay, "20.2");
+
     return RETURN_OK;
 }
 
@@ -326,4 +333,5 @@ INT mta_hal_BatteryGetInfo(PMTAMGMT_MTA_BATTERY_INFO pInfo) {
     return RETURN_OK;
 }
 
+INT mta_hal_BatteryGetPowerSavingModeStatus(ULONG *pValue) { *pValue = 2; return RETURN_OK; }
 
