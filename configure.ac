@@ -31,10 +31,13 @@ AC_C_INLINE
 AC_FUNC_MALLOC
 
 AC_CONFIG_FILES(
-	source/cm/Makefile
-	source/wifi/Makefile
 	source/moca/Makefile
+	source/wifi/Makefile
+	source/dhcpv4c/Makefile
+	source/platform/Makefile
+	source/cm/Makefile
 	source/mta/Makefile
+	source/ethsw/Makefile
 	source/Makefile
 	Makefile
 )
