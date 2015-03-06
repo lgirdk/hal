@@ -171,6 +171,49 @@ INT   mta_hal_GetServiceFlow(ULONG* Count, PMTAMGMT_MTA_SERVICE_FLOW *ppCfg) {
 
 INT   mta_hal_DectGetEnable(BOOLEAN *pBool) { *pBool = FALSE; return RETURN_OK; }
 
+
+INT mta_hal_DectSetEnable(BOOLEAN bBool)
+{
+	return RETURN_OK;
+}
+
+
+INT mta_hal_DectGetRegistrationMode(BOOLEAN* pBool)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_DectSetRegistrationMode(BOOLEAN bBool)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_DectDeregisterDectHandset(ULONG uValue)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_GetDect(PMTAMGMT_MTA_DECT pDect)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_GetDectPIN(char* pPINString)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_SetDectPIN(char* pPINString)
+{
+	return RETURN_OK;
+}
+
+INT mta_hal_GetHandsets(ULONG* pulCount, PMTAMGMT_MTA_HANDSETS_INFO* ppHandsets)
+{
+	return RETURN_OK;
+}
+
+
 /*
 COSA_MTA_DECT g_mta_dect = {6,6, "Hardware", "RFPI", "Software"};
 
