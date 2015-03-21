@@ -18,13 +18,16 @@
 include $(CCSP_ROOT_DIR)/arch/ccsp_common.mk
 
 INCPATH += $(CCSP_ROOT_DIR)/hal/include
-CFLAGS += $(addprefix -I, $(INCPATH))
+CFLAGS += $(addprefix -I,$(INCPATH))
 
 
 BUILD_HAL_WIFI ?= 1
 BUILD_HAL_MOCA ?= 1
 BUILD_HAL_CM ?= 1
 BUILD_HAL_MTA ?= 1
+BUILD_API_DHCPV4C ?= 1
+BUILD_HAL_PLATFORM ?= 1
+BUILD_HAL_ETHSW ?= 1
 
 #
 #	Set up include directories
@@ -44,6 +47,7 @@ obj_files_libhal_wifi := $(addprefix $(ComponentBuildDir)/, $(source_files_libha
 ifneq ($(wildcard $(source_files_libhal_wifi)),)
 $(target_libhal_wifi): $(obj_files_libhal_wifi)
 hal_targets += $(target_libhal_wifi)
+header_targets += include/wifi_hal.h
 endif
 
 endif # BUILD_HAL_WIFI
@@ -60,6 +64,7 @@ obj_files_libhal_moca := $(addprefix $(ComponentBuildDir)/, $(source_files_libha
 ifneq ($(wildcard $(source_files_libhal_moca)),)
 $(target_libhal_moca): $(obj_files_libhal_moca)
 hal_targets += $(target_libhal_moca)
+header_targets += include/moca_hal.h
 endif
 
 endif # BUILD_HAL_MOCA
@@ -68,7 +73,7 @@ ifeq ($(BUILD_HAL_CM),1)
 #
 #	Hal CM
 #
-target_libhal_cm := $(ComponentBuildDir)/libhal_cm.so
+target_libhal_cm := $(ComponentBuildDir)/libcm_mgnt.so
 source_files_libhal_cm := $(call add_files_from_board,cm,'*.c')
 obj_files_libhal_cm := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_cm:%.c=%.o))
 -include $(obj_files_libhal_cm:.o=.d)
@@ -76,6 +81,7 @@ obj_files_libhal_cm := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_
 ifneq ($(wildcard $(source_files_libhal_cm)),)
 $(target_libhal_cm): $(obj_files_libhal_cm)
 hal_targets += $(target_libhal_cm)
+header_targets += include/cm_hal.h
 endif
 
 endif # BUILD_HAL_CM
@@ -93,9 +99,63 @@ obj_files_libhal_mta := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal
 ifneq ($(wildcard $(source_files_libhal_mta)),)
 $(target_libhal_mta): $(obj_files_libhal_mta)
 hal_targets += $(target_libhal_mta)
+header_targets += include/mta_hal.h
 endif
 
 endif # BUILD_HAL_MTA
+
+ifeq ($(BUILD_API_DHCPV4C),1)
+#
+#	Hal DhcpV4c
+#
+target_libapi_dhcpv4c := $(ComponentBuildDir)/libapi_dhcpv4c.so
+source_files_libapi_dhcpv4c := $(call add_files_from_board,dhcpv4c,'*.c')
+obj_files_libapi_dhcpv4c := $(addprefix $(ComponentBuildDir)/, $(source_files_libapi_dhcpv4c:%.c=%.o))
+-include $(obj_files_libapi_dhcpv4c:.o=.d)
+
+ifneq ($(wildcard $(source_files_libapi_dhcpv4c)),)
+$(target_libapi_dhcpv4c): $(obj_files_libapi_dhcpv4c)
+hal_targets += $(target_libapi_dhcpv4c)
+header_targets += include/dhcpv4c_api.h
+endif
+
+endif # BUILD_API_DHCPV4C
+
+ifeq ($(BUILD_HAL_PLATFORM),1)
+
+#
+#	Hal PLATFORM
+#
+target_libhal_platform := $(ComponentBuildDir)/libhal_platform.so
+source_files_libhal_platform := $(call add_files_from_board,platform,'*.c')
+obj_files_libhal_platform := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_platform:%.c=%.o))
+-include $(obj_files_libhal_platform:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_platform)),)
+$(target_libhal_platform): $(obj_files_libhal_platform)
+hal_targets += $(target_libhal_platform)
+header_targets += include/platform_hal.h
+endif
+
+endif # BUILD_HAL_PLATFORM
+
+#
+#	Hal EthSw
+#
+ifeq ($(BUILD_HAL_ETHSW),1)
+
+target_libhal_ethsw := $(ComponentBuildDir)/libhal_ethsw.so
+source_files_libhal_ethsw := $(call add_files_from_board,ethsw,'*.c')
+obj_files_libhal_ethsw := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_ethsw:%.c=%.o))
+-include $(obj_files_libhal_ethsw:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_ethsw)),)
+$(target_libhal_ethsw): $(obj_files_libhal_ethsw)
+hal_targets += $(target_libhal_ethsw)
+header_targets += include/ccsp_hal_ethsw.h
+endif
+
+endif # BUILD_HAL_ETHSW
 
 #
 #	Build targets
@@ -121,6 +181,8 @@ ifneq ($(hal_targets),)
 	@echo "Installing...[$(hal_targets) to $(CCSP_STAGING_ROOT)/lib]"
 	@[ -d $(CCSP_STAGING_ROOT)/lib ] || mkdir -p $(CCSP_STAGING_ROOT)/lib
 	@cp -f $(hal_targets) $(CCSP_STAGING_ROOT)/lib
+	@[ -d $(CCSP_STAGING_ROOT)/include ] || mkdir -p $(CCSP_STAGING_ROOT)/include
+	@cp -f $(header_targets) $(CCSP_STAGING_ROOT)/include
 else
 	@echo "Installing...[Nothing]"
 endif

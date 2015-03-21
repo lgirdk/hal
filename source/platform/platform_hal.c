@@ -35,6 +35,7 @@ INT platform_hal_GetWebAccessLevel(INT userIndex, INT ifIndex, ULONG *pValue) { 
 INT platform_hal_SetWebAccessLevel(INT userIndex, INT ifIndex, ULONG value) { return RETURN_ERR; }
 
 INT platform_hal_PandMDBInit(void) { return RETURN_OK; }
+INT platform_hal_DocsisParamsDBInit(void) { return RETURN_OK; }
 INT platform_hal_GetModelName(CHAR* pValue) { strcpy(pValue, "Model Name"); return RETURN_OK; }
 INT platform_hal_GetSerialNumber(CHAR* pValue) { strcpy(pValue, "Serial Number"); return RETURN_OK; }
 INT platform_hal_GetHardwareVersion(CHAR* pValue) { strcpy(pValue, "Hardware Version"); return RETURN_OK; }

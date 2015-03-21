@@ -159,6 +159,31 @@ INT wifi_factoryReset()
 	return RETURN_OK;
 }
 
+/* wifi_factoryResetRadios() function */
+/**
+
+* Description:
+*  Resets Implementation specifics may dictate some functionality since 
+*  different hardware implementations may have different requirements.
+*  Parameters : None
+*
+
+* @return The status of the operation.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous.
+
+* @sideeffect None.
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_factoryResetRadios()
+{
+	return RETURN_OK;
+}
 
 /* wifi_createInitialConfigFiles() function */
 /**
