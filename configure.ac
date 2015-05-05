@@ -37,6 +37,10 @@ AC_CONFIG_FILES(
 	source/platform/Makefile
 	source/cm/Makefile
 	source/mta/Makefile
+	source-pc/Makefile
+	source-pc/ethsw/Makefile
+	source-arm/Makefile
+	source-arm/ethsw/Makefile
 	source/ethsw/Makefile
 	source/Makefile
 	Makefile
