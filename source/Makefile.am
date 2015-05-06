@@ -1,1 +1,1 @@
-SUBDIRS = moca wifi dhcpv4c platform cm mta ethsw
+SUBDIRS = moca wifi dhcpv4c platform cm mta
