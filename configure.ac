@@ -55,6 +55,7 @@ AC_CONFIG_FILES(
 	source/platform/Makefile
 	source/cm/Makefile
 	source/mta/Makefile
+        source/mso_mgmt/Makefile
 	source-pc/Makefile
 	source-pc/ethsw/Makefile
 	source-arm/Makefile

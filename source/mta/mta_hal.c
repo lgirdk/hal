@@ -349,6 +349,27 @@ INT   mta_hal_GetMtaLog(ULONG *Count, PMTAMGMT_MTA_MTALOG_FULL *ppConf) {
     return RETURN_OK;
 }
 
+INT mta_hal_ClearDSXLog(BOOLEAN Bool)
+{
+	 return RETURN_OK; 
+}
+
+INT mta_hal_GetCallSignallingLogEnable(BOOLEAN *pBool) 
+{ 
+	*pBool = FALSE; 
+	return RETURN_OK; 
+}
+
+INT mta_hal_SetCallSignallingLogEnable(BOOLEAN Bool) 
+{ 
+	return RETURN_OK;
+}
+ 
+INT mta_hal_ClearCallSignallingLog(BOOLEAN Bool) 
+{ 
+	return RETURN_OK;
+}
+
 /*
 COSA_DML_DECTLOG_FULL DectLog[] = 
 {
@@ -393,6 +414,32 @@ INT mta_hal_BatteryGetInfo(PMTAMGMT_MTA_BATTERY_INFO pInfo) {
     strcpy(pInfo->ChargerFirmwareRevision, "ChargerFirmwareRevision1.0");
 
     return RETURN_OK;
+}
+
+INT mta_hal_Get_MTAResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+		*resetcnt = 4;
+        return RETURN_OK;
+    }
+}
+
+INT mta_hal_Get_LineResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    { 
+		*resetcnt = 5;
+        return RETURN_OK;
+    }
 }
 
 INT mta_hal_BatteryGetPowerSavingModeStatus(ULONG *pValue) { *pValue = 2; return RETURN_OK; }

@@ -39,6 +39,9 @@
 
 #include "platform_hal.h" 
 
+/* Note that 0 == RETURN_OK == STATUS_OK    */
+/* Note that -1 == RETURN_ERR == STATUS_NOK */
+
 INT platform_hal_GetDeviceConfigStatus(CHAR *pValue) { strcpy(pValue, "Complete"); return RETURN_OK; }
 
 INT platform_hal_GetTelnetEnable(BOOLEAN *pFlag) { *pFlag = FALSE; return RETURN_OK; }
@@ -64,3 +67,49 @@ INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "
 INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
+
+INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
+{
+    if (pValue == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+	*pValue='0';
+        return RETURN_OK;
+    }
+}
+
+INT platform_hal_GetHardware_MemFree(CHAR *pValue)
+{
+    if (pValue == NULL)
+    {   
+        return RETURN_ERR;
+    }
+    else
+    {
+	*pValue='0';
+        return RETURN_OK;
+    }
+}
+
+INT platform_hal_GetFreeMemorySize(ULONG *pulSize)
+{
+        if (pulSize == NULL)
+        {
+           return RETURN_ERR;
+        }
+        *pulSize = 0;
+        return RETURN_OK;
+}
+
+INT platform_hal_GetUsedMemorySize(ULONG *pulSize)
+{
+        if (pulSize == NULL)
+        {
+           return RETURN_ERR;
+        }
+        *pulSize = 0;
+        return RETURN_OK;
+}
