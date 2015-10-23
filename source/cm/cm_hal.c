@@ -239,3 +239,136 @@ INT cm_hal_GetMarket(CHAR* market) {
     strcpy(market, "Dummy-Market");
     return RETURN_OK;
 }
+
+INT cm_hal_Set_HTTP_Download_Url (char* pHttpUrl, char* pfilename)
+{
+    if ((pHttpUrl == NULL) || (pfilename==NULL))
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_Get_HTTP_Download_Url (char *pHttpUrl, char* pfilename)
+{
+    if ((pHttpUrl == NULL) || (pfilename==NULL))
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_Set_HTTP_Download_Interface(unsigned int interface)
+{
+   return RETURN_OK;
+}
+
+INT cm_hal_Get_HTTP_Download_Interface(unsigned int* pinterface)
+{
+    if (pinterface == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+       return RETURN_OK;
+    }
+}
+
+INT cm_hal_HTTP_Download ()
+{
+    return RETURN_OK;
+}
+
+INT cm_hal_Get_HTTP_Download_Status()
+{
+    return RETURN_OK;
+}
+
+INT cm_hal_Reboot_Ready(ULONG *pValue)
+{
+    if (pValue == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_HTTP_Download_Reboot_Now()
+{
+    return RETURN_OK;
+}
+
+INT cm_hal_ReinitMac()
+{
+    return RETURN_OK;
+}
+
+INT docsis_GetProvIpType(CHAR *pValue)
+{
+    return RETURN_OK;
+}
+
+//reset count apis
+
+INT cm_hal_Get_CableModemResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+		*resetcnt = 1;
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_Get_LocalResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+		*resetcnt = 2;
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_Get_DocsisResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {  
+		*resetcnt = 3;
+        return RETURN_OK;
+    }
+}
+
+INT cm_hal_Get_ErouterResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+	
+        return RETURN_ERR;
+    }
+    else
+    { 
+		*resetcnt = 6;
+        return RETURN_OK;
+    }
+}
