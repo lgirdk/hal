@@ -72,6 +72,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "dhcp4cApi.h"
 #include "dhcpv4c_api.h"
 
 /**********************************************************************************
@@ -79,6 +80,12 @@
  *  DHCPV4-Client Subsystem level function definitions
  *
 **********************************************************************************/
+
+#ifdef DEBUG_QUERY_ALL
+void query_all();
+static int query_all_in_progress = 0;
+#endif
+
 /* dhcpv4c_get_ert_lease_time() function */
 /**
 * Description: Gets the E-Router Offered Lease Time
@@ -97,14 +104,16 @@
 */
 INT dhcpv4c_get_ert_lease_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 100;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_lease_time(pValue);
+    }
 }
-
+ 
 /* dhcpv4c_get_ert_remain_lease_time() function */
 /**
 * Description: Gets the E-Router Remaining Lease Time
@@ -122,13 +131,15 @@ INT dhcpv4c_get_ert_lease_time(UINT *pValue)
 *
 */
 INT dhcpv4c_get_ert_remain_lease_time(UINT *pValue)
-{
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 100;
-		return STATUS_SUCCESS;
-	}
+{       
+    if(pValue==NULL)
+    {
+       return(STATUS_FAILURE);
+    }
+    else
+    {
+       return dhcp4c_get_ert_remain_lease_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_remain_renew_time() function */
@@ -149,12 +160,14 @@ INT dhcpv4c_get_ert_remain_lease_time(UINT *pValue)
 */
 INT dhcpv4c_get_ert_remain_renew_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 100;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_remain_renew_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_remain_rebind_time() function */
@@ -175,12 +188,14 @@ INT dhcpv4c_get_ert_remain_renew_time(UINT *pValue)
 */
 INT dhcpv4c_get_ert_remain_rebind_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 100;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    { 
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_remain_rebind_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_config_attempts() function */
@@ -201,12 +216,14 @@ INT dhcpv4c_get_ert_remain_rebind_time(UINT *pValue)
 */
 INT dhcpv4c_get_ert_config_attempts(INT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 100;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_config_attempts(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_ifname() function */
@@ -227,12 +244,14 @@ INT dhcpv4c_get_ert_config_attempts(INT *pValue)
 */
 INT dhcpv4c_get_ert_ifname(CHAR *pName)
 {
-	if (NULL == pName) {
-		return STATUS_FAILURE;
-	} else {
-		strcpy(pName, "ert0");
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pName) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_ifname(pName);
+    }
 }
 
 /* dhcpv4c_get_ert_fsm_state() function */
@@ -253,12 +272,14 @@ INT dhcpv4c_get_ert_ifname(CHAR *pName)
 */
 INT dhcpv4c_get_ert_fsm_state(INT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if(pValue==NULL)
+    {    
+       return(STATUS_FAILURE);
+    }
+    else
+    {
+       return dhcp4c_get_ert_fsm_state(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_ip_addr() function */
@@ -279,12 +300,14 @@ INT dhcpv4c_get_ert_fsm_state(INT *pValue)
 */
 INT dhcpv4c_get_ert_ip_addr(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_ip_addr(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_mask() function */
@@ -305,12 +328,14 @@ INT dhcpv4c_get_ert_ip_addr(UINT *pValue)
 */
 INT dhcpv4c_get_ert_mask(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0xFFFFFF00;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_mask(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_gw() function */
@@ -331,12 +356,14 @@ INT dhcpv4c_get_ert_mask(UINT *pValue)
 */
 INT dhcpv4c_get_ert_gw(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if(pValue==NULL)
+    {    
+       return(STATUS_FAILURE);
+    }
+    else
+    {
+       return dhcp4c_get_ert_gw(pValue);
+    }
 }
 
 /* dhcpv4c_get_ert_dns_svrs() function */
@@ -357,12 +384,14 @@ INT dhcpv4c_get_ert_gw(UINT *pValue)
 */
 INT dhcpv4c_get_ert_dns_svrs(dhcpv4c_ip_list_t *pList)
 {
-	if (NULL == pList) {
-		return STATUS_FAILURE;
-	} else {
-		pList->number = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pList) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_dns_svrs((ipv4AddrList_t*) pList);
+    }
 }
 
 /* dhcpv4c_get_ert_dhcp_svr() function */
@@ -383,12 +412,14 @@ INT dhcpv4c_get_ert_dns_svrs(dhcpv4c_ip_list_t *pList)
 */
 INT dhcpv4c_get_ert_dhcp_svr(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ert_dhcp_svr(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_lease_time() function */
@@ -409,12 +440,14 @@ INT dhcpv4c_get_ert_dhcp_svr(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_lease_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 200;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_lease_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_remain_lease_time() function */
@@ -435,12 +468,14 @@ INT dhcpv4c_get_ecm_lease_time(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_remain_lease_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 200;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_remain_lease_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_remain_renew_time() function */
@@ -461,12 +496,14 @@ INT dhcpv4c_get_ecm_remain_lease_time(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_remain_renew_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 200;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {    
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_remain_renew_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_remain_rebind_time() function */
@@ -487,12 +524,14 @@ INT dhcpv4c_get_ecm_remain_renew_time(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_remain_rebind_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 200;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_remain_rebind_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_config_attempts() function */
@@ -513,12 +552,14 @@ INT dhcpv4c_get_ecm_remain_rebind_time(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_config_attempts(INT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_config_attempts(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_ifname() function */
@@ -539,12 +580,14 @@ INT dhcpv4c_get_ecm_config_attempts(INT *pValue)
 */
 INT dhcpv4c_get_ecm_ifname(CHAR *pName)
 {
-	if (NULL == pName) {
-		return STATUS_FAILURE;
-	} else {
-		strcpy(pName, "ecm0");
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pName) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_ifname(pName);;        
+    }
 }
 
 /* dhcpv4c_get_ecm_fsm_state() function */
@@ -565,12 +608,14 @@ INT dhcpv4c_get_ecm_ifname(CHAR *pName)
 */
 INT dhcpv4c_get_ecm_fsm_state(INT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_fsm_state(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_ip_addr() function */
@@ -591,12 +636,14 @@ INT dhcpv4c_get_ecm_fsm_state(INT *pValue)
 */
 INT dhcpv4c_get_ecm_ip_addr(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_ip_addr(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_mask() function */
@@ -617,12 +664,14 @@ INT dhcpv4c_get_ecm_ip_addr(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_mask(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0xFFFFFF00;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_mask(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_gw() function */
@@ -643,12 +692,14 @@ INT dhcpv4c_get_ecm_mask(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_gw(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_gw(pValue);
+    }
 }
 
 /* dhcpv4c_get_ecm_dns_svrs() function */
@@ -669,12 +720,14 @@ INT dhcpv4c_get_ecm_gw(UINT *pValue)
 */
 INT dhcpv4c_get_ecm_dns_svrs(dhcpv4c_ip_list_t *pList)
 {
-	if (NULL == pList) {
-		return STATUS_FAILURE;
-	} else {
-		pList->number = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pList) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_dns_svrs((ipv4AddrList_t*) pList);
+    }
 }
 
 /* dhcpv4c_get_ecm_dhcp_svr() function */
@@ -695,12 +748,14 @@ INT dhcpv4c_get_ecm_dns_svrs(dhcpv4c_ip_list_t *pList)
 */
 INT dhcpv4c_get_ecm_dhcp_svr(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 0;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_ecm_dhcp_svr(pValue);
+    }
 }
 
 
@@ -722,12 +777,14 @@ INT dhcpv4c_get_ecm_dhcp_svr(UINT *pValue)
 */
 INT dhcpv4c_get_emta_remain_lease_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 300;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_emta_remain_lease_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_emta_remain_renew_time() function */
@@ -748,12 +805,14 @@ INT dhcpv4c_get_emta_remain_lease_time(UINT *pValue)
 */
 INT dhcpv4c_get_emta_remain_renew_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 300;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_emta_remain_renew_time(pValue);
+    }
 }
 
 /* dhcpv4c_get_emta_remain_rebind_time() function */
@@ -774,11 +833,132 @@ INT dhcpv4c_get_emta_remain_renew_time(UINT *pValue)
 */
 INT dhcpv4c_get_emta_remain_rebind_time(UINT *pValue)
 {
-	if (NULL == pValue) {
-		return STATUS_FAILURE;
-	} else {
-		*pValue = 300;
-		return STATUS_SUCCESS;
-	}
+    if (NULL == pValue) 
+    {
+        return STATUS_FAILURE;
+    } 
+    else 
+    {
+        return dhcp4c_get_emta_remain_rebind_time(pValue);
+    }
 }
+
+#ifdef DEBUG_QUERY_ALL
+void query_all()
+{
+   int i;
+
+   unsigned int Value;
+   int iValue;
+   char Name[100];
+   dhcpv4c_ip_list_t List;
+   
+   unsigned int* pValue = &Value;
+   int* piValue = &iValue;
+   char* pName = &Name[0];
+   dhcpv4c_ip_list_t*  pList = &List;
+  
+   int result;
+   
+   query_all_in_progress = 1;
+   
+   printf("Query all start\n");
+   
+   result = dhcpv4c_get_ert_lease_time(&Value);
+   printf("dhcpv4_get_ert_lease_time - result=%d pValue = %d\n",  result, *pValue);
+    
+   result = dhcp4c_get_ert_remain_lease_time(pValue); 
+   printf("dhcpv4_get_ert_remain_lease_time - result=%d pValue = %d\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_remain_renew_time(pValue);
+   printf("dhcpv4_get_ert_remain_renew_time - result=%d pValue = %d\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_remain_rebind_time(pValue);
+   printf("dhcpv4_get_ert_remain_rebind_time - result=%d pValue = %d\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_config_attempts(piValue);
+   printf("dhcpv4_get_ert_config_attempts - result=%d piValue = %d\n",  result, *piValue);
+    
+   result = dhcpv4c_get_ert_ifname(pName);
+   printf("dhcpv4_get_ert_ifname - result=%d pName = [%s]\n",  result, pName);
+    
+   result = dhcpv4c_get_ert_fsm_state(piValue);
+   printf("dhcpv4_get_ert_fsm_state - result=%d piValue = %d\n",  result, *piValue);
+    
+   result = dhcpv4c_get_ert_ip_addr(pValue);
+   printf("dhcpv4_get_ert_ip_addr - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_mask(pValue);
+   printf("dhcpv4_get_ert_mask - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_gw(pValue);
+   printf("dhcpv4_get_ert_gw - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ert_dns_svrs(pList);
+   printf("dhcpv4_get_ert_dns_svrs - result=%d num_servers = %d\n",  result, pList->number);
+   for (i=0;i<pList->number;i++)
+   {
+      printf("    server [%d] = %04X\n", i, pList->addrs[i]);
+   }
+   
+   result = dhcpv4c_get_ert_dhcp_svr(pValue);
+   printf("dhcpv4_get_ert_dhcp_svr - result=%d pValue = %04X\n",  result, *pValue);
+ 
+   result = dhcpv4c_get_ecm_lease_time(pValue);
+   printf("dhcpv4_get_ecm_lease_time - result=%d pValue = %d\n",  result, *pValue); 
+    
+   result = dhcpv4c_get_ecm_remain_lease_time(pValue);
+   printf("dhcpv4_get_ecm_remain_lease_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   result = dhcpv4c_get_ecm_remain_renew_time(pValue);
+   printf("dhcpv4_get_ecm_remain_renew_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   result = dhcpv4c_get_ecm_remain_rebind_time(pValue);
+   printf("dhcpv4_get_ecm_remain_rebind_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   result = dhcpv4c_get_ecm_config_attempts(piValue);
+   printf("dhcpv4_get_ecm_config_attempts - result=%d piValue = %d\n",  result, *piValue);
+    
+   result = dhcpv4c_get_ecm_ifname(pName);
+   printf("dhcpv4_get_ecm_ifname - result=%d pName = [%s]\n",  result, pName);
+    
+   result = dhcpv4c_get_ecm_fsm_state(piValue);
+   printf("dhcpv4_get_ecm_fsm_state - result=%d piValue = %d\n",  result, *piValue);
+    
+   result = dhcpv4c_get_ecm_ip_addr(pValue);
+   printf("dhcpv4_get_ecm_ip_addr - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ecm_mask(pValue);
+   printf("dhcpv4_get_ecm_mask - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ecm_gw(pValue);
+   printf("dhcpv4_get_ecm_gw - result=%d pValue = %04X\n",  result, *pValue);
+    
+   result = dhcpv4c_get_ecm_dns_svrs(pList); 
+   printf("dhcpv4_get_ecm_dns_svrs - result=%d num_servers = %d\n",  result, pList->number);
+   for (i=0;i<pList->number;i++)
+   {
+      printf("    server [%d] = %04X\n", i, pList->addrs[i]);
+   }
+   
+   result = dhcpv4c_get_ecm_dhcp_svr(pValue);
+   printf("dhcpv4_get_ecm_dhcp_svr - result=%d pValue = %04X\n",  result, *pValue);
+ 
+   result = dhcpv4c_get_emta_remain_lease_time(pValue);
+   printf("dhcpv4_get_emta_remain_lease_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   result = dhcpv4c_get_emta_remain_renew_time(pValue);
+   printf("dhcpv4_get_ecm_remain_renew_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   result = dhcpv4c_get_emta_remain_rebind_time(pValue);
+   printf("dhcpv4_get_ecm_remain_rebind_time - result=%d pValue = %d\n",  result, *pValue);  
+    
+   printf("Query all end\n");
+   
+   query_all_in_progress = 0;
+}
+
+#endif
+
+
 
