@@ -317,7 +317,6 @@ INT docsis_GetProvIpType(CHAR *pValue)
 {
     return RETURN_OK;
 }
-<<<<<<< HEAD
 
 //reset count apis
 
@@ -373,60 +372,3 @@ INT cm_hal_Get_ErouterResetCount(ULONG *resetcnt)
         return RETURN_OK;
     }
 }
-=======
-
-//reset count apis
-
-INT cm_hal_Get_CableModemResetCount(ULONG *resetcnt)
-{
-    if (resetcnt == NULL)
-    {
-        return RETURN_ERR;
-    }
-    else
-    {
-		*resetcnt = 1;
-        return RETURN_OK;
-    }
-}
-
-INT cm_hal_Get_LocalResetCount(ULONG *resetcnt)
-{
-    if (resetcnt == NULL)
-    {
-        return RETURN_ERR;
-    }
-    else
-    {
-		*resetcnt = 2;
-        return RETURN_OK;
-    }
-}
-
-INT cm_hal_Get_DocsisResetCount(ULONG *resetcnt)
-{
-    if (resetcnt == NULL)
-    {
-        return RETURN_ERR;
-    }
-    else
-    {  
-		*resetcnt = 3;
-        return RETURN_OK;
-    }
-}
-
-INT cm_hal_Get_ErouterResetCount(ULONG *resetcnt)
-{
-    if (resetcnt == NULL)
-    {
-	
-        return RETURN_ERR;
-    }
-    else
-    { 
-		*resetcnt = 6;
-        return RETURN_OK;
-    }
-}
->>>>>>> ARRISXB3-3443 : hal patches from RDKB to yocto branch

@@ -68,7 +68,7 @@ INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); ret
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
 
-INT platform_hal_GetHardware_MemUsed(CHAR *pValue) {*pValue='0'; return RETURN_OK;}
+INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
     if (pValue == NULL)
     {
