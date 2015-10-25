@@ -528,8 +528,8 @@ CcspHalEthSwSetAgingSpeed
 INT
 CcspHalEthSwLocatePortByMacAddress
     (
-        UCHAR*                      pMacAddr,
-        PCCSP_HAL_ETHSW_PORT        pPortId
+		unsigned char * pMacAddr, 
+		INT * pPortId
     )
 {
     CcspHalEthSwTrace
