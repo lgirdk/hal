@@ -300,6 +300,22 @@ INT wifi_createInitialConfigFiles()
 	return RETURN_OK;
 }
 
+// outputs the country code to a max 64 character string
+INT wifi_getRadioCountryCode(INT radioIndex, CHAR *output_string)
+{
+	if (NULL == output_string) {
+		return RETURN_ERR;
+	} else {
+		snprintf(output_string, 64, "841");
+		return RETURN_OK;
+	}
+}
+
+INT wifi_setRadioCountryCode(INT radioIndex, CHAR *CountryCode)
+{
+	//Set wifi config. Wait for wifi reset to apply
+	return RETURN_OK;
+}
 
 /**********************************************************************************
  *
@@ -529,6 +545,37 @@ INT wifi_getRadioDfsSupport(INT radioIndex, BOOL *output_bool) //Tr181
 	if (NULL == output_bool) 
 		return RETURN_ERR;
 	*output_bool=FALSE;	
+	return RETURN_OK;
+}
+
+//The output_string is a max length 256 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
+//The value of this parameter is a comma seperated list of channel number
+INT wifi_getRadioDCSChannelPool(INT radioIndex, CHAR *output_pool)			//RDKB
+{
+	if (NULL == output_pool) 
+		return RETURN_ERR;
+	snprintf(output_pool, 256, "1,2,3,4,5,6,7,8,9,10,11");
+	return RETURN_OK;
+}
+
+INT wifi_setRadioDCSChannelPool(INT radioIndex, CHAR *pool)			//RDKB
+{
+	//Set to wifi config. And apply instantly.
+	return RETURN_OK;
+}
+
+INT wifi_getRadioDCSScanTime(INT radioIndex, INT *output_interval_seconds, INT *output_dwell_milliseconds)
+{
+	if (NULL == output_interval_seconds || NULL == output_dwell_milliseconds) 
+		return RETURN_ERR;
+	*output_interval_seconds=1800;
+	*output_dwell_milliseconds=40;
+	return RETURN_OK;
+}
+
+INT wifi_setRadioDCSScanTime(INT radioIndex, INT interval_seconds, INT dwell_milliseconds)
+{
+	//Set to wifi config. And apply instantly.
 	return RETURN_OK;
 }
 
@@ -1409,7 +1456,7 @@ INT wifi_setDTIMInterval(INT apIndex, INT dtimInterval)
 }
 
 // Get the packet size threshold supported.
-INT wifi_setApRtsThresholdSupported(INT apIndex, CHAR *output_bool)
+INT wifi_getApRtsThresholdSupported(INT apIndex, BOOL *output_bool)
 {
 	//save config and apply instantly
 	if (NULL == output_bool) 
@@ -1953,16 +2000,33 @@ INT wifi_setApSecurityReset(INT apIndex)
 }
 
 //The IP Address and port number of the RADIUS server used for WLAN security. RadiusServerIPAddr is only applicable when ModeEnabled is an Enterprise type (i.e. WPA-Enterprise, WPA2-Enterprise or WPA-WPA2-Enterprise).
-INT wifi_getApSecurityRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output)
+INT wifi_getApSecurityRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
 {
-	if(!IP_output || !Port_output)
+	if(!IP_output || !Port_output || !RadiusSecret_output)
 		return RETURN_ERR;
 	snprintf(IP_output, 64, "75.56.77.78");
 	*Port_output=123;
+	snprintf(RadiusSecret_output, 64, "12345678");
 	return RETURN_OK;
 }
 
-INT wifi_setApSecurityRadiusServer(INT apIndex, CHAR *IPAddress, UINT port)
+INT wifi_setApSecurityRadiusServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR *RadiusSecret)
+{
+	//store the paramters, and apply instantly
+	return RETURN_ERR;
+}
+
+INT wifi_getApSecuritySecondaryRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
+{
+	if(!IP_output || !Port_output || !RadiusSecret_output)
+		return RETURN_ERR;
+	snprintf(IP_output, 64, "75.56.77.78");
+	*Port_output=123;
+	snprintf(RadiusSecret_output, 64, "12345678");
+	return RETURN_OK;
+}
+
+INT wifi_setApSecuritySecondaryRadiusServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR *RadiusSecret)
 {
 	//store the paramters, and apply instantly
 	return RETURN_ERR;
@@ -1983,7 +2047,7 @@ INT wifi_getApSecurityRadiusSettings(INT apIndex, wifi_radius_setting_t *output)
 	output->BlacklistTableTimeout=600; 			//Time interval in seconds for which a client will continue to be blacklisted once it is marked so.	
 	output->IdentityRequestRetryInterval=5; 	//Time Interval in seconds between identity requests retries. A value of 0 (zero) disables it.	
 	output->QuietPeriodAfterFailedAuthentication=5;  	//The enforced quiet period (time interval) in seconds following failed authentication. A value of 0 (zero) disables it.	
-	snprintf(output->RadiusSecret, 64, "12345678");		//The secret used for handshaking with the RADIUS server [RFC2865]. When read, this parameter returns an empty string, regardless of the actual value.
+	//snprintf(output->RadiusSecret, 64, "12345678");		//The secret used for handshaking with the RADIUS server [RFC2865]. When read, this parameter returns an empty string, regardless of the actual value.
 	
 	return RETURN_OK;
 }
