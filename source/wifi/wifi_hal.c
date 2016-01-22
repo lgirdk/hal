@@ -821,6 +821,8 @@ INT wifi_setRadioBasicDataTransmitRates(INT radioIndex, CHAR *TransmitRates)
 	return RETURN_ERR;
 }
 
+
+
 //Get detail radio traffic static info
 INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output_struct) //Tr181
 {
@@ -847,14 +849,40 @@ INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output
 	output_struct->radio_CarrierSenseThreshold_Exceeded=20; //Percentage of time that the radio was unable to transmit or receive Wi-Fi packets to/from associated clients due to energy detection (ED) on the channel or clear channel assessment (CCA). The metric is calculated and updated in this Parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units in Percentage
 	output_struct->radio_RetransmissionMetirc=0; //Percentage of packets that had to be re-transmitted. Multiple re-transmissions of the same packet count as one.  The metric is calculated and updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".   The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units  in percentage
 	
-	output_struct->radio_MaximumNoiseFloorOnChannel=-1; //zqiu: no need to implement on HAL. Please just assign -1;
-	output_struct->radio_MinimumNoiseFloorOnChannel=-1; //zqiu: no need to implement on HAL. Please just assign -1;
-	output_struct->radio_MedianNoiseFloorOnChannel=-1;  //zqiu: no need to implement on HAL. Please just assign -1;
-	output_struct->radio_StatisticsStartTime=0; 	    //zqiu: no need to implement on HAL. Please just assign 0;
+	output_struct->radio_MaximumNoiseFloorOnChannel=-1; //Maximum Noise on the channel during the measuring interval.  The metric is updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected in the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1.  Units in dBm
+	output_struct->radio_MinimumNoiseFloorOnChannel=-1; //Minimum Noise on the channel. The metric is updated in this Parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected in the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units in dBm
+	output_struct->radio_MedianNoiseFloorOnChannel=-1;  //Median Noise on the channel during the measuring interval.   The metric is updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected in the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units in dBm
+	output_struct->radio_StatisticsStartTime=0; 	    //The date and time at which the collection of the current set of statistics started.  This time must be updated whenever the radio statistics are reset.
 	
 	return RETURN_OK;	
 }
 
+
+//Set radio traffic static Measureing rules
+INT wifi_setRadioTrafficStatsMeasure(INT radioIndex, wifi_radioTrafficStatsMeasure_t *input_struct) //Tr181
+{
+	//zqiu:  If the RadioTrafficStats process running, and the new value is different from old value, the process needs to be reset. The Statistics date, such as MaximumNoiseFloorOnChannel, MinimumNoiseFloorOnChannel and MedianNoiseFloorOnChannel need to be reset. And the "StatisticsStartTime" must be reset to the current time. Units in Seconds
+	//       Else, save the MeasuringRate and MeasuringInterval for future usage
+	
+	return RETURN_OK;
+}
+
+//To start or stop RadioTrafficStats
+INT wifi_setRadioTrafficStatsRadioStatisticsEnable(INT radioIndex, BOOL enable) 
+{
+	//zqiu:  If the RadioTrafficStats process running
+	//          	if(enable)
+	//					return RETURN_OK.
+	//				else
+	//					Stop RadioTrafficStats process
+	//       Else 
+	//				if(enable)
+	//					Start RadioTrafficStats process with MeasuringRate and MeasuringInterval, and reset "StatisticsStartTime" to the current time, Units in Seconds
+	//				else
+	//					return RETURN_OK.
+		
+	return RETURN_OK;
+}
 
 
 //Clients associated with the AP over a specific interval.  The histogram MUST have a range from -110to 0 dBm and MUST be divided in bins of 3 dBM, with bins aligning on the -110 dBm end of the range.  Received signal levels equal to or greater than the smaller boundary of a bin and less than the larger boundary are included in the respective bin.  The bin associated with the client?s current received signal level MUST be incremented when a client associates with the AP.   Additionally, the respective bins associated with each connected client?s current received signal level MUST be incremented at the interval defined by "Radio Statistics Measuring Rate".  The histogram?s bins MUST NOT be incremented at any other time.  The histogram data collected during the interval MUST be published to the parameter only at the end of the interval defined by "Radio Statistics Measuring Interval".  The underlying histogram data MUST be cleared at the start of each interval defined by "Radio Statistics Measuring Interval?. If any of the parameter's representing this histogram is queried before the histogram has been updated with an initial set of data, it MUST return -1. Units dBm
@@ -1373,6 +1401,19 @@ INT wifi_getRadioIGMPSnoopingEnable(INT radioIndex, BOOL *output_bool)
 INT wifi_setRadioIGMPSnoopingEnable(INT radioIndex, BOOL enable)	
 {
 	return RETURN_ERR;
+}
+
+//Get the Reset count of radio
+INT wifi_getRadioResetCount(INT radioIndex, ULONG *output_int) 
+{
+
+	if (NULL == output_int) 
+		return RETURN_ERR;
+	if (radioIndex==0)	
+		*output_int=1;
+	else
+		*output_int=3;
+	return RETURN_OK;
 }
 
 
