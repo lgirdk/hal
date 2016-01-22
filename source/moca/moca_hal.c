@@ -483,7 +483,7 @@ INT moca_GetAssociatedDevices(ULONG ifIndex, moca_associated_device_t **ppDevice
 * calls. It should probably just send a message to a driver event handler task. 
 *
 */
-INT moca_FreqMaskToValue(UINT mask)
+INT moca_FreqMaskToValue(UCHAR *mask)
 {
 	return STATUS_FAILURE;
 }
