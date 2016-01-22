@@ -483,7 +483,7 @@ INT moca_GetAssociatedDevices(ULONG ifIndex, moca_associated_device_t **ppDevice
 * calls. It should probably just send a message to a driver event handler task. 
 *
 */
-INT moca_FreqMaskToValue(UCHAR *mask)
+INT moca_FreqMaskToValue(UINT mask)
 {
 	return STATUS_FAILURE;
 }
@@ -580,4 +580,33 @@ INT moca_GetFlowStatistics(ULONG ifIndex, moca_flow_table_t *pDeviceArray, ULONG
     pulCount=0;
 
     return status;
+}
+
+/* moca_GetResetCount() function */
+/**
+* Description: Gets the MoCA reset count.
+*    resetcnt - number of reset 
+* @return The status of the operation.
+* @retval STATUS_SUCCESS if successful.
+* @retval STATUS_FAILURE if any error is detected 
+* 
+* @execution Synchronous.
+* @sideeffect None.
+*
+* @note This function must not suspend and must not invoke any blocking system 
+* calls. It should probably just send a message to a driver event handler task. 
+*
+*/
+
+INT moca_GetResetCount(ULONG *resetcnt)
+{
+    if (resetcnt == NULL)
+    {
+        return STATUS_FAILURE;
+    }
+    else
+    {  
+		*resetcnt = 3;
+        return STATUS_SUCCESS;
+    }
 }
