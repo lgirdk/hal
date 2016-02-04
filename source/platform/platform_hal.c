@@ -128,3 +128,8 @@ INT platform_hal_ClearResetCount(BOOLEAN bFlag)
 {
         return RETURN_OK;
 }
+
+INT platform_hal_getTimeOffSet(CHAR *pValue)
+{ 
+	return RETURN_OK; 
+} 
