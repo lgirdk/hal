@@ -16,4 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-SUBDIRS = source
+if CCSP_ARCH_PC
+OPT_SRCDIR = source-pc
+else 
+OPT_SRCDIR = source
+endif
+SUBDIRS = $(OPT_SRCDIR)
+
