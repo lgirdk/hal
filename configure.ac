@@ -91,6 +91,9 @@ AC_CONFIG_FILES(
         source/mso_mgmt/Makefile
 	source-pc/Makefile
 	source-pc/ethsw/Makefile
+	source-pc/dhcpv4c/Makefile
+ 	source-pc/mso_mgmt/Makefile
+	source-pc/wifi/Makefile
 	source-arm/Makefile
 	source-arm/ethsw/Makefile
 	source/ethsw/Makefile
