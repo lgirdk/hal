@@ -94,6 +94,7 @@ AC_CONFIG_FILES(
 	source-arm/Makefile
 	source-arm/ethsw/Makefile
 	source/ethsw/Makefile
+	source/vlan/Makefile
 	source/Makefile
 	Makefile
 )
