@@ -28,6 +28,7 @@ BUILD_HAL_MTA ?= 1
 BUILD_API_DHCPV4C ?= 1
 BUILD_HAL_PLATFORM ?= 1
 BUILD_HAL_ETHSW ?= 1
+BUILD_HAL_VLAN ?= 1
 
 #
 #	Set up include directories
@@ -156,6 +157,25 @@ header_targets += include/ccsp_hal_ethsw.h
 endif
 
 endif # BUILD_HAL_ETHSW
+
+ifeq ($(BUILD_HAL_VLAN),1)
+
+#
+#	Hal VLAN
+#
+target_libhal_vlan := $(ComponentBuildDir)/libhal_vlan.so
+source_files_libhal_vlan := $(call add_files_from_board,vlan,'*.c')
+obj_files_libhal_vlan := $(addprefix $(ComponentBuildDir)/, $(source_files_libhal_vlan:%.c=%.o))
+-include $(obj_files_libhal_vlan:.o=.d)
+
+ifneq ($(wildcard $(source_files_libhal_vlan)),)
+$(target_libhal_vlan): $(obj_files_libhal_vlan)
+hal_targets += $(target_libhal_vlan)
+header_targets += include/vlan_hal.h
+endif
+
+endif # BUILD_HAL_VLAN
+
 
 #
 #	Build targets
