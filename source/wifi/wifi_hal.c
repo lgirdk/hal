@@ -1588,6 +1588,7 @@ INT wifi_setApAuthMode(INT apIndex, INT mode)
 // sets an enviornment variable for the authMode. Valid strings are "None", "EAPAuthentication" or "SharedAuthentication"                     
 INT wifi_setApBasicAuthenticationMode(INT apIndex, CHAR *authMode)
 {
+	//save to wifi config, and wait for wifi restart to apply
 	return RETURN_ERR;
 }
 
@@ -2356,6 +2357,81 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
     }
     pclose(f);
 
+	return RETURN_OK;
+}
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering object
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.Capability bool r/o
+//To get Band Steering Capability
+INT wifi_getBandSteeringCapability(BOOL *support) {
+	*support=FALSE;
+	return RETURN_OK;
+}
+
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.Enable bool r/w
+//To get Band Steering enable status
+INT wifi_getBandSteeringEnable(BOOL *enable) {
+	*enable=FALSE;
+	return RETURN_OK;
+}
+
+//To turn on/off Band steering
+INT wifi_setBandSteeringEnable(BOOL enable) {
+	
+	return RETURN_OK;
+}
+
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.UtilizationThreshold int r/w
+//to set and read the band steering BandUtilizationThreshold parameters 
+INT wifi_getBandSteeringBandUtilizationThreshold (INT radioIndex, INT *pBuThreshold){
+	
+	return RETURN_ERR;
+}
+
+INT wifi_setBandSteeringBandUtilizationThreshold (INT radioIndex, INT buThreshold){
+	
+	return RETURN_ERR;
+}
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.RSSIThreshold int r/w
+//to set and read the band steering RSSIThreshold parameters 
+INT wifi_getBandSteeringRSSIThreshold (INT radioIndex, INT *pRssiThreshold){
+	
+	return RETURN_ERR;
+}
+
+INT wifi_setBandSteeringRSSIThreshold (INT radioIndex, INT rssiThreshold){
+	
+	return RETURN_ERR;
+}
+
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.PhyRateThreshold int r/w
+//to set and read the band steering physical modulation rate threshold parameters 
+INT wifi_getBandSteeringPhyRateThreshold (INT radioIndex, INT *pPrThreshold) { //If chip is not support, return -1
+	
+	return RETURN_ERR;
+}
+
+INT wifi_setBandSteeringPhyRateThreshold (INT radioIndex, INT prThreshold) { //If chip is not support, return -1
+	
+	return RETURN_ERR;
+}
+
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.History string r/o
+//pClientMAC[64]
+//pSourceSSIDIndex[64]
+//pDestSSIDIndex[64]
+//pSteeringReason[256]
+INT wifi_getBandSteeringLog(INT record_index, ULONG *pSteeringTime, CHAR *pClientMAC, INT *pSourceSSIDIndex, INT *pDestSSIDIndex, INT *pSteeringReason) { //if no steering or redord_index is out of boundary, return -1. pSteeringTime returns the UTC time in seconds. pClientMAC is pre allocated as 64bytes. pSteeringReason returns the predefined steering trigger reason 
+	*pSteeringTime=1454685924;
+	strcpy(pClientMAC, "14:CF:E2:13:CD:AE");
+	strcpy(pSourceSSIDIndex, "ath0");
+	strcpy(pSourceSSIDIndex, "ath1");
+	snprintf(pSteeringReason, 256, "RSSIThreshold=%d; RSSI=%d", 30, 35);
 	return RETURN_OK;
 }
 
