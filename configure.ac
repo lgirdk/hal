@@ -98,6 +98,7 @@ AC_CONFIG_FILES(
 	source-pc/platform/Makefile
 	source-pc/cm/Makefile
 	source-pc/mta/Makefile
+	source-pc/firewall/Makefile
 	source-arm/Makefile
 	source-arm/ethsw/Makefile
 	source/ethsw/Makefile

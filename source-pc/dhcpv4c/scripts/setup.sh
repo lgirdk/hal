@@ -78,5 +78,5 @@ fi
 rm -f wifi_clients.txt
 
 ###### Routing Table ##################################################### 
-sh iptables.sh 
+sh /lib/rdk/webgui.sh
 fi

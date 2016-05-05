@@ -284,3 +284,30 @@ bool checkLan()
                 return false;
 }
 
+/* To set new Gateway IP address to Lighttpd WebServer */
+
+INT CcspHalUpdateInterfaceval(CHAR *newgatewayip)
+{
+        CHAR path[1024],buf[500];
+        FILE *fp = NULL;
+        CHAR str[40],buf1[100],buf2[100];
+        INT count;
+        fp = popen("cat etc/lighttpd.conf | grep  server.bind |  cut -d '=' -f2","r");
+        if(fp == NULL)
+        {
+                printf("\n function failed");
+                return;
+        }
+        while(fgets(path,sizeof(path),fp)!=NULL);
+        for(count=0;path[count]!='\n';count++)
+                str[count]=path[count];
+        str[count]='\0';
+        sprintf(buf1,"%s%s","server.bind =",str);
+        sprintf(buf2,"%s%c%s%c","server.bind = ",'"',newgatewayip,'"');
+        sprintf(buf,"%s%s%s%s%s%s","sed -i -e 's/",buf1,"/",buf2,"/g'", " /etc/lighttpd.conf");
+        system(buf);
+        pclose(fp);
+        return 0;
+}
+
+
