@@ -1,3 +1,7 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "mso_mgmt_hal.h"
 
 /* mso_getpwd() function */
