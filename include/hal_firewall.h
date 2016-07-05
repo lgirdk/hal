@@ -14,13 +14,60 @@
 #define  INTERFACE_SIZE     16
 #endif
 
+#define ADD             	 1
+#define DELETE        		 2
+#define REPLACE         	 3
+#define ENABLE          	 4
+#define DISABLE         	 5
+#define SITE			 1
+#define SERVICE			 2
+#define SERVICE_TYPE		 1
+#define DEVICE_TYPE 		 2
+#define SITE_TYPE 		 3
+#define TRUSTEDSITE_TYPE 	 4
+#define TRUSTEDSERVICE_TYPE 	 5
+
+/****************************************************************
+			ENUM DECLARATIONS
+*****************************************************************/
+
+typedef enum
+{
+    IPADDR_IPV4 = 1,
+    IPADDR_IPV6 = 2,
+}
+COSA_DML_IPADDR_TYPE;
+
+typedef enum
+{
+    PROTO_TCP = 1,
+    PROTO_UDP = 2,
+    PROTO_BOTH = 3,
+}
+COSA_DML_PROTO_TYPE;
+
+typedef enum
+{
+    BLOCK_METHOD_URL = 1,
+    BLOCK_METHOD_KEYWORD = 2,
+}
+COSA_DML_BLOCK_METHOD;
+
+typedef enum
+{
+    MD_TYPE_BLOCK = 1,
+    MD_TYPE_ALLOW = 2,
+}
+COSA_DML_MD_TYPE;
+
+
 /*********************************************************
 		STRUCTURE DEFINITIONS
 **********************************************************/
 struct custom_option
 {
-  int isHttpBlocked; 
-  int isHttpsBlocked; 
+  int isHttpBlocked;
+  int isHttpsBlocked;
   int isPingBlocked;
   int isIdentBlocked;
   int isMulticastBlocked;
@@ -64,6 +111,128 @@ _COSA_DML_RA_CFG
 }_struct_pack_;
 
 typedef struct _COSA_DML_RA_CFG  COSA_DML_RA_CFG,  *PCOSA_DML_RA_CFG;
+
+
+/*
+ * .ManagedSites.
+ */
+typedef struct
+_COSA_DML_MANAGEDSITES
+{
+    BOOL            Enable;
+}
+COSA_DML_MANAGEDSITES;
+
+/*
+ * .ManagedSites.BlockedURL.{i}.
+ */
+typedef struct
+_COSA_DML_BLOCKEDURL
+{
+    ULONG           InstanceNumber;
+    char            Alias[256];
+
+    COSA_DML_BLOCK_METHOD BlockMethod;
+    char            Site[1025];
+    BOOL            AlwaysBlock;
+    char            StartTime[64];
+    char            EndTime[64];
+    BOOL            StartTimeFlg;
+    BOOL            EndTimeFlg;
+    char            BlockDays[64];
+    char            MAC[32];
+    char            DeviceName[128];
+}
+COSA_DML_BLOCKEDURL;
+/*
+ * .ManagedSites.TrustedUser.{i}.
+ */
+typedef struct
+_COSA_DML_TRUSTEDUSER
+{
+    ULONG                   InstanceNumber;
+    char                    Alias[256];
+
+    char                    HostDescription[64];
+    COSA_DML_IPADDR_TYPE    IPAddressType;
+    char                    IPAddress[64];
+    BOOL                    Trusted;
+}
+COSA_DML_TRUSTEDUSER;
+
+/*
+ * .ManagedServices.
+ */
+typedef struct
+_COSA_DML_MANAGED_SERVS
+{
+    BOOL            Enable;
+}
+COSA_DML_MANAGED_SERVS;
+
+/*
+ * .ManagedServices.Service.{i}.
+ */
+typedef struct
+_COSA_DML_MS_SERV
+{
+    ULONG           InstanceNumber;
+    char            Alias[256];
+
+    char            Description[64];
+    COSA_DML_PROTO_TYPE Protocol;
+    ULONG           StartPort;
+    ULONG           EndPort;
+    BOOL            AlwaysBlock;
+    char            StartTime[64];
+    char            EndTime[64];
+    char            BlockDays[64];
+}
+COSA_DML_MS_SERV;
+/*
+ * .ManagedServices.TrustedUser.{i}.
+ */
+typedef struct
+_COSA_DML_MS_TRUSTEDUSER
+{
+    ULONG           InstanceNumber;
+    char            Alias[256];
+
+    char                    HostDescription[64];
+    COSA_DML_IPADDR_TYPE    IPAddressType;
+    char                    IPAddress[64];
+    BOOL                    Trusted;
+}
+COSA_DML_MS_TRUSTEDUSER;
+
+/*
+ * .ManagedDevices.
+ */
+typedef struct
+_COSA_DML_MANAGED_DEVS
+{
+    BOOL            Enable;
+    BOOL            AllowAll;
+}
+COSA_DML_MANAGED_DEVS;
+/*
+ * .ManagedDevices.Device.{i}.
+ */
+typedef struct
+_COSA_DML_MD_DEV
+{
+    ULONG           InstanceNumber;
+    char            Alias[256];
+
+    COSA_DML_MD_TYPE Type;
+    char            Description[64];
+    char            MACAddress[64];
+    BOOL            AlwaysBlock;
+    char            StartTime[64];
+    char            EndTime[64];
+    char            BlockDays[64];
+}
+COSA_DML_MD_DEV;
 
 /*******************************************************************
 		           FUNCTION PROTOTYPES
@@ -140,4 +309,29 @@ int port_forwarding_disable();
 int port_triggering_add_rule(USHORT TriggerPortStart,USHORT TriggerPortEnd,char *prot,USHORT ForwardPortStart,USHORT ForwardPortEnd);
 int port_triggering_delete_rule(USHORT TriggerPortStart,USHORT TriggerPortEnd,char *prot,USHORT ForwardPortStart,USHORT ForwardPortEnd);
 int port_triggering_disable();
+
+
+/******************************** Parental Control **********************/
+
+/** Add ParentalControl_Sites Rule Chain **/
+int do_parentalControl_Addrule_Sites();
+/** Add ParentalControl_Services Rule Chain **/
+int do_parentalControl_Addrule_Services();
+/** Add ParentalControl_Devices Rule Chain **/
+int do_parentalControl_Addrule_Devices();
+/** Delete ParentalControl_Sites Rule Chain **/
+int do_parentalControl_Delrule_Sites();
+/** Delete ParentalControl_Services Rule Chain **/
+int do_parentalControl_Delrule_Services();
+/** Delete ParentalControl_Devices Rule Chain **/
+int do_parentalControl_Delrule_Devices();
+/** Add or Delete Site/Keyword Restriction **/
+int do_parentalControl_Sites(int OPERATION,COSA_DML_BLOCKEDURL *i_BlockedURLs);
+/** Add or Delete Service Restriction **/
+int do_parentalControl_Services(int OPERATION,COSA_DML_MS_SERV *i_MSServs);
+/** Add or Delete Device Restriction **/
+int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs);
+/** Add or Delete Trusted Computer on Site and Service Restriction**/
+void CosaDmlTrustedUser_Accept(int block_type,char  ipAddress[64],int operation);
+
 #endif

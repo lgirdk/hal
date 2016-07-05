@@ -82,6 +82,9 @@ static bool InitialRuleSet = true;  //Initial Rule set to add iptables in DMZ
 static bool InitialRule = true;     //Initial Rule Set to add iptables in Remote Management
 int Portforwarding=0; //Disable portforwarding
 int Porttriggering=0; //Disable porttriggering
+int ParentalControlSite=0; //Disable   ParentalControl
+int ParentalControlService=0; //Disable   ParentalControl
+int ParentalControlDevice=0; //Disable   ParentalControl
 
 /*
  *  Procedure     : to_syslog_level
@@ -160,6 +163,318 @@ int prepare_globals_from_configuration(struct custom_option *option)
 
 }
 
+/**********************************************************************
+		PARENTAL CONTROL FUNCTION DEFINITIONS
+***********************************************************************/
+
+int do_parentalControl_Addrule_Sites()
+{
+        char cmd[1024];
+	if(!ParentalControlSite)
+	{
+		sprintf(cmd,"iptables -N  ParentalControl_Sites  ");
+		system(cmd);
+		sprintf(cmd,"iptables -I FORWARD -j ParentalControl_Sites  ");
+		system(cmd);
+		ParentalControlSite = 1;
+	}
+}
+
+
+int do_parentalControl_Addrule_Services()
+{
+        char cmd[1024];
+	if(!ParentalControlService)
+	{
+		sprintf(cmd,"iptables -N  ParentalControl_Services  ");
+		system(cmd);
+		sprintf(cmd,"iptables -I FORWARD -j ParentalControl_Services  ");
+		system(cmd);
+		ParentalControlService = 1;
+	}
+}
+int do_parentalControl_Addrule_Devices()
+{
+        char cmd[1024];
+	if(!ParentalControlDevice)
+	{
+		sprintf(cmd,"iptables -N  ParentalControl_Devices  ");
+		system(cmd);
+		sprintf(cmd,"iptables -I INPUT -j ParentalControl_Devices  ");
+		system(cmd);
+		ParentalControlDevice = 1;
+	}
+}
+
+int do_parentalControl_Delrule_Sites()
+{
+        char cmd[1024];
+	if( ParentalControlSite )
+	{
+		sprintf(cmd,"iptables -F  ParentalControl_Sites  ");
+		system(cmd);
+		sprintf(cmd,"iptables -D FORWARD -j ParentalControl_Sites  ");
+		system(cmd);
+		sprintf(cmd,"iptables -X  ParentalControl_Sites  ");
+		system(cmd);
+		ParentalControlSite = 0;
+	}
+}
+
+int do_parentalControl_Delrule_Services()
+{
+        char cmd[1024];
+	if(ParentalControlService)
+	{
+		sprintf(cmd,"iptables -F  ParentalControl_Services  ");
+		system(cmd);
+		sprintf(cmd,"iptables -D FORWARD -j ParentalControl_Services  ");
+		system(cmd);
+		sprintf(cmd,"iptables -X  ParentalControl_Services  ");
+		system(cmd);
+		ParentalControlService = 0;
+	}
+}
+int do_parentalControl_Delrule_Devices()
+{
+        char cmd[1024];
+	if(ParentalControlDevice)
+	{
+		sprintf(cmd,"iptables -F  ParentalControl_Devices  ");
+		system(cmd);
+		sprintf(cmd,"iptables -D INPUT -j ParentalControl_Devices  ");
+		system(cmd);
+		sprintf(cmd,"iptables -X  ParentalControl_Devices  ");
+		system(cmd);
+		ParentalControlDevice = 0;
+	}
+}
+
+int do_parentalControl_Sites(int OPERATION,COSA_DML_BLOCKEDURL *i_BlockedURLs)
+{
+	  int len;
+          char newvar[1024];
+          char cmd[1024]= {'\0'};
+          char url[1024];
+          const char s[] = "://";
+          char *token;
+          char strWord[1024];     
+          switch(OPERATION)
+          {
+                  case ADD:
+			  strcpy(newvar,"iptables  -A ParentalControl_Sites  ");
+			  break;
+                  case DELETE:
+			  strcpy(newvar,"iptables  -D ParentalControl_Sites  ");
+			  break;
+	  }
+
+	  if(i_BlockedURLs->BlockMethod == BLOCK_METHOD_URL)
+          {
+                  token = strtok(i_BlockedURLs->Site,s);
+                  len = strlen(token);
+                  strcpy(strWord,i_BlockedURLs->Site+len+3);
+          }
+          else if(i_BlockedURLs->BlockMethod == BLOCK_METHOD_KEYWORD)
+          {
+                  strcpy(strWord,i_BlockedURLs->Site);
+          }
+
+         if(!i_BlockedURLs->AlwaysBlock )
+          {
+               snprintf(cmd,sizeof(cmd),"%s  -m string --algo bm --string %s -m time --timestart %s --timestop %s --weekdays %s -j DROP",newvar,strWord,i_BlockedURLs->StartTime,i_BlockedURLs->EndTime,i_BlockedURLs->BlockDays);                 
+	  }
+         else
+          {
+               snprintf(cmd,sizeof(cmd),"%s  -m string --algo bm --string %s -j DROP",newvar,strWord);
+          }
+          system(cmd);
+}
+
+int do_parentalControl_Services(int OPERATION,COSA_DML_MS_SERV *i_MSServs)
+{
+          char newvar[1024];
+          char action[10];
+          ULONG startport;
+          char cmd[1024]= {'\0'};
+          char protocol[10];
+          char protocol1[10];
+
+          switch(OPERATION)
+          {
+                  case ADD:
+          		strcpy(newvar,"iptables  -A  ParentalControl_Services  ");
+			break;
+                  case DELETE:
+          		strcpy(newvar,"iptables  -D  ParentalControl_Services ");
+			break;
+	 }
+	  switch(i_MSServs->Protocol)
+          {
+                  case PROTO_TCP:
+                          strcpy(protocol,"tcp");
+                          break;
+                  case PROTO_UDP:
+                          strcpy(protocol,"udp");
+                          break;
+                  case PROTO_BOTH:
+                          strcpy(protocol,"tcp");
+                          strcpy(protocol1,"udp");
+                          break;
+          }
+	  if(i_MSServs->StartPort == i_MSServs->EndPort)
+          {
+                if(!i_MSServs->AlwaysBlock)
+                {
+                       if(i_MSServs->Protocol != PROTO_BOTH)
+                       {
+                             snprintf(cmd,sizeof(cmd),"%s -p %s  --destination-port %ld -m time --timestart %s --timestop %s --weekdays %s -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                              system(cmd);
+                       }
+                       else
+                       {
+                            snprintf(cmd,sizeof(cmd),"%s -p %s --destination-port %ld -m time --timestart %s --timestop %s --weekdays %s -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                            system(cmd);
+                            snprintf(cmd,sizeof(cmd),"%s -p %s --destination-port %ld -m time --timestart %s --timestop %s --weekdays %s-j DROP",newvar,protocol1,i_MSServs->StartPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                            system(cmd);
+
+                       }
+                }
+                else
+                {
+                      if(i_MSServs->Protocol != PROTO_BOTH)
+                       {
+                             snprintf(cmd,sizeof(cmd),"%s -p %s  --destination-port %ld  -j DROP",newvar,protocol,i_MSServs->StartPort);
+                             system(cmd);
+                        }
+                        else
+                       {
+                             snprintf(cmd,sizeof(cmd),"%s -p %s --destination-port %ld  -j DROP",newvar,protocol,i_MSServs->StartPort);
+                             system(cmd);
+                             snprintf(cmd,sizeof(cmd),"%s -p %s  --destination-port %ld  -j DROP",newvar,protocol1,i_MSServs->StartPort);
+                             system(cmd);
+                       }
+                 }
+         }
+         else
+         {
+              if(!i_MSServs->AlwaysBlock)
+              {
+                     if(i_MSServs->Protocol != PROTO_BOTH)
+                     {
+                          snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld -m time --timestart %s --timestop %s --weekdays %s -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->EndPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                           system(cmd);
+                     }
+                     else
+                     {
+                          snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld -m time --timestart %s  --timestop %s --weekdays %s -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->EndPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                          system(cmd);
+   
+                          snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld -m time --timestart %s  --timestop %s --weekdays %s -j DROP",newvar,protocol1,i_MSServs->StartPort,i_MSServs->EndPort,i_MSServs->StartTime,i_MSServs->EndTime,i_MSServs->BlockDays);
+                          system(cmd);
+                     }
+             }
+             else
+             {
+                     if(i_MSServs->Protocol != PROTO_BOTH)
+                     {
+                            snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld  -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->EndPort);
+                            system(cmd);
+                     }
+                     else
+                     {
+                              snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld  -j DROP",newvar,protocol,i_MSServs->StartPort,i_MSServs->EndPort);
+                              system(cmd);
+                              snprintf(cmd,sizeof(cmd),"%s -p %s -m multiport --dports %ld:%ld  -j DROP",newvar,protocol1,i_MSServs->StartPort,i_MSServs->EndPort);
+                              system(cmd);
+  
+                      }
+              }
+  
+       }
+}
+
+int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
+{
+	  int i;
+          char newvar[1024];
+          char cmd[1024]= {'\0'};
+          char protocol1[10];
+          char action[15];
+	  switch(OPERATION)
+          {
+                  case ADD:
+                        strcpy(newvar,"iptables  -A  ParentalControl_Devices ");
+                          break;
+                  case DELETE:
+                        strcpy(newvar,"iptables -D  ParentalControl_Devices ");
+                          break;
+          }
+
+
+          if( !i_MDDevs->AlwaysBlock )
+          {
+                if(i_MDDevs->Type == MD_TYPE_BLOCK)
+                {
+	                sprintf(action,"DROP");
+			snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+                }
+                else if(i_MDDevs->Type == MD_TYPE_ALLOW)
+                {
+		       sprintf(action,"ACCEPT");
+                       snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+                }
+	 }
+	 else
+         {
+               if(i_MDDevs->Type == MD_TYPE_BLOCK)
+               {
+	                sprintf(action,"DROP");
+                        snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+               }
+               else if(i_MDDevs->Type == MD_TYPE_ALLOW)
+               {
+		        sprintf(action,"ACCEPT");
+                        snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+               }
+          }
+          system(cmd);
+}
+ 
+void CosaDmlTrustedUser_Accept(int block_type,char  ipAddress[64],int operation)
+{
+        char cmd[1024];
+        LONG ruleNumber;
+        switch(block_type)
+        {
+                case TRUSTEDSITE_TYPE:
+                        if(operation == ADD)
+                         {
+                             sprintf(cmd,"iptables -I ParentalControl_Sites  -s %s -j ACCEPT",ipAddress);
+                         }
+                         else
+                         {
+                             sprintf(cmd,"iptables -D ParentalControl_Sites  -s %s -j ACCEPT",ipAddress);
+                         }
+                        break;
+               case TRUSTEDSERVICE_TYPE:
+                       if(operation == ADD)
+                       {
+                            sprintf(cmd,"iptables -I ParentalControl_Services  -s %s -j ACCEPT",ipAddress);
+                       }
+                       else
+                       {
+                            sprintf(cmd,"iptables -D ParentalControl_Services  -s %s -j ACCEPT",ipAddress);
+                       }
+                       break;
+        }
+        system(cmd);
+
+}
+
+/*************************************************************************************
+				FIREWALL FUNCTION DEFINITIONS
+**************************************************************************************/
 int do_nonat(FILE *filter_fp,struct NetworkDetails *netDetails)
 {
 
