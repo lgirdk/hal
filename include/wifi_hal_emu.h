@@ -161,6 +161,9 @@
 #define AP_INDEX_16 16
 #endif
 
+#define  COSA_DML_ALIAS_NAME_LENGTH             64
+#define MAX_MAC_FILT                		16
+
 //defines for HAL version 2.2.1
 #define WIFI_HAL_MAJOR_VERSION 2   // This is the major verion of this HAL.
 #define WIFI_HAL_MINOR_VERSION 2   // This is the minor verson of the HAL.
@@ -177,6 +180,25 @@
 /**********************************************************************
                 STRUCTURE DEFINITIONS
 **********************************************************************/
+
+struct hostDetails
+{
+        char hostName[20];
+        char InterfaceType[50];
+};
+
+
+typedef struct
+_COSA_DML_WIFI_AP_MAC_FILTER
+{
+    ULONG                           InstanceNumber;
+    char                            Alias[COSA_DML_ALIAS_NAME_LENGTH];
+
+    char                            MACAddress[18];
+    char                            DeviceName[64];
+}
+COSA_DML_WIFI_AP_MAC_FILTER;
+
 
 //>> Deprecated: used for old RDKB code. 
 typedef struct _wifi_basicTrafficStats
@@ -1172,6 +1194,20 @@ BOOL checkLanInterface();
 //Passing inputs to hostapd configuration file
 INT CcspHal_change_config_value(char *field_name, char *field_value, char *buf, unsigned int *nbytes);
 
+
+
+
+
+/***********************************************************************************************
+			MAC FILTERING FUNCTION DEFINITION
+***********************************************************************************************/
+/** To Add Wifi MacFiltering Rule Chain **/
+int do_MacFilter_Addrule();
+/** To Delete Wifi MacFiltering Rule Chain **/
+int do_MacFilter_Delrule();
+/** To Update Wifi MacFiltering Rule Chain **/
+int do_MacFilter_Update(char *Operation, int i_macFiltCnt,COSA_DML_WIFI_AP_MAC_FILTER  *i_macFiltTabPtr,int count,struct hostDetails *hostPtr);
+	
 //-----------------------------------------------------------------------------------------------
 //Device.WiFi.AccessPoint.{i}.X_COMCAST-COM_InterworkingService. 
 //Device.WiFi.AccessPoint.{i}.X_COMCAST-COM_InterworkingService.AccessNetworkType	

@@ -87,6 +87,7 @@
 #define RADIO_PREFIX	"wifi"
 #endif
 
+static int MacFilter = 0 ;
 void KillHostapd()
 {
         system("ifconfig mon.wlan0 down");
@@ -3104,4 +3105,84 @@ int main(int argc,char **argv)
 	return 0;
 }
 #endif
+
+/**************************************************************************************************
+			WIFI MAC FILTERING FUNCTIONS
+****************************************************************************************************/
+int do_MacFilter_Startrule()
+{
+        char cmd[1024];
+	printf("\nStartRule\n");
+        sprintf(cmd,"iptables -F  WifiServices  ");
+        sprintf(cmd,"iptables -D INPUT  -j WifiServices  ");
+        sprintf(cmd,"iptables -X  WifiServices  ");
+        system(cmd);
+        sprintf(cmd,"iptables -N  WifiServices  ");
+        system(cmd);
+        sprintf(cmd,"iptables -I INPUT  -j WifiServices  ");
+        system(cmd);
+}
+
+int do_MacFilter_Flushrule()
+{
+        char cmd[1024];
+	printf("\nFlushRule\n");
+        sprintf(cmd,"iptables -F  WifiServices  ");
+        system(cmd);
+}
+
+
+int do_MacFilter_Update(char *Operation, int i_macFiltCnt,COSA_DML_WIFI_AP_MAC_FILTER  *i_macFiltTabPtr ,int Count,struct hostDetails *hostPtr)
+{
+	int i,list,ret;
+        char command[256];
+	printf("\nFlter Update\n");
+
+	if(!strcmp(Operation,"ACCEPT"))
+	{
+		printf("\nFlter Update Accept\n");
+	        for(i = 0; i < Count; i++)
+	        {
+	            /* filter unwelcome device */
+        	    if(!strcmp(hostPtr->InterfaceType,"Device.WiFi.SSID.1"))
+	            {
+	                 snprintf(command,sizeof(command),"hostapd_cli deauthenticate %s",hostPtr->hostName);
+                	 system(command);
+	                 sprintf(command, "iptables -I WifiServices -m mac --mac-source %s -j %s\n",hostPtr->hostName,"DROP");
+                	 system(command);
+	             }
+		     hostPtr++;	
+	        }
+	        for(list=0;list<i_macFiltCnt;list++)
+	        {
+	              sprintf(command, "iptables -I WifiServices -m mac --mac-source %s -j %s\n",i_macFiltTabPtr->MACAddress,Operation);
+	              system(command);
+		      i_macFiltTabPtr++; 
+       		}
+	}
+	else if(!strcmp(Operation,"DROP"))
+        {
+		printf("\nFlter Update Drop\n");
+                snprintf(command,sizeof(command),"iptables -P INPUT  ACCEPT");
+                system(command);
+                for(i=0;i<i_macFiltCnt;i++)
+                {
+                   snprintf(command,sizeof(command),"hostapd_cli deauthenticate %s",i_macFiltTabPtr->MACAddress);
+                   ret = system(command);
+                   snprintf(command,sizeof(command),"iptables -I WifiServices -m mac --mac-source %s -j %s",i_macFiltTabPtr->MACAddress,Operation);
+                   ret = system(command);
+	      	   i_macFiltTabPtr++; 
+                }
+
+        }else
+        {
+		printf("\nFlter Update Allow All\n");
+
+                snprintf(command,sizeof(command),"iptables -P INPUT ACCEPT");
+                system(command);
+        }
+
+        return 1; 
+ }
+
 //<<
