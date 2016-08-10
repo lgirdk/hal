@@ -20,6 +20,8 @@ INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
         INT result_found=0;
 
         fp =fopen(UDHCPD_CONF_FILE_PATH ,"r+");
+	if(fp)
+	{
         while(fgets(line,FILE_SIZE, fp) != NULL) {
                 if((strstr(line, key)) != NULL) {
                        for(ptr = line; *ptr&&*ptr!=SPACE ;ptr++);
@@ -28,10 +30,16 @@ INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
                        break;
                 }
          }
-
-
+	}
+	else
+		result_found=0;
+	
         if(result_found == 0)
+	{
                 printf("\nSorry, couldn't find a match.\n");
+		ptr = "0.0.0.0";
+                snprintf(value, size, "%s", ptr);
+	}
         else
                 snprintf(value, size, "%s", ptr);
         close(fp);
@@ -48,6 +56,8 @@ INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
         INT result_found=0;
 
         fp =fopen(UDHCPD_CONF_FILE_PATH ,"r+");
+	if(fp)
+	{
         while(fgets(line,FILE_SIZE, fp) != NULL) {
                 if((strstr(line, key)) != NULL) {
                        for(ptr = line; *ptr&&*ptr!=SPACE;ptr++);
@@ -58,10 +68,16 @@ INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
                        break;
                 }
          }
-
+	}
+	else
+		result_found=0;
 
         if(result_found == 0)
+	{
                 printf("\nSorry, couldn't find a match.\n");
+		ptr = "0";
+                snprintf(value, size, "%s", ptr);
+	}
         else
                 snprintf(value, size, "%s", ptr);
         close(fp);
