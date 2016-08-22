@@ -133,3 +133,13 @@ INT platform_hal_getTimeOffSet(CHAR *pValue)
 { 
 	return RETURN_OK; 
 } 
+
+INT platform_hal_SetDeviceCodeImageTimeout(INT seconds)
+{ 
+	return RETURN_OK; 
+} 
+
+INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
+{ 
+	return RETURN_OK; 
+}
