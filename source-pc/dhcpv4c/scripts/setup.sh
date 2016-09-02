@@ -77,6 +77,12 @@ fi
 
 rm -f wifi_clients.txt
 
+fi
 ###### Routing Table ##################################################### 
 sh /lib/rdk/webgui.sh
-fi
+
+################### Getting wlan0_0 mac Address(public wifi) #############
+sh /lib/rdk/Getting_wlan0_0_mac.sh
+
+
+
