@@ -77,6 +77,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>   //ifreq
+#include <unistd.h>   //close
+#include "ccsp/ansc_platform.h"//LNT_EMU
 #include "wifi_hal_emu.h"
 
 #ifndef AP_PREFIX
@@ -87,15 +92,148 @@
 #define RADIO_PREFIX	"wifi"
 #endif
 
+//PSM Access-LNT_EMU
+extern ANSC_HANDLE bus_handle;
+extern char g_Subsystem[32];
+static char *BssSsid ="eRT.com.cisco.spvtg.ccsp.Device.WiFi.Radio.SSID.%d.SSID";
+
 static int MacFilter = 0 ;
+
+/****************************************************************************
+		Xfinity-wifi and Private-wifi (2.4Ghz) Function Definitions
+*****************************************************************************/
+
+/***************************************************************
+	Checking Hostapd status(whether it's running or not)
+****************************************************************/
+
+/*
+* 	Procedure	: Checking Hostapd status(whether it's running or not)
+*	Purpose		: Restart the Hostapd with updated configuration parameter
+*	Parameter	:
+*	 status		: Having Hostapd status
+* 	Return_values	: None
+*/
+
+void Hostapd_PublicWifi_status(char status[50])
+{
+        FILE *fp;
+        char path[256];
+        int count;
+        fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4 > /tmp/public_wifi_status.txt","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        pclose(fp);
+        fp = popen("cat /tmp/public_wifi_status.txt","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        if(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+        for(count=0;path[count]!='\n';count++)
+                status[count]=path[count];
+        status[count]='\0';
+        }
+        else
+        {
+        status[0] = '\0';
+        }
+        printf("current XfinityWifi status %s \n",status);
+        pclose(fp);
+}
+
+void Hostapd_PrivateWifi_status(char status[50])
+{
+        FILE *fp;
+        char path[256];
+        int count;
+        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4 > /tmp/private_wifi_status.txt","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        pclose(fp);
+        fp = popen("cat /tmp/private_wifi_status.txt","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        if(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+        for(count=0;path[count]!='\n';count++)
+                status[count]=path[count];
+        status[count]='\0';
+        }
+        else
+        {
+        status[0] = '\0';
+        }
+        printf("current PrivateWifi status %s \n",status);
+        pclose(fp);
+}
+
+/*******************************************************************
+	    Restarting Hostapd with new configuration
+********************************************************************/
+void RestartHostapd()
+{
+        system("ifconfig wlan0 up");
+        system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
+        system("hostapd -B /etc/hostapd.conf");
+        system("ifconfig mon.wlan0 up");
+        system("ifconfig wlan0_0 up");
+}
+
 void KillHostapd()
 {
         system("ifconfig mon.wlan0 down");
         system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
         system("ifconfig wlan0 down");
+        system("ifconfig wlan0_0 down");
         system("ifconfig wlan0 up");
         system("hostapd -B /etc/hostapd.conf");
         system("ifconfig mon.wlan0 up");
+        system("ifconfig wlan0_0 up");
+        system("ifconfig wlan0 up");
+        system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
+        system("hostapd -B /etc/hostapd.conf");
+        system("ifconfig mon.wlan0 up");
+        system("ifconfig wlan0_0 up");
+}
+void killXfinityWiFi()
+{
+        system("killall CcspHotspot");
+        system("killall hotspot_arpd");
+        system("brctl delif brlan1 gretap0");
+        system("brctl delif brlan1 wlan0_0");
+        system("ifconfig brlan1 down");
+        system("brctl delbr brlan1");
+        system("ip link del gretap0");
+        system("iptables -D FORWARD -j general_forward");
+        system("iptables -D OUTPUT -j general_output");
+        system("iptables -F general_forward");
+        system("iptables -F general_output");
+
+}
+
+void get_mac(unsigned char *mac)
+{
+    int fd;
+    struct ifreq ifr;
+    char *iface = "eth0";
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name , iface , IFNAMSIZ-1);
+    ioctl(fd, SIOCGIFHWADDR, &ifr);
+    close(fd);
+    mac = (unsigned char *)ifr.ifr_hwaddr.sa_data;
 }
 
 BOOL checkWifi()
@@ -140,6 +278,90 @@ BOOL checkLanInterface()
                 return false;
         }
 }
+
+#if 1//LNT_EMU
+void DisableWifi(int line_no)
+{
+        char str[100];
+        sprintf(str,"%s%d%s","sed -i '",line_no,"s/^/#/' /etc/hostapd.conf");
+        system(str);
+        KillHostapd();
+}
+void EnableWifi(int InstanceNumber,int line_no)
+{
+        FILE *fp;
+        int count;
+        char path[256];
+        char *ssid_val,output[50];
+        char str[100],str1[100],str2[100],val[100];
+        char param_name[256] = {0};
+        char *param_value = NULL;
+        char status[50];
+        sprintf(str,"%s%d%s","sed -i '",line_no,"s/^#*//' /etc/hostapd.conf");
+        system(str);
+        //PSM Access
+        memset(param_name, 0, sizeof(param_name));
+        sprintf(param_name, BssSsid, InstanceNumber);
+        PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
+	if(InstanceNumber == 1)//Getting Private_ssid value in /etc/hostapd.conf
+	{
+        fp = popen("cat /etc/hostapd.conf | grep -w ssid ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__);
+                return;
+        }
+        /* Read the output a line at a time - output it. */
+        fgets(path, sizeof(path)-1, fp);
+        ssid_val = strchr(path,'=');
+        strcpy(output,ssid_val+1);
+        for(count=0;output[count]!='\n';count++)
+                val[count]=output[count];
+        val[count]='\0';
+	}
+	if(InstanceNumber == 5)//Getting public_ssid value in /etc/hostapd.conf
+	{
+	fp = popen("cat /etc/hostapd.conf | grep -w ssid ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__);
+                return;
+        }
+        /* Read the output a line at a time - output it. */
+        while(fgets(path, sizeof(path)-1, fp)!=NULL)
+        {
+        ssid_val = strchr(path,'=');
+        strcpy(output,ssid_val+1);
+        }
+        for(count=0;output[count]!='\n';count++)
+                val[count]=output[count];
+        val[count]='\0';
+	}
+        pclose(fp);
+        sprintf(str1,"%s%s","ssid=",val);
+        sprintf(str2,"%s%s","ssid=",param_value);
+        sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd.conf");//Replace string with line numbers
+        system(str);
+        KillHostapd();
+        if(InstanceNumber == 1)//Private_ssid
+        {
+        Hostapd_PrivateWifi_status(status);
+        while(strcmp(status,"RUNNING") != 0)
+        {
+        RestartHostapd();//check the hostapd status
+        Hostapd_PrivateWifi_status(status);
+        }
+	}
+	else if(InstanceNumber == 5)//Public_ssid(xfinity_wifi)
+        {
+        Hostapd_PublicWifi_status(status);
+        while(strcmp(status,"RUNNING") != 0)
+        {
+        RestartHostapd();//check the hostapd status
+        Hostapd_PublicWifi_status(status);
+        }
+        }
+}
+#endif
+
 
 INT CcspHal_change_config_value(char *field_name, char *field_value, char *buf, unsigned int *nbytes)
 {
@@ -636,6 +858,8 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
+	if((radioIndex == 1) || (radioIndex == 5))
+        {
 	char path[1024];
         char channelvalue[50];
         FILE *fp = NULL;
@@ -650,7 +874,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
         strcpy(channelvalue,channel+1);
         *output_ulong =(unsigned long)atol(channelvalue);
         pclose(fp);
-
+	}
 	return RETURN_OK;
 
 #endif
@@ -662,58 +886,35 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	//Set to wifi config only. Wait for wifi reset or wifi_pushRadioChannel to apply.
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	char buf1[WORD_SIZE];
-        sprintf(buf1,"%lu",channel);//LNT
-        char buf[FILE_SIZE] = "";//Must fill the buffer with zeroes
-        int fd, nbytes, ret;
-        struct stat file_stat={};
-        if((fd = open(HOSTAPD_CONF_FILE_PATH, 0|O_RDWR))==-1)
-        {
-                //perror("open(/etc/udhcpd.conf) failed");
-                printf("open(/etc/hostapd.conf) failed: %m\n");
-                return -1;
+	if((radioIndex == 1) || (radioIndex == 5))
+	{
+	char path[1024];
+        char channelvalue[50],current_channel_value[50],channel_value[50];
+	char str[100],str1[100],str2[100];
+        FILE *fp = NULL;
+        char *Channel;
+	int count;
+        fp = popen("cat /etc/hostapd.conf | grep -w channel ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
         }
-        if(fstat(fd, &file_stat)==-1)
-        {//called for getting file size
-                printf("stat failed: %m\n");
-                return -1;
-        }
-        if(file_stat.st_size+BUFFER_ADJUSTMENT> sizeof buf) //+128 bytes reserved for buffer adjustments
-        {//checking whether buf size is sufficient or not
-                printf("Insufficient buffer size\n");
-                return -1;
-        }
-        if((nbytes = read(fd, buf, sizeof buf))==-1)
-        {//reading contents of the file.
-                printf("read(/etc/udhcpd.conf) failed: %m\n");
-                return -1;
-        }
-        ret = CcspHal_change_config_value("channel=",buf1, buf, &nbytes);
-        if(ret == -1)
-        {
-                printf("change_config_value failed\n");
-                return -1;
-        }
-        if(ftruncate(fd, 0)==-1)
-        {
-                printf("ftruncate failed: %m\n");
-                return -1;
-        }
-        if(lseek(fd, 0, SEEK_SET)==-1)
-        {
-                printf("lseek failed: %m\n");
-                return -1;
-        }
-        if(write(fd, buf, nbytes)==-1)
-        {
-                printf("write failed: %m\n");
-                return -1;
-        }
-        close(fd);
-        KillHostapd();
-        return 0;
-
+        fgets(path, sizeof(path)-1, fp);
+        Channel = strchr(path,'=');
+        strcpy(channel_value,Channel+1);
+	for(count=0;channel_value[count]!='\n';count++)
+                current_channel_value[count]=channel_value[count];
+        current_channel_value[count]='\0';
+	sprintf(str1,"%s%s","channel=",current_channel_value);
+	sprintf(channelvalue,"%lu",channel);
+	sprintf(str2,"%s%s","channel=",channelvalue);
+	sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd.conf");
+	system(str);
+	pclose(fp);
+	KillHostapd();
+	}
 #endif
+        return 0;
 }
 
 //Enables or disables a driver level variable to indicate if auto channel selection is enabled on this radio
@@ -1130,7 +1331,6 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 // Outputs a 32 byte or less string indicating the SSID name.  Sring buffer must be preallocated by the caller.
 INT wifi_getSSIDName(INT apIndex, CHAR *output)
 {
-#if 0//LNT_EMU
 	if (NULL == output) 
 		return RETURN_ERR;
 	if(apIndex==0) 
@@ -1146,26 +1346,6 @@ INT wifi_getSSIDName(INT apIndex, CHAR *output)
 	else
 		snprintf(output, 64, "OOS");
 	return RETURN_OK;
-#endif
-#if 1//LNT_EMU
-	FILE *fp;
-        char path[FILE_SIZE];
-        char *ssidname;
-        /* Open the command for reading. */
-        fp = popen("cat /etc/hostapd.conf | grep -w ssid ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                exit(1);
-        }
-        /* Read the output a line at a time - output it. */
-        fgets(path, sizeof(path)-1, fp);
-        ssidname = strchr(path,'=');
-        strcpy(output,ssidname+1);
-        pclose(fp);
-
-	return RETURN_OK;
-
-#endif
 }
         
 // Set a max 32 byte string and sets an internal variable to the SSID name          
@@ -1174,54 +1354,93 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
 	//Set to wifi config. wait for wifi reset or wifi_pushSSID to apply
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	char buf[FILE_SIZE] = "";//Must fill the buffer with zeroes
-        int fd, nbytes, ret;
-        struct stat file_stat={};
-        if((fd = open(HOSTAPD_CONF_FILE_PATH, 0|O_RDWR))==-1)
+	int count;
+        FILE *fp;
+        char path[256];
+        char *ssid_val,output[50];
+        char str[256],str1[50],str2[50],val[50],val1[100];
+        char *strValue = NULL;
+        unsigned char *mac;
+        char status[50];
+        if(apIndex == 1)//Private_ssid
         {
-                //perror("open(/etc/udhcpd.conf) failed");
-                printf("open(/etc/hostapd.conf) failed: %m\n");
-                return -1;
+                fp = popen("cat /etc/hostapd.conf | grep -w ssid ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__);
+                return;
         }
-        if(fstat(fd, &file_stat)==-1)
-        {//called for getting file size
-                printf("stat failed: %m\n");
-                return -1;
-        }
-        if(file_stat.st_size+BUFFER_ADJUSTMENT> sizeof buf) //+128 bytes reserved for buffer adjustments
-        {//checking whether buf size is sufficient or not
-                printf("Insufficient buffer size\n");
-                return -1;
-        }
-        if((nbytes = read(fd, buf, sizeof buf))==-1)
-        {//reading contents of the file.
-                printf("read(/etc/udhcpd.conf) failed: %m\n");
-                return -1;
-        }
-        ret = CcspHal_change_config_value("ssid=",ssid_string, buf, &nbytes);
-        if(ret == -1)
-        {
-                printf("change_config_value failed\n");
-                return -1;
-        }
-        if(ftruncate(fd, 0)==-1)
-        {
-                printf("ftruncate failed: %m\n");
-                return -1;
-        }
-        if(lseek(fd, 0, SEEK_SET)==-1)
-        {
-                printf("lseek failed: %m\n");
-                return -1;
-        }
-        if(write(fd, buf, nbytes)==-1)
-        {
-                printf("write failed: %m\n");
-                return -1;
-        }
-        close(fd);
+        /* Read the output a line at a time - output it. */
+        fgets(path, sizeof(path)-1, fp);
+        ssid_val = strchr(path,'=');
+        strcpy(output,ssid_val+1);
+        for(count=0;output[count]!='\n';count++)
+                val[count]=output[count];
+        val[count]='\0';
+
+        pclose(fp);
+        sprintf(str1,"%s%s","ssid=",val);
+        sprintf(str2,"%s%s","ssid=",ssid_string);
+        sprintf(str,"%s%s/%s%s","sed -i '28s/",str1,str2,"/' /etc/hostapd.conf");//Replace string with line numbers
+        system(str);
         KillHostapd();
-        return 0;
+        Hostapd_PrivateWifi_status(status);
+        while(strcmp(status,"RUNNING") != 0)
+        {
+        RestartHostapd();//check the hostapd status
+        Hostapd_PrivateWifi_status(status);
+        }
+        }
+	if(apIndex == 5)//Public_ssid
+        {
+
+                 fp = popen("cat /etc/hostapd.conf | grep -w ssid ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__);
+                return;
+        }
+        /* Read the output a line at a time - output it. */
+        while(fgets(path, sizeof(path)-1, fp)!=NULL)
+        {
+        ssid_val = strchr(path,'=');
+        strcpy(output,ssid_val+1);
+        }
+        pclose(fp);
+
+        for(count=0;output[count]!='\n';count++)
+                val[count]=output[count];
+        val[count]='\0';
+
+        if(path[0] == '#')
+        {
+                for(count=0;path[count]!='=';count++)
+                        val1[count] = path[count];
+                val1[count] = '\0';
+
+        sprintf(str1,"%s%c%s",val1,'=',val);
+        sprintf(str2,"%s%c%s",val1,'=',ssid_string);
+        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd.conf");
+        }
+        else
+        {
+        sprintf(str1,"%s%s","ssid=",val);
+        sprintf(str2,"%s%s","ssid=",ssid_string);
+        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd.conf");
+        }
+        system(str);
+        killXfinityWiFi();
+        printf("Before Getting the MAc Address \n");
+        get_mac(&mac);
+        //display uplink mac address
+        printf("%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+//sysevent daemon updation with new ssid
+        sprintf(str,"%s %c%.2x:%.2x:%.2x:%.2x:%.2x:%.2x;%s;%c%c","sysevent set snooper-queue1-circuitID",'"',mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],ssid_string,'o','"');
+        system(str);
+        sprintf(str,"%s %c%.2x:%.2x:%.2x:%.2x:%.2x:%.2x;%s;%c%c","sysevent set snooper-queue2-circuitID",'"',mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],ssid_string,'o','"');
+        system(str);
+        sleep(10);
+        system("/lib/rdk/hotspot_restart.sh");
+        }
 
 #endif
 }
@@ -1244,13 +1463,33 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 #if 1//LNT_EMU
 	FILE *fp = NULL;
         char bssid[20];
-        char path[FILE_SIZE];
+        char path[1024];
         int bssidindex=0;
         int arr[MACADDRESS_SIZE];
-        unsigned char mac[MACADDRESS_SIZE];
-        if(checkLanInterface() == false)
-                return -1;
-        fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        unsigned char mac[6];
+        if(ssidIndex == 1)
+        {
+        fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__ );
+                exit(1);
+        }
+        fgets(path, sizeof(path)-1, fp);
+        strcpy(bssid,path);
+        pclose(fp);
+        // Store in One byte
+        if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+        {
+                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
+                {
+                        mac[bssidindex] = (unsigned char) arr[bssidindex];
+                }
+        }
+        strcpy(output_string,mac);
+        }
+        if(ssidIndex == 5)
+        {
+        fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -1261,16 +1500,16 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         // Store in One byte
         if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
         {
-                for( bssidindex = 0; bssidindex < MACADDRESS_SIZE; ++bssidindex )
+                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
                 {
                         mac[bssidindex] = (unsigned char) arr[bssidindex];
                 }
         }
         strcpy(output_string,mac);
-
-	return RETURN_OK;
+        }
 
 #endif
+	return RETURN_OK;
 }
 
 //Get the MAC address associated with this Wifi SSID
@@ -1924,6 +2163,8 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
 	char buf[WORD_SIZE];
+	if(apIndex == 1)
+	{
         if(strcmp(encMode,"None")==0)
         {
                 sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^/","#/",'"',"/etc/hostapd.conf");
@@ -1963,7 +2204,7 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
                 system(buf);
         }
         KillHostapd();
-
+	}
 	return RETURN_OK;
 #endif
 }
@@ -2199,12 +2440,27 @@ INT wifi_stopHostApd()
 	
 	return RETURN_OK;	
 }
-
 // sets the AP enable status variable for the specified ap.
 INT wifi_setApEnable(INT apIndex, BOOL enable)
 {
 	//Store the AP enable settings and wait for wifi up to apply
-	return RETURN_ERR;
+#if 1//LNT_EMU
+	int line_no;//ssid line number in /etc/hostapd.conf
+        if((apIndex == 1) || (apIndex == 5))
+        {
+	if(apIndex == 1)
+		line_no=28;//Private_Wifi
+	else
+		line_no=55;//Xfinity_wifi(Public)
+        if(enable == false)//LNT
+		DisableWifi(line_no);
+        else
+		EnableWifi(apIndex,line_no);
+        }
+
+#endif
+	//return RETURN_ERR;
+	return RETURN_OK;
 }      
 
 // Outputs the setting of the internal variable that is set by wifi_setEnable().  
@@ -2213,7 +2469,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
 	if(!output_bool)
 		return RETURN_ERR;
 	//*output_bool=TRUE;//LNT_EMU
-#if 1//LNT_EMU
+#if 0//LNT_EMU
 	if(checkWifi() && checkLanInterface())
         {
                 *output_bool = TRUE;
@@ -2254,6 +2510,8 @@ INT wifi_getApSsidAdvertisementEnable(INT apIndex, BOOL *output_bool)
 	*output_bool=TRUE;	
 	return RETURN_OK;	
 	#endif
+	if(apIndex == 1)
+	{
 	FILE *fp;
         char path[FILE_SIZE],output[WORD_SIZE];
         char *broadcastssid;
@@ -2273,7 +2531,7 @@ INT wifi_getApSsidAdvertisementEnable(INT apIndex, BOOL *output_bool)
                 *output_bool = true;
         else
                 *output_bool = false;
-
+	}
 	return RETURN_OK;
 }
 
@@ -2282,6 +2540,8 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
 {
 	//store the config, apply instantly
 	//return RETURN_ERR;//LNT_EMU
+	if(apIndex == 1)	
+	{
 	if(enable == true)
         {
         system("sed -i -e 's/ignore_broadcast_ssid=1/ignore_broadcast_ssid=0/g' /etc/hostapd.conf");
@@ -2292,7 +2552,7 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
         system("sed -i -e 's/ignore_broadcast_ssid=0/ignore_broadcast_ssid=1/g' /etc/hostapd.conf");
         KillHostapd();
         }
-
+	}
         return RETURN_OK;
 }
 
@@ -2490,6 +2750,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         fp = popen("cat /etc/hostapd.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
+		return -1;
         }
         fgets(path, sizeof(path)-1, fp);
         if(path[0] != '#')
@@ -2514,55 +2775,33 @@ INT wifi_setApSecurityPreSharedKey(INT apIndex, CHAR *preSharedKey)
 	//save to wifi config and hotapd config. wait for wifi reset or hostapd restet to apply
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	char buf[FILE_SIZE] = "";//Must fill the buffer with zeroes
-        int fd, nbytes, ret;
-        struct stat file_stat={};
-        if((fd = open(HOSTAPD_CONF_FILE_PATH, 0|O_RDWR))==-1)
-        {
-                //perror("open(/etc/udhcpd.conf) failed");
-                printf("open(/etc/hostapd.conf) failed: %m\n");
-                return -1;
+if(apIndex == 1)
+{
+	char path[1024];
+        char current_password_value[50],password_value[50];
+        char str[100],str1[100],str2[100];
+        FILE *fp = NULL;
+        char *password;
+	int count;
+        fp = popen("cat /etc/hostapd.conf | grep -w wpa_passphrase ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
         }
-        if(fstat(fd, &file_stat)==-1)
-        {//called for getting file size
-                printf("stat failed: %m\n");
-                return -1;
-        }
-        if(file_stat.st_size+BUFFER_ADJUSTMENT> sizeof buf) //+128 bytes reserved for buffer adjustments
-        {//checking whether buf size is sufficient or not
-                printf("Insufficient buffer size\n");
-                return -1;
-        }
-        if((nbytes = read(fd, buf, sizeof buf))==-1)
-        {//reading contents of the file.
-                printf("read(/etc/udhcpd.conf) failed: %m\n");
-                return -1;
-        }
-        ret = CcspHal_change_config_value("wpa_passphrase=",preSharedKey, buf, &nbytes);
-        if(ret == -1)
-        {
-                printf("change_config_value failed\n");
-                return -1;
-        }
-        if(ftruncate(fd, 0)==-1)
-        {
-                printf("ftruncate failed: %m\n");
-                return -1;
-        }
-        if(lseek(fd, 0, SEEK_SET)==-1)
-        {
-                printf("lseek failed: %m\n");
-                return -1;
-        }
-        if(write(fd, buf, nbytes)==-1)
-	{
-	printf("write failed: %m\n");
-                return -1;
-        }
-        close(fd);
+        fgets(path, sizeof(path)-1, fp);
+        password = strchr(path,'=');
+        strcpy(password_value,password+1);
+	for(count=0;password_value[count]!='\n';count++)
+			current_password_value[count]=password_value[count];
+	current_password_value[count]='\0';
+        sprintf(str1,"%s%s","wpa_passphrase=",current_password_value);
+        sprintf(str2,"%s%s","wpa_passphrase=",preSharedKey);
+        sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd.conf");
+        system(str);
+        pclose(fp);
         KillHostapd();
-        return 0;
-
+	return 0;
+}
 #endif
 }
 

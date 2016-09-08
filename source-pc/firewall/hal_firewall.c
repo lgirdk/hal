@@ -43,6 +43,11 @@
 #define cron_everyminute_dir "/etc/cron/cron.everyminute"
 #define SYS_LOG_FILE	"/var/syslog_level"	
 #define DEFAULT_LOGLEVEL_DEBUG	8
+
+/* DSCP val for gre*/
+extern ANSC_HANDLE bus_handle;//lnt
+extern char g_Subsystem[32];//lnt
+
  
 static int  lock_fd = -1;
 static int isHttpBlocked=0;
@@ -70,7 +75,6 @@ static char wan_service_status[20];       // wan_service-status
 
 static char *firewall_service_name = "firewall";
 const char* const firewall_component_id = "ccsp.firewall";
-static void* bus_handle = NULL;
 
 static char default_wan_ifname[50];
 static char lan_ifname[50];       // name of the lan interface
@@ -1013,8 +1017,63 @@ int do_nonat(FILE *filter_fp,struct NetworkDetails *netDetails)
 
    return(0);
 }
+/*
+ ==========================================================================
+                          XFINITY_WIFI(HotSpot)
+ ==========================================================================
+ */
+
+/*
+ *  Procedure     : Getting_Gre_DSCP_Val
+ *  Purpose       : To read the DSCP(Differentiated service code point)value from PSM
+ *     
+ *  Parameters    : None
+ *  Return_values : Integer Dscp value
+ *  
+ */
 
 
+int Getting_Gre_DSCP_Val()
+{
+	char *param_value;
+	int greDscp;
+	char param_name[] = "dmsb.hotspot.tunnel.1.DSCPMarkPolicy";
+	PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
+	greDscp = atoi(param_value);
+	return greDscp;
+}
+
+/*
+ *  Procedure     : xfinitywifi_InitialBootuprules_setup
+ *  Purpose       : Mangle table Initial Boot up rules for xfinity-wifi,DSCP(Differentiated service code point) will decide the IP packets priority.
+ *
+ *  Parameters    : None
+ *  Return_values : None
+ *  Required Kernel Modules are xt_dscp.ko,xt_DSCP.ko,xt_connmark.ko,xt_tcpmss.ko,xt_TCPMSS.ko.
+ */
+
+void xfinitywifi_InitialBootuprules_setup()
+{
+        char str[512];
+        int greDscp;
+        greDscp = Getting_Gre_DSCP_Val();
+	/* mangle */
+        system("iptables -t mangle -A FORWARD -m state --state NEW -j DSCP --set-dscp-class af22");
+        system("iptables -t mangle -A FORWARD -m state ! --state NEW -j DSCP  --set-dscp 0x0");
+        system("iptables -t mangle -A OUTPUT -o eth0 -j DSCP --set-dscp-class af22");
+        sprintf(str,"%s %d","iptables -t mangle -A POSTROUTING -o eth0 -p gre -j DSCP --set-dscp",greDscp);
+        system(str);
+        system("iptables -t mangle -I PREROUTING -i eth0 -m dscp --dscp-class af32 -j CONNMARK --set-mark 0xA");
+        system("iptables -t mangle -I PREROUTING -i eth0 -m dscp --dscp-class cs1 -j CONNMARK --set-mark 0xB");
+        system("iptables -t mangle -I PREROUTING -i eth0 -m dscp --dscp-class cs5 -j CONNMARK --set-mark 0xC");
+        system("iptables -t mangle -I PREROUTING -i eth0 -m dscp --dscp-class af22 -j CONNMARK --set-mark 0xD");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -m connmark --mark 0xA  -j DSCP --set-dscp-class af32");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -m connmark --mark 0xB -j DSCP --set-dscp-class cs1");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -m connmark --mark 0xC -j DSCP --set-dscp-class cs5");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -m connmark --mark 0xD -j DSCP --set-dscp-class af22");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400");
+        system("iptables -t mangle -A POSTROUTING -o eth0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400");
+}
 /*
  ==========================================================================
               IPv4 Firewall 
@@ -1069,6 +1128,7 @@ static int prepare_subtables( FILE *filter_fp)
 	fprintf(filter_fp, ":remote_accept_wan2self - [0:0]\n");
 	fprintf(filter_fp, ":remote_wan2lan_accept_log - [0:0]\n");
 	fprintf(filter_fp, ":remote_wan2lan_drop_log - [0:0]\n");
+	xfinitywifi_InitialBootuprules_setup();
    return(0);
 }
 
