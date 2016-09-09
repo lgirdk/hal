@@ -185,7 +185,7 @@ void Hostapd_PrivateWifi_status(char status[50])
 void RestartHostapd()
 {
         system("ifconfig wlan0 up");
-        system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
+        system("ps -eaf | grep host | grep -v grep | awk '{print $2}' | xargs kill -9");
         system("hostapd -B /etc/hostapd.conf");
         system("ifconfig mon.wlan0 up");
         system("ifconfig wlan0_0 up");
@@ -194,7 +194,7 @@ void RestartHostapd()
 void KillHostapd()
 {
         system("ifconfig mon.wlan0 down");
-        system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
+        system("ps -eaf | grep host | grep -v grep | awk '{print $2}' | xargs kill -9");
         system("ifconfig wlan0 down");
         system("ifconfig wlan0_0 down");
         system("ifconfig wlan0 up");
@@ -202,7 +202,7 @@ void KillHostapd()
         system("ifconfig mon.wlan0 up");
         system("ifconfig wlan0_0 up");
         system("ifconfig wlan0 up");
-        system("ps | grep host | grep -v grep | awk '{print $1}' | xargs kill -9");
+        system("ps -eaf | grep host | grep -v grep | awk '{print $2}' | xargs kill -9");
         system("hostapd -B /etc/hostapd.conf");
         system("ifconfig mon.wlan0 up");
         system("ifconfig wlan0_0 up");
@@ -242,7 +242,7 @@ BOOL checkWifi()
         FILE *fp = NULL;
         char path[FILE_SIZE];
         int count = 0;
-        fp = popen ("ps | grep hostapd | grep -v grep | wc -l","r");
+        fp = popen ("ps -eaf | grep hostapd | grep -v grep | wc -l","r");
         if(fp == NULL)
                 return 0;
         fgets(path,FILE_SIZE,fp);
