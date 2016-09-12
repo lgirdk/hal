@@ -1128,6 +1128,8 @@ static int prepare_subtables( FILE *filter_fp)
 	fprintf(filter_fp, ":remote_accept_wan2self - [0:0]\n");
 	fprintf(filter_fp, ":remote_wan2lan_accept_log - [0:0]\n");
 	fprintf(filter_fp, ":remote_wan2lan_drop_log - [0:0]\n");
+	fprintf(filter_fp, ":general_forward - [0:0]\n");
+        fprintf(filter_fp, ":general_output - [0:0]\n");
 	xfinitywifi_InitialBootuprules_setup();
    return(0);
 }
