@@ -1,3 +1,13 @@
+/**
+* @file mta_hal.h
+* @author cisco
+* @brief For CCSP Component:  CcspMtaAgent
+*
+*@description This header file gives the function call prototypes and 
+structure definitions used for the RDK-Broadband 
+hardware abstraction layer for Cable Modem 
+*/
+
 /*
  * If not stated otherwise in this file or this component's Licenses.txt file the
  * following copyright and licenses apply:
@@ -404,8 +414,8 @@ MTAMGMT_MTA_BATTERY_INFO,  *PMTAMGMT_MTA_BATTERY_INFO;
 
 /* mta_hal_InitDB :  */
 /**
-* Description: Retrieves the global information for all shared DBs and makes them accessible locally.
-* Parameters : None
+* @description Retrieves the global information for all shared DBs and makes them accessible locally.
+* @param None
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -413,7 +423,6 @@ MTAMGMT_MTA_BATTERY_INFO,  *PMTAMGMT_MTA_BATTERY_INFO;
 *
 * @execution Synchronous.
 * @sideeffect None.
-
 *
 * @note This function must not suspend and must not invoke any blocking system 
 * calls. It should probably just send a message to a driver event handler task. 
@@ -423,9 +432,8 @@ INT   mta_hal_InitDB(void);
 
 /*  mta_hal_GetDHCPInfo : */
 /**
-* Description: Retrieve all the relevant DHCP info for MTA.
-* Parameters : 
-*     PMTAMGMT_MTA_DHCP_INFO pInfo - all DHCP info for MTA, to be returned
+* @description Retrieve all the relevant DHCP info for MTA.
+* @param PMTAMGMT_MTA_DHCP_INFO pInfo - all DHCP info for MTA, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -442,8 +450,8 @@ INT mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo);
 
 /*  mta_hal_LineTableGetNumberOfEntries :  */
 /**
-* Description: Get number of entries in the line table.
-* Parameters : None
+* @description Get number of entries in the line table.
+* @param None
 *
 * @return ULONG - number of entries
 * @retval RETURN_OK if successful.
@@ -460,10 +468,9 @@ ULONG mta_hal_LineTableGetNumberOfEntries(void);
 
 /* mta_hal_LineTableGetEntry : */
 /**
-* Description: Get entry of the line table at the given index
-* Parameters : 
-*    INT Index - index to the table entry
-*    PMTAMGMT_MTA_LINETABLE_INFO pEntry - entry info, to be returned
+* @description Get entry of the line table at the given index
+* @param INT Index - index to the table entry
+* @param PMTAMGMT_MTA_LINETABLE_INFO pEntry - entry info, to be returned
 *
 * @return The status of the operation
 * @retval RETURN_OK if successful.
@@ -480,9 +487,8 @@ INT   mta_hal_LineTableGetEntry(ULONG Index, PMTAMGMT_MTA_LINETABLE_INFO pEntry)
 
 /*  mta_hal_TriggerDiagnostics : */
 /**
-* Description: Trigger GR909 Diagnostics
-* Parameters : 
-*     INT Index - line number to perform the GR909 diagnostics on
+* @description Trigger GR909 Diagnostics
+* @param INT Index - line number to perform the GR909 diagnostics on
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -499,10 +505,9 @@ INT   mta_hal_TriggerDiagnostics(ULONG Index);
 
 /*  mta_hal_GetServiceFlow :  */
 /**
-* Description: Get all the service flow info
-* Parameters : 
-*    ULONG* Count - number of service flow entries, to be returned
-*    PMTAMGMT_MTA_SERVICE_FLOW *ppCfg - service flow info, to be returned
+* @description Get all the service flow info
+* @param ULONG* Count - number of service flow entries, to be returned
+* @param PMTAMGMT_MTA_SERVICE_FLOW *ppCfg - service flow info, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -519,9 +524,8 @@ INT   mta_hal_GetServiceFlow(ULONG* Count, PMTAMGMT_MTA_SERVICE_FLOW *ppCfg);
 
 /*  mta_hal_DectGetEnable : */
 /**
-* Description: Get info on if Dect is enabled
-* Parameters : 
-*     BOOLEAN* pBool - boolean value for enabled or not, to be returned
+* @description Get info on if Dect is enabled
+* @param BOOLEAN* pBool - boolean value for enabled or not, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -538,9 +542,8 @@ INT   mta_hal_DectGetEnable(BOOLEAN *pBool);
 
 /*  mta_hal_DectSetEnable: */
 /**
-* Description: Set Dect to boolean value passed in
-* Parameters : 
-*     BOOLEAN* bBool - boolean value for enabled or not, to be returned
+* @description Set Dect to boolean value passed in
+* @param BOOLEAN* bBool - boolean value for enabled or not, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -557,9 +560,8 @@ INT mta_hal_DectSetEnable(BOOLEAN bBool);
 
 /*  mta_hal_DectGetRegistrationMode: */
 /**
-* Description: Set Dect to boolean value passed in
-* Parameters : 
-*     BOOLEAN* bBool - boolean value for enabled or not, to be returned
+* @description Set Dect to boolean value passed in
+* @param BOOLEAN* bBool - boolean value for enabled or not, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -576,9 +578,8 @@ INT mta_hal_DectGetRegistrationMode(BOOLEAN* pBool);
 
 /*  mta_hal_DectSetRegistrationMode: */
 /**
-* Description: Set Dect registration mode
-* Parameters : 
-*     BOOLEAN* bBool - boolean value for enabled or not, to be returned
+* @description Set Dect registration mode
+* @param BOOLEAN* bBool - boolean value for enabled or not, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -595,9 +596,8 @@ INT mta_hal_DectSetRegistrationMode(BOOLEAN bBool);
 
 /*  mta_hal_DectDeregisterDectHandset: */
 /**
-* Description: Deregister Dect Handset
-* Parameters : 
-*     ULONG* uValue - unsigned long value for 
+* @description Deregister Dect Handset
+* @param ULONG* uValue - unsigned long value for 
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -614,9 +614,8 @@ INT mta_hal_DectDeregisterDectHandset(ULONG uValue);
 
 /*  mta_hal_GetDect: */
 /**
-* Description: 
-* Parameters : 
-*     PMTAMGMT_MTA_DECT* pDect - 
+* @description  Get Dect info
+* @param PMTAMGMT_MTA_DECT* pDect - info of Dect
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -633,9 +632,8 @@ INT mta_hal_GetDect(PMTAMGMT_MTA_DECT pDect);
 
 /*  mta_hal_GetDectPIN: */
 /**
-* Description: 
-* Parameters : 
-*     char* pPINString -  
+* @description get Decr PIN 
+* @param char* pPINString - PIN value 
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -652,9 +650,8 @@ INT mta_hal_GetDectPIN(char* pPINString);
 
 /*  mta_hal_SetDectPIN: */
 /**
-* Description: 
-* Parameters : 
-*     char* pPINString - 
+* @description Set Dect PIN
+* @param char* pPINString - PIN value 
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -671,10 +668,9 @@ INT mta_hal_SetDectPIN(char* pPINString);
 
 /*  mta_hal_GetHandsets: */
 /**
-* Description: 
-* Parameters : 
-*     ULONG* pulCount  - 
-*     PMTAMGMT_MTA_HANDSETS_INFO* ppHandsets -
+* @description Get MTA handset info
+* @param ULONG* pulCount  - handset number
+* @param PMTAMGMT_MTA_HANDSETS_INFO* ppHandsets - Info of MTA handset
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -691,11 +687,10 @@ INT mta_hal_GetHandsets(ULONG* pulCount, PMTAMGMT_MTA_HANDSETS_INFO* ppHandsets)
 
 /*  mta_hal_GetCalls : */
 /**
-* Description: Retrieve all call info for the given instance number of LineTable
-* Parameters : 
-*    ULONG InstanceNumber - LineTable's instance number
-*    ULONG *Count - number of entries(calls) for the call info array, to be returned
-*    PMTAMGMT_MTA_CALLS *ppCfg - Array of call info, to be returned
+* @description Retrieve all call info for the given instance number of LineTable
+* @param ULONG InstanceNumber - LineTable's instance number
+* @param ULONG *Count - number of entries(calls) for the call info array, to be returned
+* @param PMTAMGMT_MTA_CALLS *ppCfg - Array of call info, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -712,10 +707,9 @@ INT   mta_hal_GetCalls(ULONG InstanceNumber, ULONG *Count, PMTAMGMT_MTA_CALLS *p
 
 /*  mta_hal_GetCALLP : */
 /**
-* Description:  Retrieve the CALLP status info for the line number
-* Parameters : 
-*    ULONG LineNumber - Line number for which to retrieve info on 
-*    PMTAMGMT_MTA_CALLP pCallp - CallP info, to be returned
+* @description Retrieve the CALLP status info for the line number
+* @param  ULONG LineNumber - Line number for which to retrieve info on 
+* @param  PMTAMGMT_MTA_CALLP pCallp - CallP info, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -732,10 +726,9 @@ INT   mta_hal_GetCALLP(ULONG LineNumber, PMTAMGMT_MTA_CALLP pCallp);
 
 /*  mta_hal_GetDSXLogs : */
 /**
-* Description:  Retrieve all DSX log entries
-* Parameters : 
-*    ULONG *Count - number of entries in the log, to be returned
-*    PMTAMGMT_MTA_DSXLOG *ppDSXLog - array of log entries, to be returned
+* @description Retrieve all DSX log entries
+* @param ULONG *Count - number of entries in the log, to be returned
+* @param PMTAMGMT_MTA_DSXLOG *ppDSXLog - array of log entries, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -752,9 +745,8 @@ INT   mta_hal_GetDSXLogs(ULONG *Count, PMTAMGMT_MTA_DSXLOG *ppDSXLog);
 
 /*  mta_hal_GetDSXLogEnable : */
 /**
-* Description: Get the value of if DSX log is enabled
-* Parameters : 
-*     BOOLEAN * pBool - boolean value of enable, to be returned
+* @description Get the value of if DSX log is enabled
+* @param BOOLEAN * pBool - boolean value of enable, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -771,9 +763,8 @@ INT   mta_hal_GetDSXLogEnable(BOOLEAN *pBool);
 
 /*  mta_hal_SetDSXLogEnable : */
 /**
-* Description: Set value of DSX enable to the value
-* Parameters : 
-*     BOOLEAN Bool - value to set DSX log enable to
+* @description Set value of DSX enable to the value
+* @param BOOLEAN Bool - value to set DSX log enable to
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -791,9 +782,8 @@ INT   mta_hal_SetDSXLogEnable(BOOLEAN Bool);
 
 /*  mta_hal_ClearCallSignallingLog : */
 /**
-* Description: Set value of ClearDSXLog to the value
-* Parameters : 
-*     BOOLEAN Bool - value to set to clear DSX log.
+* @description Set value of ClearDSXLog to the value
+* @param BOOLEAN Bool - value to set to clear DSX log.
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -810,9 +800,8 @@ INT mta_hal_ClearDSXLog(BOOLEAN Bool) ;
 
 /*  mta_hal_GetCallSignallingLogEnable : */
 /**
-* Description: Get the value of if CallSignalling log is enabled
-* Parameters : 
-*     BOOLEAN * pBool - boolean value of enable, to be returned
+* @description Get the value of if CallSignalling log is enabled
+* @param BOOLEAN * pBool - boolean value of enable, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -830,9 +819,8 @@ INT mta_hal_GetCallSignallingLogEnable(BOOLEAN *pBool) ;
 
 /*  mta_hal_SetCallSignallingLogEnable : */
 /**
-* Description: Set value of CallSignalling enable to the value
-* Parameters : 
-*     BOOLEAN Bool - value to set CallSignalling log enable to
+* @description Set value of CallSignalling enable to the value
+* @param BOOLEAN Bool - value to set CallSignalling log enable to
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -851,9 +839,8 @@ INT mta_hal_SetCallSignallingLogEnable(BOOLEAN Bool) ;
 
 /*  mta_hal_ClearCallSignallingLog : */
 /**
-* Description: Set value of CallSignalling enable to the value
-* Parameters : 
-*     BOOLEAN Bool - value to set to clear CallSignalling log.
+* @description Set value of CallSignalling enable to the value
+* @param BOOLEAN Bool - value to set to clear CallSignalling log.
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -871,10 +858,9 @@ INT mta_hal_ClearCallSignallingLog(BOOLEAN Bool) ;
 
 /*  mta_hal_GetMtaLog : */
 /**
-* Description: Get all log entries from the MTA Log
-* Parameters : 
-*    ULONG *Count - number of entries in the log, to be returned
-*    PMTAMGMT_MTA_MTALOG_FULL *ppCfg - array of log entries, to be returned
+* @description Get all log entries from the MTA Log
+* @param ULONG *Count - number of entries in the log, to be returned
+* @param PMTAMGMT_MTA_MTALOG_FULL *ppCfg - array of log entries, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -891,9 +877,8 @@ INT   mta_hal_GetMtaLog(ULONG *Count, PMTAMGMT_MTA_MTALOG_FULL *ppCfg);
 
 /*  mta_hal_BatteryGetInstalled : */
 /**
-* Description: Check to see if the battery is installed
-* Parameters : 
-*     BOOLEAN* Val - TRUE/FALSE, value to be returned
+* @description Check to see if the battery is installed
+* @param BOOLEAN* Val - TRUE/FALSE, value to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -910,9 +895,8 @@ INT mta_hal_BatteryGetInstalled(BOOLEAN* Val);
 
 /*  mta_hal_BatteryGetTotalCapacity : */
 /**
-* Description: Get the total capacity of the battery
-* Parameters : 
-*     INT* Val - capacity in mAVHour, to be returned
+* @description Get the total capacity of the battery
+* @param INT* Val - capacity in mAVHour, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -929,9 +913,8 @@ INT mta_hal_BatteryGetTotalCapacity(ULONG* Val);
 
 /*  mta_hal_BatteryGetActualCapacity : */
 /**
-* Description: Retrieve the actual capacity of the battery
-* Parameters : 
-*     INT* Val - capacity in mAVHour, to be returned
+* @description Retrieve the actual capacity of the battery
+* @param INT* Val - capacity in mAVHour, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -948,9 +931,8 @@ INT mta_hal_BatteryGetActualCapacity(ULONG* Val);
 
 /*  mta_hal_BatteryGetRemainingCharge : */
 /**
-* Description: Retrieve the current charge remain in the battery
-* Parameters : None
-*     INT* Val - capacity in mAVHour, to be returned
+* @description Retrieve the current charge remain in the battery
+* @param INT* Val - capacity in mAVHour, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -967,9 +949,8 @@ INT mta_hal_BatteryGetRemainingCharge(ULONG* Val);
 
 /* mta_hal_BatteryGetRemainingTime : */
 /**
-* Description: Get estimated battery remaining time if current usage continues
-* Parameters : 
-*     INT* Val - Remaining time in minutes, to be returned
+* @description Get estimated battery remaining time if current usage continues
+* @param INT* Val - Remaining time in minutes, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -986,9 +967,8 @@ INT mta_hal_BatteryGetRemainingTime(ULONG* Val);
 
 /*  mta_hal_BatteryGetNumberofCycles : */
 /**
-* Description: Get max number of cycles the battery can be charge cycled
-* Parameters : 
-*     INT* Val - Max number of cycles, to be returned
+* @description Get max number of cycles the battery can be charge cycled
+* @param INT* Val - Max number of cycles, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1005,10 +985,9 @@ INT mta_hal_BatteryGetNumberofCycles(ULONG* Val);
 
 /*  mta_hal_BatteryGetPowerStatus : */
 /**
-* Description: Get power status of MTA
-* Parameters : 
-*    CHAR* Val - Status of "AC", "Battery", or "Unknown", to be returned
-*    ULONG *len - string length, to be returned
+* @description Get power status of MTA
+* @param CHAR* Val - Status of "AC", "Battery", or "Unknown", to be returned
+* @param ULONG *len - string length, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1025,10 +1004,9 @@ INT mta_hal_BatteryGetPowerStatus(CHAR *Val, ULONG *len);
 
 /*  mta_hal_BatteryGetCondition: */
 /**
-* Description: Get the battery condition
-* Parameters : 
-*    CHAR* Val - Status of "Good" or "Bad", to be returned
-*    ULONG *len - string length, to be returned
+* @description Get the battery condition
+* @param CHAR* Val - Status of "Good" or "Bad", to be returned
+* @param ULONG *len - string length, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1045,11 +1023,10 @@ INT mta_hal_BatteryGetCondition(CHAR *Val, ULONG *len);
 
 /*  mta_hal_BatteryGetStatus: */
 /**
-* Description: Get the battery status
-* Parameters : 
-*    CHAR* Val - Status of "Missing", "Idle", "Charging", 
+* @description Get the battery status
+* @param CHAR* Val - Status of "Missing", "Idle", "Charging", 
 *                "Discharging", or "Unknown", to be returned
-*    ULONG *len - string length, to be returned
+* @param ULONG *len - string length, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1066,10 +1043,9 @@ INT mta_hal_BatteryGetStatus(CHAR* Val, ULONG *len);
 
 /*  mta_hal_BatteryGetLife: */
 /**
-* Description: Get the battery life status
-* Parameters : 
-*    CHAR* Val - Values of "Need Replacement", or "Good", to be returned
-*    ULONG *len - string length, to be returned
+* @description Get the battery life status
+* @param CHAR* Val - Values of "Need Replacement", or "Good", to be returned
+* @param ULONG *len - string length, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1087,9 +1063,8 @@ INT mta_hal_BatteryGetLife(CHAR* Val, ULONG *len);
 
 /*  mta_hal_BatteryGetInfo: */
 /**
-* Description: Get the battery info
-* Parameters : 
-*    PMTAMGMT_MTA_BATTERY_INFO pInfo - battery info, to be returned
+* @description Get the battery info
+* @param PMTAMGMT_MTA_BATTERY_INFO pInfo - battery info, to be returned
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1106,9 +1081,8 @@ INT mta_hal_BatteryGetInfo(PMTAMGMT_MTA_BATTERY_INFO pInfo);
 
 /*  mta_hal_BatteryGetPowerSavingModeStatus: */
 /**
-* Description: Get the battery Power Saving Mode Status
-* Parameters : 
-*    ULONG *pValue- Values of 1 for Enabled, 2 for Disabled
+* @description Get the battery Power Saving Mode Status
+* @param ULONG *pValue- Values of 1 for Enabled, 2 for Disabled
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1125,9 +1099,8 @@ INT mta_hal_BatteryGetPowerSavingModeStatus(ULONG *pValue);
 
 /*  mta_hal_Get_MTAResetCount: */
 /**
-* Description: Get the reset count of MTA
-* Parameters : 
-*    ULONG *pValue- count
+* @description Get the reset count of MTA
+* @param ULONG *pValue- count
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1145,9 +1118,8 @@ INT mta_hal_Get_MTAResetCount(ULONG *resetcnt);
 
 /*  mta_hal_Get_MTAResetCount: */
 /**
-* Description: Get the reset count of MTA Lines
-* Parameters : 
-*    ULONG *pValue- count
+* @description Get the reset count of MTA Lines
+* @param ULONG *pValue- count
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -1163,7 +1135,21 @@ INT mta_hal_Get_MTAResetCount(ULONG *resetcnt);
 
 INT mta_hal_Get_LineResetCount(ULONG *resetcnt);
 
-/* clear the VQM stats per line */
+/**
+* @description clear the VQM stats per line
+* @param ULONG InstanceNumber - instance number
+*
+* @return The status of the operation.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous.
+* @sideeffect None.
+*
+* @note This function must not suspend and must not invoke any blocking system 
+* calls. It should probably just send a message to a driver event handler task. 
+*
+*/
 INT mta_hal_ClearCalls(ULONG InstanceNumber);
 
 #endif /* __MTA_HAL_H__ */
