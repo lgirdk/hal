@@ -11,7 +11,25 @@
 #include <stdbool.h>
 #include "ccsp_hal_dhcpv4_emu_api.h"
 
-/*Getting the dhcpv4 configuration (starting and ending)values */
+/* CcspHalGetConfigValue() function */
+/**
+* @description Gets the dhcpv4 configuration (starting and ending)values
+*
+* @param key - Config key for which value to be retrieved
+* @param value - Config value, to be returned
+* @param size - Size of the config value
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
 {
 
@@ -47,7 +65,25 @@ INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
 
 }
 
-/*Getting the dhcpv4 configuration(lease time)value */
+/* CcspHalGetConfigLeaseValue() function */
+/**
+* @description Gets the dhcpv4 configuration(lease time)value
+*
+* @param key - Config key "lease", for which value to be retrieved
+* @param value - Config value of "lease", to be returned
+* @param size - Size of the config value
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
 {
 
@@ -85,7 +121,26 @@ INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
 
 }
 
-/*passing the inputs to  dhcpv4 configuration file */
+/* CcspHal_change_config_value() function */
+/**
+* @description Pass the inputs to dhcpv4 configuration file
+*
+* @param field_name - Field name from configuration file
+* @param field_value - Config value
+* @param buf - Size of config value
+* @param nbytes - No. of bytes 
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHal_change_config_value(CHAR *field_name, CHAR *field_value, CHAR *buf, UINT *nbytes)
 {
         INT found=0, old_value_length, adjustment_bytes, count=0;
@@ -142,7 +197,25 @@ INT CcspHal_change_config_value(CHAR *field_name, CHAR *field_value, CHAR *buf, 
         return 0;
 }
 
-/*Setting the inputs values to dhcpv4 configuration value  */
+/* CcspHalSetDHCPConfigValues() function */
+/**
+* @description Set the inputs values to dhcpv4 configuration value
+*
+* @param value_flag - Flag value, used to set the corresponding "ConfigValues" 
+structure element
+* @param config_value - Config value
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
 {
         CHAR buf[FILE_SIZE] = "";//Must fill the buffer with zeroes
@@ -216,7 +289,24 @@ INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
         return 0;
 }
 
-/* setting the eth1 interface(ip address) */
+/* CcspHalInterfacesetval() function */
+/**
+* @description sets the eth1 interface(ip address)
+*
+* @param name - Interface Name (eg:- brlan0)
+* @param str - Gateway IP address
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalInterfacesetval(CHAR *name,CHAR *str)
 	{
 
@@ -230,8 +320,24 @@ INT CcspHalInterfacesetval(CHAR *name,CHAR *str)
 
 	}
 
-/*setting the eth1 interface(netmask) */	
-
+/* CcspHalNetmasksetvalue() function */
+/**
+* @description Sets the eth1 interface(netmask)
+*
+* @param name - Interface Name (eg:- brlan0)
+* @param str - Subnet IP address
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalNetmasksetvalue(CHAR *name,CHAR *str)
 	{
 	
@@ -245,7 +351,21 @@ INT CcspHalNetmasksetvalue(CHAR *name,CHAR *str)
 
 	}
 
-/* Getting the process id of dhcp server */
+/* CcspHalGetPIDbyName() function */
+/**
+* @description Gets the process id of dhcp server
+*
+* @param pidName - dhcp server process Name
+*
+* @return Process Id of dhcp server
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalGetPIDbyName(CHAR* pidName)
 	{
 
@@ -265,7 +385,21 @@ INT CcspHalGetPIDbyName(CHAR* pidName)
 	}
 
 
-/* To get number of client connected devices*/
+/* CcspHalNoofClientConnected() function */
+/**
+* @description To get number of client connected devices
+*
+* @param None
+*
+* @return No. of connected devices
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 ULONG CcspHalNoofClientConnected()
 {
 	FILE *fp = NULL;
@@ -282,7 +416,21 @@ ULONG CcspHalNoofClientConnected()
 	return total_reachable_clients;
 }
 
-/* Checking the Lan connection*/
+/* checkLan() function */
+/**
+* @description To check the Lan connection
+*
+* @param None
+*
+* @return Status of the LAN connection 
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 bool checkLan()
 {
         FILE *fp = NULL;
@@ -300,8 +448,23 @@ bool checkLan()
                 return false;
 }
 
-/* To set new Gateway IP address to Lighttpd WebServer */
-
+/* CcspHalUpdateInterfaceval() function */
+/**
+* @description To set new Gateway IP address to Lighttpd WebServer
+*
+* @param newgatewayip - Gateway IP address
+*
+* @return The status of the operation
+* @retval STATUS_SUCCESS if successful
+* @retval STATUS_FAILURE if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
 INT CcspHalUpdateInterfaceval(CHAR *newgatewayip)
 {
         CHAR path[1024],buf[500];
