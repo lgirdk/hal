@@ -1,6 +1,6 @@
 /**
 * @file dpoe_hal.h
-* @author John McQueen jmcqueen@broadcom.com
+* @author Broadcom Corporation
 * @brief For CCSP Component: DPoE management
 *
 *@description This header file gives the function call prototypes and 
@@ -79,7 +79,7 @@ hardware abstraction layer for Cable Modem
 
     ---------------------------------------------------------------
     Author:
-        John McQueen jmcqueen@broadcom.com		
+        Broadcom Corporation		
 
 **********************************************************************/
 
