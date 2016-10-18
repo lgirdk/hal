@@ -70,7 +70,7 @@
 
     ---------------------------------------------------------------
     Author:
-        John McQueen jmcqueen@broadcom.com		
+        Broadcom Corporation		
 
 **********************************************************************/
 #include "dpoe_hal.h"
