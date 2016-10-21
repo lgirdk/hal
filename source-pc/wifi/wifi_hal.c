@@ -468,20 +468,20 @@ INT wifi_getHalVersion(CHAR *output_string)   //RDKB
 
 /* wifi_factoryReset() function */
 /**
-* Description: 
-*  Resets Implementation specifics may dictate some functionality since 
-*  different hardware implementations may have different requirements.
-*  Parameters : None
-* 
+* @description Clears internal variables to implement a factory reset of the Wi-Fi 
+* subsystem. Resets Implementation specifics may dictate some functionality since different hardware implementations may have different requirements.
+*
+* @param None
+*
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
-* @retval RETURN_ERR if any error is detected 
-* 
-* @execution Synchronous.
-* @sideeffect None.
+* @retval RETURN_ERR if any error is detected
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT wifi_factoryReset()
@@ -492,20 +492,16 @@ INT wifi_factoryReset()
 
 /* wifi_factoryResetRadios() function */
 /**
-
-* Description:
-*  Resets Implementation specifics may dictate some functionality since 
-*  different hardware implementations may have different requirements.
-*  Parameters : None
+* @description Restore all radio parameters without touching access point parameters. Resets Implementation specifics may dictate some functionality since different hardware implementations may have different requirements.
 *
-
-* @return The status of the operation.
-* @retval RETURN_OK if successful.
+* @param None
+* @return The status of the operation
+* @retval RETURN_OK if successful
 * @retval RETURN_ERR if any error is detected
 *
-* @execution Synchronous.
-
-* @sideeffect None.
+* @execution Synchronous
+*
+* @sideeffect None
 *
 * @note This function must not suspend and must not invoke any blocking system
 * calls. It should probably just send a message to a driver event handler task.
@@ -520,19 +516,15 @@ INT wifi_factoryResetRadios()
 
 /* wifi_factoryResetRadio() function */
 /**
-
-* Description:
-*  Resets Implementation specifics may dictate some functionality since 
-*  different hardware implementations may have different requirements.
-*  Parameters : None
+* @description Restore selected radio parameters without touching access point parameters
 *
-
+* @param radioIndex - Index of Wi-Fi Radio channel
+*
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
 * @retval RETURN_ERR if any error is detected
 *
 * @execution Synchronous.
-
 * @sideeffect None.
 *
 * @note This function must not suspend and must not invoke any blocking system
@@ -603,18 +595,18 @@ INT wifi_reset()
 
 /* wifi_down() function */
 /**
-* Description:
-*  Turns off transmit power to all radios.
-*  Implementation specifics may dictate some functionality since 
-*  different hardware implementations may have different requirements.
-* Parameters : None
+* @description Turns off transmit power for the entire Wifi subsystem, for all radios.
+* Implementation specifics may dictate some functionality since 
+* different hardware implementations may have different requirements.
 *
-* @return The status of the operation.
-* @retval RETURN_OK if successful.
+* @param None
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
 * @retval RETURN_ERR if any error is detected
 *
-* @execution Synchronous.
-* @sideeffect None.
+* @execution Synchronous
+* @sideeffect None
 *
 * @note This function must not suspend and must not invoke any blocking system
 * calls. It should probably just send a message to a driver event handler task.
@@ -629,23 +621,23 @@ INT wifi_down()
 
 /* wifi_createInitialConfigFiles() function */
 /**
-* Description: 
-*  This function creates wifi configuration files.  The format
-*  and content of these files are implementation dependent.  This function call is 
-*  used to trigger this task if necessary. Some implementations may not need this 
-*  function. If an implementation does not need to create config files the function call can 
-*  do nothing and return RETURN_OK. 
-*  Parameters : None
-* 
-* @return The status of the operation.
-* @retval RETURN_OK if successful.
-* @retval RETURN_ERR if any error is detected 
-* 
-* @execution Synchronous.
-* @sideeffect None.
+* @description This function creates wifi configuration files. The format
+* and content of these files are implementation dependent.  This function call is 
+* used to trigger this task if necessary. Some implementations may not need this 
+* function. If an implementation does not need to create config files the function call can 
+* do nothing and return RETURN_OK.
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @param None
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT wifi_createInitialConfigFiles()
