@@ -8,6 +8,7 @@
 /**
 * Description: Gets the password of the day for mso user.
 * Parameters : pwd:a pointer to a buffer that was preallocated by the caller.  This is where the output is written 
+* Newer Broadband Devices MUST decrypt the seed on demand when this HAL is called.
 * 
 * @return The status of the operation.
 * @retval mso_pwd_ret_status
@@ -46,6 +47,35 @@ mso_pwd_ret_status mso_validatepwd(char *pwd)
 *
 */
 INT mso_set_pod_seed(char* pSeed)
+{
+    if (pSeed == NULL)
+    {
+        return RETURN_ERR;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
+/* mso_get_pod_seed : */
+/**
+* Description: Gets the PoD seed for mso password validation,
+* Parameters: 
+*    CHAR* pSseed - a pointer to a buffer that was preallocated by the caller.  This is where the output is written
+*
+* @return the status of the operation.
+* @returnval RETURN_OK if successful.
+* @returnval RETURN_ERR if any error is detected.
+*
+* @execution Synchronous.
+* @sideeffect None.
+*
+* @note This function retrieves the decrypted seed set in the Config file 
+*       and SNMP OID rdkbEncryptedClientSeed. pSeed for security reasons MUST be manually
+*       overwritten after use.
+*/
+INT mso_get_pod_seed(char* pSeed)
 {
     if (pSeed == NULL)
     {
