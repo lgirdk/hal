@@ -285,7 +285,8 @@ void DisableWifi(int line_no)
         char str[100];
         sprintf(str,"%s%d%s","sed -i '",line_no,"s/^/#/' /etc/hostapd.conf");
         system(str);
-        KillHostapd();
+	if(line_no == 55)
+        	KillHostapd();
 }
 void EnableWifi(int InstanceNumber,int line_no)
 {
@@ -340,8 +341,7 @@ void EnableWifi(int InstanceNumber,int line_no)
         sprintf(str2,"%s%s","ssid=",param_value);
         sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd.conf");//Replace string with line numbers
         system(str);
-        KillHostapd();
-        if(InstanceNumber == 1)//Private_ssid
+        /*if(InstanceNumber == 1)//Private_ssid
         {
         Hostapd_PrivateWifi_status(status);
         while(strcmp(status,"RUNNING") != 0)
@@ -349,9 +349,10 @@ void EnableWifi(int InstanceNumber,int line_no)
         RestartHostapd();//check the hostapd status
         Hostapd_PrivateWifi_status(status);
         }
-	}
-	else if(InstanceNumber == 5)//Public_ssid(xfinity_wifi)
+	}*/
+	if(InstanceNumber == 5)//Public_ssid(xfinity_wifi)
         {
+        KillHostapd();
         Hostapd_PublicWifi_status(status);
         while(strcmp(status,"RUNNING") != 0)
         {
@@ -903,7 +904,8 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd.conf");
 	system(str);
 	pclose(fp);
-	KillHostapd();
+	if(radioIndex == 5)
+		KillHostapd();
 	}
 #endif
         return 0;
@@ -1374,13 +1376,13 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         sprintf(str2,"%s%s","ssid=",ssid_string);
         sprintf(str,"%s%s/%s%s","sed -i '28s/",str1,str2,"/' /etc/hostapd.conf");//Replace string with line numbers
         system(str);
-        KillHostapd();
+        /*KillHostapd();
         Hostapd_PrivateWifi_status(status);
         while(strcmp(status,"RUNNING") != 0)
         {
         RestartHostapd();//check the hostapd status
         Hostapd_PrivateWifi_status(status);
-        }
+        }*/
         }
 	if(apIndex == 5)//Public_ssid
         {
@@ -2195,7 +2197,7 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
                 sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd.conf");
                 system(buf);
         }
-        KillHostapd();
+        //KillHostapd();
 	}
 	return RETURN_OK;
 #endif
@@ -2413,23 +2415,42 @@ INT wifi_createHostApdConfig(INT apIndex, BOOL createWpsCfg)
 // starts hostapd, uses the variables in the hostapd config with format compatible with the specific hostapd implementation
 INT wifi_startHostApd()
 {
-	char cmd[128] = {0};
+/*	char cmd[128] = {0};
 	char buf[128] = {0};
 	
 	sprintf(cmd,"hostapd  -B `cat /tmp/conf_filename` -e /nvram/etc/wpa2/entropy -P /tmp/hostapd.pid 1>&2");
-	_syscmd(cmd, buf, sizeof(buf));
+	_syscmd(cmd, buf, sizeof(buf));*/
+	char status[256];
+	system("ifconfig wlan0 up");
+        system("hostapd -B /etc/hostapd.conf");
+        system("ifconfig mon.wlan0 up");
+        system("ifconfig wlan0_0 up");
+        system("ifconfig wlan0 up");
+        system("ps -eaf | grep host | grep -v grep | awk '{print $2}' | xargs kill -9");
+        system("hostapd -B /etc/hostapd.conf");
+        system("ifconfig mon.wlan0 up");
+        system("ifconfig wlan0_0 up");
+        Hostapd_PrivateWifi_status(status);
+        while(strcmp(status,"RUNNING") != 0)
+        {
+        RestartHostapd();//check the hostapd status
+        Hostapd_PrivateWifi_status(status);
+        }
 	return RETURN_OK;
 }
 
  // stops hostapd	
 INT wifi_stopHostApd()                                        
 {
-	char cmd[128] = {0};
+/*	char cmd[128] = {0};
 	char buf[128] = {0};
 	
 	sprintf(cmd,"killall hostapd");
-	_syscmd(cmd, buf, sizeof(buf));
-	
+	_syscmd(cmd, buf, sizeof(buf));*/
+	system("ifconfig mon.wlan0 down");
+        system("ps -eaf | grep host | grep -v grep | awk '{print $2}' | xargs kill -9");
+        system("ifconfig wlan0 down");
+        system("ifconfig wlan0_0 down");
 	return RETURN_OK;	
 }
 // sets the AP enable status variable for the specified ap.
@@ -2537,12 +2558,12 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
 	if(enable == true)
         {
         system("sed -i -e 's/ignore_broadcast_ssid=1/ignore_broadcast_ssid=0/g' /etc/hostapd.conf");
-        KillHostapd();
+        //KillHostapd();
         }
         else
         {
         system("sed -i -e 's/ignore_broadcast_ssid=0/ignore_broadcast_ssid=1/g' /etc/hostapd.conf");
-        KillHostapd();
+        //KillHostapd();
         }
 	}
         return RETURN_OK;
@@ -2791,7 +2812,7 @@ if(apIndex == 1)
         sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd.conf");
         system(str);
         pclose(fp);
-        KillHostapd();
+        //KillHostapd();
 	return 0;
 }
 #endif
