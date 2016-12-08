@@ -143,3 +143,24 @@ INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
 { 
 	return RETURN_OK; 
 }
+
+//temperature and fan control
+INT platform_hal_GetChipTemperature(UINT chipIndex, ULONG *pTempValue) {  //chipIndex:0 for main CPU, 1 for wifi chip.  TempValue is in degrees Celcius 
+	if(chipIndex==0) 
+		*pTempValue=40;
+	else if (chipIndex==0) 
+		*pTempValue=41;
+	else
+		*pTempValue=0;
+	return RETURN_OK;
+}
+
+INT platform_hal_GetFanSpeed(ULONG *pSpeedValue) {  //SpeedValue is in RPMs 
+	*pSpeedValue=3600;
+	return RETURN_OK; 
+}
+
+INT platform_hal_SetFanSpeed(ULONG SpeeddInRpms) {
+	//set the fan speed
+	return RETURN_OK; 
+}
