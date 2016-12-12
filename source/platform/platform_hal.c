@@ -144,6 +144,16 @@ INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
 	return RETURN_OK; 
 }
 
+INT platform_hal_getCMTSMac(CHAR *pValue)
+{ 
+	 if (pValue == NULL)
+	 {
+	     return RETURN_ERR;
+	 }
+	strcpy(pValue,"00:00:00:00:00:00");
+	return RETURN_OK; 
+}
+
 //temperature and fan control
 INT platform_hal_GetChipTemperature(UINT chipIndex, ULONG *pTempValue) {  //chipIndex:0 for main CPU, 1 for wifi chip.  TempValue is in degrees Celcius 
 	if(chipIndex==0) 
