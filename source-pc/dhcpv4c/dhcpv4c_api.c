@@ -10,26 +10,19 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 #include "ccsp_hal_dhcpv4_emu_api.h"
+#include "lm_api.h"
 
-/* CcspHalGetConfigValue() function */
-/**
-* @description Gets the dhcpv4 configuration (starting and ending)values
-*
-* @param key - Config key for which value to be retrieved
-* @param value - Config value, to be returned
-* @param size - Size of the config value
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+#if 0
+
+********************************************************************************************************************
+********************************************************************************************************************
+
+					UDHCPD CONFIGURATION IMPLEMENTATION
+
+*********************************************************************************************************************
+*********************************************************************************************************************
+
+/*Getting the dhcpv4 configuration (starting and ending)values */
 INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
 {
 
@@ -65,25 +58,7 @@ INT CcspHalGetConfigValue(CHAR *key, CHAR *value, INT size)
 
 }
 
-/* CcspHalGetConfigLeaseValue() function */
-/**
-* @description Gets the dhcpv4 configuration(lease time)value
-*
-* @param key - Config key "lease", for which value to be retrieved
-* @param value - Config value of "lease", to be returned
-* @param size - Size of the config value
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*Getting the dhcpv4 configuration(lease time)value */
 INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
 {
 
@@ -121,26 +96,7 @@ INT CcspHalGetConfigLeaseValue(CHAR *key, CHAR *value, INT size)
 
 }
 
-/* CcspHal_change_config_value() function */
-/**
-* @description Pass the inputs to dhcpv4 configuration file
-*
-* @param field_name - Field name from configuration file
-* @param field_value - Config value
-* @param buf - Size of config value
-* @param nbytes - No. of bytes 
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*passing the inputs to  dhcpv4 configuration file */
 INT CcspHal_change_config_value(CHAR *field_name, CHAR *field_value, CHAR *buf, UINT *nbytes)
 {
         INT found=0, old_value_length, adjustment_bytes, count=0;
@@ -197,25 +153,7 @@ INT CcspHal_change_config_value(CHAR *field_name, CHAR *field_value, CHAR *buf, 
         return 0;
 }
 
-/* CcspHalSetDHCPConfigValues() function */
-/**
-* @description Set the inputs values to dhcpv4 configuration value
-*
-* @param value_flag - Flag value, used to set the corresponding "ConfigValues" 
-structure element
-* @param config_value - Config value
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*Setting the inputs values to dhcpv4 configuration value  */
 INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
 {
         CHAR buf[FILE_SIZE] = "";//Must fill the buffer with zeroes
@@ -246,10 +184,10 @@ INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
         }
 
         if(value_flag&GATEWAY)
-		{
+                {
                 ret = CcspHal_change_config_value("opt router ", config_value->gateway, buf, &nbytes);
-		ret = CcspHal_change_config_value("option dns ", config_value->gateway, buf, &nbytes);
-		}
+                ret = CcspHal_change_config_value("option dns ", config_value->gateway, buf, &nbytes);
+                }
         if(value_flag&SUBNET_MASK)
                 ret = CcspHal_change_config_value("option subnet ",config_value->subnet, buf, &nbytes);
         if(value_flag&DHCP_STARTING_RANGE)
@@ -280,7 +218,7 @@ INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
                 printf("write failed: %m\n");
                 return -1;
         }
-	close(fd);
+        close(fd);
         system("killall dnsmasq");
         system("/usr/bin/dnsmasq -N -a 127.0.0.1 -z");
         usleep(150);
@@ -288,25 +226,289 @@ INT CcspHalSetDHCPConfigValues(UINT value_flag, ConfigValues *config_value)
         system("udhcpd /etc/udhcpd.conf");
         return 0;
 }
+#endif
 
-/* CcspHalInterfacesetval() function */
-/**
-* @description sets the eth1 interface(ip address)
-*
-* @param name - Interface Name (eg:- brlan0)
-* @param str - Gateway IP address
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*********************************************************************************************************
+**********************************************************************************************************
+
+					DNSMASQ CONFIGURATION IMPLEMENTATION
+
+***********************************************************************************************************
+***********************************************************************************************************/
+/*
+ *  Procedure           : RestartDnsmasq
+ *  Purpose             : Restart the dnsmasq with updated configuration
+ *
+ *  Parameters          : None
+ *  Return_values       : None
+ */
+
+void RestartDnsmasq()
+{
+	system("killall dnsmasq");
+	sleep(5);
+	system("/usr/bin/dnsmasq &");
+}
+/*
+ *  Procedure     : CcspHalGetConfigValues
+ *  Purpose       : To Get current DHCPv4 parameter values from dnsmasq configuration file
+ *
+ *  Parameters    : 
+ *     value_flag : To Get current value_flag status (subnet_mask,DHCP_starting & Ending Range,Lease Time)
+ *     value      : Current DHCP parameter value should be stored 
+ *     size       : size of value 
+ *  Return_values : 
+ *      value     : Current DHCP parameter value , to be returned
+ *      size      : size of value, to be returned
+ */
+
+void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
+{
+	FILE *fp;
+	CHAR path[512],lease_val[50],min_val[50],max_val[50];
+	char *dhcp_range,output[50];
+	int count = 0,min_result_found,max_result_found,lease_result_found,result_found;
+
+	fp =fopen(DNSMASQ_CONF_FILE_PATH ,"r+");
+	if(fp)
+	{
+		//Get Mininum Address
+		fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f1 ", "r");
+		if (fp == NULL)
+		{
+			printf("Failed to run command inside function %s\n",__FUNCTION__);
+			min_result_found = 1;
+		}
+		else
+		{
+			fgets(path, sizeof(path)-1, fp);
+			dhcp_range = strchr(path,'=');
+			strcpy(output,dhcp_range+1);
+			for(count=0;output[count]!='\n';count++)
+				min_val[count]=output[count];
+			min_val[count]='\0';
+			min_result_found = 0;
+		}
+
+		//Get Maximum Address
+
+		fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f2 ", "r");
+		if (fp == NULL)
+		{
+			printf("Failed to run command inside function %s\n",__FUNCTION__);
+			max_result_found = 1;
+		}
+		else
+		{
+			fgets(path, sizeof(path)-1, fp);
+			for(count=0;path[count]!='\n';count++)
+				max_val[count]=path[count];
+			max_val[count]='\0';
+			max_result_found = 0;
+		}
+
+		//Get Lease Time
+
+		fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f4 ", "r");
+		if (fp == NULL)
+		{
+			printf("Failed to run command inside function %s\n",__FUNCTION__);
+			lease_result_found = 1;
+		}
+		else
+		{
+			fgets(path, sizeof(path)-1, fp);
+			for(count=0;path[count]!='\n';count++)
+				lease_val[count]=path[count];
+			lease_val[count]='\0';
+			lease_result_found = 0;
+		}
+
+		pclose(fp);
+		close(fp); //end of dnsamsq file path
+		result_found = 0;
+	}
+	else
+		result_found = 1;
+	if (result_found == 0)
+	{
+		if(value_flag&DHCP_STARTING_RANGE)
+		{
+			if (min_result_found == 0)
+			{
+				snprintf(value, size, "%s", min_val);
+				if (strcmp(min_val,"") == 0)
+
+				{
+					printf("\n sorry,couldn't find a match \n");
+					strcpy(max_val,"0.0.0.0");
+					snprintf(value, size, "%s", max_val);
+				}
+			}
+
+			else 
+			{
+				printf("\n sorry,couldn't find a match \n");
+				strcpy(min_val,"0.0.0.0");
+				snprintf(value, size, "%s", min_val);
+			}
+		}
+
+		else if(value_flag&DHCP_ENDING_RANGE)
+		{
+			if (max_result_found == 0)
+			{
+				snprintf(value, size, "%s", max_val);
+				if (strcmp(max_val,"") == 0)
+				{		
+					printf("\n sorry,couldn't find a match \n");
+					strcpy(max_val,"0.0.0.0");
+					snprintf(value, size, "%s", max_val);
+				}
+			}
+			else
+			{
+				strcpy(max_val,"0.0.0.0");
+				snprintf(value, size, "%s", max_val);
+			}	
+		}
+
+		else if(value_flag&DHCP_LEASE_TIME)
+		{
+			if (lease_result_found == 0)
+				snprintf(value, size, "%s", lease_val);
+			else
+			{
+				printf("\n sorry,couldn't find a match \n");
+				strcpy(lease_val,"0");
+				snprintf(value, size, "%s", lease_val);
+			}
+		}
+	}
+	else
+	{
+		printf("\n sorry, couldn't find the dnsmasq.conf file \n");
+		strcpy(min_val,"0.0.0.0");
+		snprintf(value, size, "%s", min_val);
+		strcpy(max_val,"0.0.0.0");
+		snprintf(value, size, "%s", max_val);
+		strcpy(lease_val,"0");
+		snprintf(value, size, "%s", lease_val);
+
+	}
+}
+
+/*
+ *  Procedure     : CcspHalSetDHCPConfigValues
+ *  Purpose       : To set current DHCPv4 parameter values to dnsmasq configuration file
+ *
+ *  Parameters    : 
+ *     value_flag : To Get current value_flag status (subnet_mask,DHCP_starting & Ending Range,Lease Time)
+ *     value      : Current DHCP parameter value should be stored 
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
+
+INT CcspHalSetDHCPConfigValues(INT value_flag,CHAR *value)
+{
+	FILE *fp;
+	CHAR path[256],orig_val[100],min_val[50],max_val[50],subnet_val[50],lease_val[50];
+	INT count;
+	CHAR command[100],orig_dhcp_range[100],updated_dhcp_range[100];
+
+	//Getting Orig DHCP Range
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	for(count=0;path[count]!='\n';count++)
+		orig_val[count]=path[count];
+	orig_val[count]='\0';
+	sprintf(orig_dhcp_range,"%s",orig_val);
+
+	//Getting Min Address
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f1 ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	for(count=0;path[count]!='\n';count++)
+		min_val[count]=path[count];
+	min_val[count]='\0';
+
+	//Getting Max Address
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f2 ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	for(count=0;path[count]!='\n';count++)
+		max_val[count]=path[count];
+	max_val[count]='\0';
+
+	//Getting SubnetMask
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f3 ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	for(count=0;path[count]!='\n';count++)
+		subnet_val[count]=path[count];
+	subnet_val[count]='\0';
+
+	//Getting LeaseTime
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f4 ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	for(count=0;path[count]!='\n';count++)
+		lease_val[count]=path[count];
+	lease_val[count]='\0';
+
+	if(value_flag&SUBNET_MASK)
+		sprintf(updated_dhcp_range,"%s,%s,%s,%s",min_val,max_val,value,lease_val);
+	if(value_flag&DHCP_STARTING_RANGE)
+		sprintf(updated_dhcp_range,"%s%s,%s,%s,%s","dhcp-range=",value,max_val,subnet_val,lease_val);
+	if(value_flag&DHCP_ENDING_RANGE)
+		sprintf(updated_dhcp_range,"%s,%s,%s,%s",min_val,value,subnet_val,lease_val);
+	if(value_flag&DHCP_LEASE_TIME)
+		sprintf(updated_dhcp_range,"%s,%s,%s,%s",min_val,max_val,subnet_val,value);
+
+	sprintf(command,"%s%s/%s%s%s","sed -i -e 's/",orig_dhcp_range,updated_dhcp_range,"/g' ","/etc/dnsmasq.conf");
+	//Execute the command
+	system(command);
+	pclose(fp);
+	system("rm /etc/dhcp_static_hosts");
+	system("touch /etc/dhcp_static_hosts");
+	//Restart the dnsmaq
+	RestartDnsmasq();
+}
+
+/*
+ *  Procedure     : CcspHalInterfacesetval
+ *  Purpose       : To set current DHCPv4 Router value to Emulator(Gateway)
+ *
+ *  Parameters    : 
+ *     name       : To Get Interface Name 
+ *     str        : To Get New Gateway IP Address
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
+
 INT CcspHalInterfacesetval(CHAR *name,CHAR *str)
 	{
 
@@ -319,25 +521,19 @@ INT CcspHalInterfacesetval(CHAR *name,CHAR *str)
         return 0;
 
 	}
+/*
+ *  Procedure     : CcspHalNetmasksetvalue
+ *  Purpose       : To set current DHCPv4 Subnet value to Emulator
+ *
+ *  Parameters    : 
+ *     name       : To Get Interface Name 
+ *     str        : To Get New Subnet Mask Address
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
 
-/* CcspHalNetmasksetvalue() function */
-/**
-* @description Sets the eth1 interface(netmask)
-*
-* @param name - Interface Name (eg:- brlan0)
-* @param str - Subnet IP address
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+
 INT CcspHalNetmasksetvalue(CHAR *name,CHAR *str)
 	{
 	
@@ -350,22 +546,17 @@ INT CcspHalNetmasksetvalue(CHAR *name,CHAR *str)
         return 0;
 
 	}
+/*
+ *  Procedure     : CcspHalGetPIDbyName
+ *  Purpose       : To Get DHCPv4 server PID (to known ,it should be in Enable or Disable state)
+ *
+ *  Parameters    : 
+ *     pidName    : To get DHPCv4 server Name
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
 
-/* CcspHalGetPIDbyName() function */
-/**
-* @description Gets the process id of dhcp server
-*
-* @param pidName - dhcp server process Name
-*
-* @return Process Id of dhcp server
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
 INT CcspHalGetPIDbyName(CHAR* pidName)
 	{
 
@@ -385,21 +576,15 @@ INT CcspHalGetPIDbyName(CHAR* pidName)
 	}
 
 
-/* CcspHalNoofClientConnected() function */
-/**
-* @description To get number of client connected devices
-*
-* @param None
-*
-* @return No. of connected devices
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*
+ *  Procedure     : CcspHalNoofClientConnected
+ *  Purpose       : To Get Total number of connected clients through Emulator(Gateway)
+ *
+ *  Parameters    : None
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
 ULONG CcspHalNoofClientConnected()
 {
 	FILE *fp = NULL;
@@ -409,28 +594,22 @@ ULONG CcspHalNoofClientConnected()
 	if(fp == NULL)
 	{
 		printf("Failed to run command\n" );
-		exit(1);
+		return;
 	}
 	fgets(str, sizeof(str)-1, fp); 
 	total_reachable_clients = atoi(str);
 	return total_reachable_clients;
 }
 
-/* checkLan() function */
-/**
-* @description To check the Lan connection
-*
-* @param None
-*
-* @return Status of the LAN connection 
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*
+ *  Procedure     : checkLan
+ *  Purpose       : To check the Lan status
+ *
+ *  Parameters    : None
+ *  Return_values : The status of the operation
+ *     @retval TRUE , if successful
+ *     @retval FALSE , if any error is detected
+ */
 bool checkLan()
 {
         FILE *fp = NULL;
@@ -448,23 +627,17 @@ bool checkLan()
                 return false;
 }
 
-/* CcspHalUpdateInterfaceval() function */
-/**
-* @description To set new Gateway IP address to Lighttpd WebServer
-*
-* @param newgatewayip - Gateway IP address
-*
-* @return The status of the operation
-* @retval STATUS_SUCCESS if successful
-* @retval STATUS_FAILURE if any error is detected
-*
-* @execution Synchronous
-* @sideeffect None
-*
-* @note This function must not suspend and must not invoke any blocking system
-* calls. It should probably just send a message to a driver event handler task.
-*
-*/
+/*
+ *  Procedure     : CcspHalUpdateInterfaceval
+ *  Purpose       : To set new Gateway IP address to Lighttpd WebServer
+ *
+ *  Parameters    : 
+ *   newgatewayip : Having New Gateway IP Address
+ *  Return_values : The status of the operation
+ *     @retval 0 , if successful
+ *     @retval<0 , if any error is detected
+ */
+
 INT CcspHalUpdateInterfaceval(CHAR *newgatewayip)
 {
         CHAR path[1024],buf[500];
@@ -489,4 +662,199 @@ INT CcspHalUpdateInterfaceval(CHAR *newgatewayip)
         return 0;
 }
 
+/********************************************************************************************
+*********************************************************************************************
 
+				RESERVED IP IMPLEMENTATION
+
+*********************************************************************************************
+*********************************************************************************************/
+
+/*
+ *  Procedure           : updateReservedIp
+ *  Purpose             : It will edit the Existing Reserved IP in static Table Entry
+ *
+ *  Parameters          : 
+ *   hostPtr            : Having connected clients details. 
+ *   pDhcpStaticAddress : Having static table entry details.
+ *  Return_values       : None
+ */
+
+
+void updateReservedIp(struct hostDetails *hostPtr,HALPCOSA_DML_DHCPS_SADDR pDhcpStaticAddress)
+{
+	char command[256],path[512],updated_reserved_Mac[512],staticMac[512],Updated_Reserved[512],str[512];
+	int count = 0,dhcp = 0,tot_count = 0;
+	FILE *fp;
+	char staticIP_buf[100];
+	struct in_addr ip_addr;
+	ip_addr.s_addr = pDhcpStaticAddress->Yiaddr.Value;
+	inet_ntop(AF_INET, &ip_addr, staticIP_buf, sizeof staticIP_buf);
+
+	sprintf(staticMac,"%02x:%02x:%02x:%02x:%02x:%02x",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5]);
+
+	/* checking the file size whether it's empty or not */
+	fp = popen("cat /etc/dhcp_static_hosts | cut -d ',' -f1","r");
+	if(fp == NULL)
+	{
+		printf("Failure Function %s \n",__FUNCTION__);
+		return;
+	}
+	while(fgets(path, sizeof(path)-1, fp) != NULL)
+	{
+		for(count = 0;path[count]!='\n';count++)
+			updated_reserved_Mac[count] = path[count];
+		updated_reserved_Mac[count] = '\0';
+		if(strcmp(updated_reserved_Mac,staticMac) == 0)//Editing the Existing Reserved IP,RESERVED -> RESERVED
+		{
+			sprintf(command,"%s%s%s","cat /etc/dhcp_static_hosts | grep ",staticMac," > /tmp/Reserved_Mac.txt");
+			system(command);
+			fp = popen("cat /tmp/Reserved_Mac.txt | cut -d ',' -f2","r");
+			if(fp == NULL)
+			{
+				printf("Failure Function %s \n",__FUNCTION__);
+				return;
+			}
+			fgets(path, sizeof(path)-1, fp);
+			for(count = 0;path[count]!='\n';count++)
+				Updated_Reserved[count] = path[count];
+			Updated_Reserved[count] = '\0';
+			sprintf(command,"%s%s/%s%s","sed -i 's/",Updated_Reserved,staticIP_buf,"/' /etc/dhcp_static_hosts");
+			system(command);//RESERVED IP -> RESERVED IP
+
+		}
+
+		else
+		{
+			dhcp = dhcp + 1;
+		}
+	}//end of while
+	pclose(fp);
+	sprintf(command,"%s","cat /etc/dhcp_static_hosts | wc -l > /tmp/tot.count.txt");
+	system(command);
+	fp = popen("cat /tmp/tot.count.txt","r");
+	if(fp == NULL)
+	{
+		printf("Failure Function %s \n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path), fp);
+	for(count = 0;path[count]!='\n';count++)
+		str[count] = path[count];
+	str[count] = '\0';
+	tot_count = atoi(str);
+	pclose(fp);
+	if(tot_count == dhcp)//Adding the new Reserved IP in /etc/dhcp_static_hosts,DHCP -> RESERVED
+	{
+		sprintf(str,"%s%02x:%02x:%02x:%02x:%02x:%02x,%s,%s%s","echo ",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5],staticIP_buf,pDhcpStaticAddress->DeviceName," >> /etc/dhcp_static_hosts");
+		system(str);//DHCP-> RESERVED IP
+	}
+}
+
+/*
+ *  Procedure           : CcspHalDHCPv4ReservedClients
+ *  Purpose             : To set Reserved IP in Static Entry Table 
+ *
+ *  Parameters          : 
+ *   pDhcpStaticAddress : Having Static Table Entry.
+ *  Return_values       : None
+ */
+
+void CcspHalDHCPv4ReservedClients(HALPCOSA_DML_DHCPS_SADDR pDhcpStaticAddress)
+{
+	int i,Total_Hosts_Count=0,Connected_Client_Counts = 0;
+	struct hostDetails hostlist[MAX_NUM_HOST];
+	LM_hosts_t host;
+	int ret,count = 0,flag = 1;
+	FILE *fp;
+	char staticMac[100],str[256],path[512],updated_reserved_Mac[100];
+	char staticIP_buf[100],command[512];
+	struct in_addr ip_addr;
+	ip_addr.s_addr = pDhcpStaticAddress->Yiaddr.Value;
+	inet_ntop(AF_INET, &ip_addr, staticIP_buf, sizeof staticIP_buf);
+
+	sprintf(staticMac,"%02x:%02x:%02x:%02x:%02x:%02x",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5]);
+
+	//checking the file size where it's empty or not
+	sprintf(command,"%s","cat /etc/dhcp_static_hosts | wc -l > /tmp/count.txt");
+	system(command);
+	fp = popen("cat /tmp/count.txt","r");
+	if(fp == NULL)
+	{
+		printf("Failure Function %s \n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path), fp);
+	for(count = 0;path[count]!='\n';count++)
+		str[count] = path[count];
+	str[count] = '\0';
+	pclose(fp);
+	if(strcmp(str,"0") == 0)
+	{
+		sprintf(str,"%s%02x:%02x:%02x:%02x:%02x:%02x,%s,%s%s","echo ",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5],staticIP_buf,pDhcpStaticAddress->DeviceName," >> /etc/dhcp_static_hosts");
+		system(str);
+	}
+	else
+	{
+		ret =  lm_get_all_hosts(&host);//Getting Connected Clients Lists
+		if( ret == LM_RET_SUCCESS )
+		{
+			for(i = 0; i < host.count; i++)
+			{
+				sprintf(hostlist[i].hostName,"%02x:%02x:%02x:%02x:%02x:%02x", host.hosts[i].phyAddr[0], host.hosts[i].phyAddr[1], host.hosts[i].phyAddr[2], host.hosts[i].phyAddr[3], host.hosts[i].phyAddr[4], host.hosts[i].phyAddr[5]);
+				if(strcmp(hostlist[i].hostName,staticMac) == 0)
+					updateReservedIp(&hostlist[i],pDhcpStaticAddress);
+				else
+					Connected_Client_Counts = Connected_Client_Counts + 1;
+			}
+			Total_Hosts_Count = host.count;
+		}
+
+		if((Total_Hosts_Count == Connected_Client_Counts) || (Total_Hosts_Count == 0))//Not in Connected Client List,DHCP -> RESERVED
+		{
+			fp = popen("cat /etc/dhcp_static_hosts | cut -d ',' -f1","r");
+			if(fp == NULL)
+			{
+				printf("Failure Function %s \n",__FUNCTION__);
+				return;
+			}
+			while(fgets(path, sizeof(path)-1, fp) != NULL)
+			{
+				for(count = 0;path[count]!='\n';count++)
+					updated_reserved_Mac[count] = path[count];
+				updated_reserved_Mac[count] = '\0';
+
+				//New Entry
+				if((strcmp(updated_reserved_Mac,staticMac) != 0) && (flag == 1))
+				{
+					sprintf(str,"%s%02x:%02x:%02x:%02x:%02x:%02x,%s,%s%s","echo ",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5],staticIP_buf,pDhcpStaticAddress->DeviceName," >> /etc/dhcp_static_hosts");
+					system(str);
+					flag = 2;//To avoid repeated iteration for same StaticMac
+				}
+			}//end of while
+			flag = 1;
+		}//end of not in connected client if
+	}
+	//Restart the dnsmasq
+	RestartDnsmasq();
+}
+
+/*
+ *  Procedure           : CcspHalDHCPv4DeleteReservedClients
+ *  Purpose             : To delete Reserved IP in Static Entry Table 
+ *
+ *  Parameters          : 
+ *   pDhcpStaticAddress : Having Static Table Entry.
+ *  Return_values       : None
+ */
+
+void CcspHalDHCPv4DeleteReservedClients(HALPCOSA_DML_DHCPS_SADDR pDhcpStaticAddress)//RESERVED IP --> DHCP
+{
+	char command[256],staticMac[512];
+	sprintf(staticMac,"%02x:%02x:%02x:%02x:%02x:%02x",pDhcpStaticAddress->Chaddr[0],pDhcpStaticAddress->Chaddr[1],pDhcpStaticAddress->Chaddr[2],pDhcpStaticAddress->Chaddr[3],pDhcpStaticAddress->Chaddr[4],pDhcpStaticAddress->Chaddr[5]);
+
+	sprintf(command,"%s%s%s","sed -i.bak '/",staticMac,"/d' /etc/dhcp_static_hosts");
+	system(command);
+	//Restart the dnsmasq
+	RestartDnsmasq();
+}
