@@ -16,12 +16,17 @@
 #define MAX_NUM_HOST 50
 #define COSA_DML_ALIAS_NAME_LENGTH 64
 #define IPV4_ADDRESS_SIZE 4
+#define COSA_DML_IF_NAME_LENGTH 64
 #define DHCP_PID "> /tmp/pidof"
 #define DHCP_PATH "/tmp/pidof"
 #define DHCPv4_PID "pidof "
 
 #ifndef ULONG
 #define ULONG unsigned long
+#endif
+
+#ifndef LONG
+#define LONG  long
 #endif
 
 #ifndef CHAR
@@ -62,6 +67,46 @@ struct hostDetails
         char hostName[20];
 };
 
+struct ethernet_port_details
+{
+	char Name[64];
+	UCHAR Mac[6];
+};
+
+typedef  struct
+_HALCOSA_DML_ETH_STATS
+{
+    ULONG                           BytesSent;
+    ULONG                           BytesReceived;
+    ULONG                           PacketsSent;
+    ULONG                           PacketsReceived;
+    ULONG                           ErrorsSent;
+    ULONG                           ErrorsReceived;
+    ULONG                           UnicastPacketsSent;
+    ULONG                           UnicastPacketsReceived;
+    ULONG                           DiscardPacketsSent;
+    ULONG                           DiscardPacketsReceived;
+    ULONG                           MulticastPacketsSent;
+    ULONG                           MulticastPacketsReceived;
+    ULONG                           BroadcastPacketsSent;
+    ULONG                           BroadcastPacketsReceived;
+    ULONG                           UnknownProtoPacketsReceived;
+}
+HALCOSA_DML_ETH_STATS, *HALPCOSA_DML_ETH_STATS;
+
+typedef  enum
+_HALCOSA_DML_IF_STATUS
+{
+    HALCOSA_DML_IF_STATUS_Up               = 1,
+    HALCOSA_DML_IF_STATUS_Down,
+    HALCOSA_DML_IF_STATUS_Unknown,
+    HALCOSA_DML_IF_STATUS_Dormant,
+    HALCOSA_DML_IF_STATUS_NotPresent,
+    HALCOSA_DML_IF_STATUS_LowerLayerDown,
+    HALCOSA_DML_IF_STATUS_Error
+}
+HALCOSA_DML_IF_STATUS, *HALPCOSA_DML_IF_STATUS;
+
 struct
 _HALCOSA_DML_DHCPS_SADDR
 {
@@ -75,7 +120,56 @@ _HALCOSA_DML_DHCPS_SADDR
     char                            Comment[256];
     bool                            ActiveFlag;
 };
+
 typedef  struct _HALCOSA_DML_DHCPS_SADDR HALCOSA_DML_DHCPS_SADDR,  *HALPCOSA_DML_DHCPS_SADDR;
+
+typedef  struct
+_HALCOSA_DML_ETH_PORT_CFG
+{
+    ULONG                           InstanceNumber;
+    char                            Alias[COSA_DML_IF_NAME_LENGTH];
+
+    bool                            bEnabled;
+    LONG                            MaxBitRate;
+}
+HALCOSA_DML_ETH_PORT_CFG,  *HALPCOSA_DML_ETH_PORT_CFG;
+
+/*
+ *  Static portion of Ethernet port info
+ */
+typedef  struct
+_HALCOSA_DML_ETH_PORT_SINFO
+{
+    char                            Name[COSA_DML_IF_NAME_LENGTH];
+    bool                            bUpstream;
+    UCHAR                           MacAddress[6];
+}
+HALCOSA_DML_ETH_PORT_SINFO,  *HALPCOSA_DML_ETH_PORT_SINFO;
+
+
+/*
+ *  Dynamic portion of Ethernet port info
+ */
+typedef  struct
+_HALCOSA_DML_ETH_PORT_DINFO
+{
+    HALCOSA_DML_IF_STATUS              Status;
+    ULONG                           CurrentBitRate;
+    ULONG                           LastChange;
+    ULONG                           AssocDevicesCount;
+}
+HALCOSA_DML_ETH_PORT_DINFO,  *HALPCOSA_DML_ETH_PORT_DINFO;
+
+
+typedef  struct
+_HALCOSA_DML_ETH_PORT_FULL
+{
+    HALCOSA_DML_ETH_PORT_CFG           Cfg;
+    HALCOSA_DML_ETH_PORT_SINFO         StaticInfo;
+    HALCOSA_DML_ETH_PORT_DINFO         DynamicInfo;
+}
+HALCOSA_DML_ETH_PORT_FULL, *HALPCOSA_DML_ETH_PORT_FULL;
+
 
 /*
  *  Procedure     : CcspHalGetConfigValues
@@ -230,6 +324,132 @@ void CcspHalDHCPv4DeleteReservedClients(HALPCOSA_DML_DHCPS_SADDR pDhcpStaticAddr
  */
 
 void RestartDnsmasq();
+
+/*
+ *  Procedure           : GetInterfaceMacAddressValue
+ *  Purpose             : To Get NULL MAC Address,If that interface is not there
+ *
+ *  Parameters          : 
+ *   interface_details  : Having Mac Address Value is NULL
+ *  Return_values       : None
+ */
+
+void GetInterfaceMacAddressValue(struct ethernet_port_details *interface_details);
+
+/*
+ *  Procedure           : CcspHalGetInterfaceDetails
+ *  Purpose             : To Get all Interface Details(like Name,Mac Address).
+ *
+ *  Parameters          : 
+ *   interface_details  : Having Interface Details of Static Information.
+ *   ulIndex            : Instance Number of Interfaces
+ *  Return_values       : None
+ */
+
+void CcspHalGetInterfaceDetails(ULONG ulIndex,struct ethernet_port_details *interface_details);
+
+/*
+ *  Procedure           : CcspHalGetInterfaceStatusDetails
+ *  Purpose             : To Get all Interface Status Detail.
+ *
+ *  Parameters          : 
+ *   pInfo              : Having Interface Status Detail.
+ *   ulInstanceNumber   : Instance Number of Interfaces
+ *  Return_values       : None
+ */
+
+void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PORT_DINFO pInfo);
+
+/*
+ *  Procedure         : CcspHalGetInterfaceEnableDetails
+ *  Purpose           : To check the LAN and WAN Enable Status in Emulator
+ *
+ *  Parameters        : 
+ *     InstanceNumber : Having Instance Number of Interface
+ *  Return_values     : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber);
+
+/*
+ *  Procedure            : CcspHalGetBridgePortNames
+ *  Purpose              : To get Bridge Port Names
+ *
+ *  Parameters           : 
+ *   ulBrgInstanceNumber : Having Instance number of Bridge
+ *   ulIndex             : Having Instance number of port
+ *   string              : Having Bridge_Port Names
+ *  Return_values        : None
+ */
+
+void CcspHalGetBridgePortNames(ULONG ulBrgInstanceNumber,ULONG ulIndex,char *string);
+
+/*
+ *  Procedure         : GetBridgePortStatus
+ *  Purpose           : To Get Bridge Port Current Status
+ *
+ *  Parameters        : 
+ *     string         : Having Current Interface
+ *  Return_values     : The status of the operation
+ *     @retval up   , if successful
+ *     @retval down , if any error is detected
+ */
+
+HALCOSA_DML_IF_STATUS GetBridgePortStatus(char *string);
+
+/*
+ *  Procedure              : CcspHalGetBridgePortStatus
+ *  Purpose                : To Get Bridge Port Current Status
+ *
+ *  Parameters             : 
+ *     ulBrgInstanceNumber : Having Instance Number of Bridge
+ *     ulIndex             : Having Instance Number of Port
+ *  Return_values          : The status of the operation
+ *     @retval up    , if successful
+ *     @retval down  , if any error is detected
+ */
+
+HALCOSA_DML_IF_STATUS CcspHalGetBridgePortStatus(ULONG ulBrgInstanceNumber,ULONG ulIndex);
+
+/*
+ *  Procedure         : GetBridgePortEnable
+ *  Purpose           : To Get Bridge Port Enable Status
+ *
+ *  Parameters        : 
+ *     string         : Having current Interface
+ *  Return_values     : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool GetBridgePortEnable(char *string);
+
+/*
+ *  Procedure              : CcspHalGetBridgePortEnable
+ *  Purpose                : To Get Bridge Port Enable Status
+ *
+ *  Parameters             : 
+ *     ulBrgInstanceNumber : Having Instance Number of Bridge
+ *     ulIndex             : Having Instance Number of Port
+ *  Return_values          : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool CcspHalGetBridgePortEnable(ULONG ulIndex,ULONG ulBrgInstanceNumber);
+
+/*
+ *  Procedure           : CcspHalGetBridgePortStats
+ *  Purpose             : To get Bridge Port Status Value is NULL
+ *
+ *  Parameters          : 
+ *   pStats             : Having Bridge port stats details.
+ *  Return_values       : None
+ */
+
+void CcspHalGetBridgePortStats(HALPCOSA_DML_ETH_STATS pStats);
 
 #endif
 
