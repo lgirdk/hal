@@ -1310,35 +1310,85 @@ INT wifi_setSSIDEnable(INT ssidIndex, BOOL enable) //Tr181
 //Get the SSID enable status
 INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 {
-	char cmd[128]={0};
-	char buf[128]={0};
-	if (NULL == output_string) 
+	/*	char cmd[128]={0};
+		char buf[128]={0};
+		if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(cmd, sizeof(cmd), "ifconfig %s%d | grep %s%d", AP_PREFIX, ssidIndex, AP_PREFIX, ssidIndex);	
-	_syscmd(cmd, buf, sizeof(buf));
-	
-	snprintf(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");
+		snprintf(cmd, sizeof(cmd), "ifconfig %s%d | grep %s%d", AP_PREFIX, ssidIndex, AP_PREFIX, ssidIndex);	
+		_syscmd(cmd, buf, sizeof(buf));
 
+		snprintf(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");*/
+
+	//RDKB-EMULATOR
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;
+	if(ssidIndex == 1)
+	{
+		fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"RUNNING") == 0)
+			strcpy(output_string,"Enabled");
+		else
+			strcpy(output_string,"Disabled");
+		pclose(fp);
+	}
+	if(ssidIndex == 5)
+	{
+		fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"RUNNING") == 0)
+			strcpy(output_string,"Enabled");
+		else
+			strcpy(output_string,"Disabled");
+		pclose(fp);
+	}
 	return RETURN_OK;
 }
 
 // Outputs a 32 byte or less string indicating the SSID name.  Sring buffer must be preallocated by the caller.
 INT wifi_getSSIDName(INT apIndex, CHAR *output)
 {
-	if (NULL == output) 
+	/*	if (NULL == output) 
 		return RETURN_ERR;
-	if(apIndex==0) 
+		if(apIndex==0) 
 		snprintf(output, 64, "HOME-XXXX-2.4");
-	else if(apIndex==1)
+		else if(apIndex==1)
 		snprintf(output, 64, "HOME-XXXX-5");
-	else if(apIndex==2)
+		else if(apIndex==2)
 		snprintf(output, 64, "XHS-XXXXXX");
-	else if(apIndex==4)
+		else if(apIndex==4)
 		snprintf(output, 64, "Xfinitywifi-2.4");
-	else if(apIndex==5)
+		else if(apIndex==5)
 		snprintf(output, 64, "Xfinitywifi-5");	
-	else
-		snprintf(output, 64, "OOS");
+		else
+		snprintf(output, 64, "OOS");*/
+	//RDKB_EMULATOR
+	if(apIndex == 1)
+		strcpy(output,"wlan0");
+	else if(apIndex == 5)
+		strcpy(output,"wlan0_0");
+
 	return RETURN_OK;
 }
         
@@ -1509,14 +1559,62 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 //Get the MAC address associated with this Wifi SSID
 INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 {
-	char cmd[128]={0};
-		
-	if (NULL == output_string) 
+	/*	char cmd[128]={0};
+
+		if (NULL == output_string) 
 		return RETURN_ERR;
-		
-	sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
-    _syscmd(cmd, output_string, 64);
-    
+
+		sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
+		_syscmd(cmd, output_string, 64);*/ 
+	//RDKB-EMULATOR
+	FILE *fp = NULL;
+	char Mac[20];
+	char path[1024];
+	int Macindex=0;
+	int arr[MACADDRESS_SIZE];
+	unsigned char mac[6];
+	if(ssidIndex == 1)
+	{
+		fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		if (fp == NULL) {
+			printf("Failed to run command inside function %s\n",__FUNCTION__ );
+			exit(1);
+		}
+		fgets(path, sizeof(path)-1, fp);
+		strcpy(Mac,path);
+		pclose(fp);
+		// Store in One byte
+		if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+		{
+			for( Macindex = 0; Macindex < 6; ++Macindex )
+			{
+				mac[Macindex] = (unsigned char) arr[Macindex];
+			}
+		}
+		strcpy(output_string,mac);
+	}
+	if(ssidIndex == 5)
+	{
+		fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		if (fp == NULL) {
+			printf("Failed to run command inside function %s\n",__FUNCTION__ );
+			exit(1);
+		}
+		fgets(path, sizeof(path)-1, fp) ;
+		strcpy(Mac,path);
+		pclose(fp);
+		// Store in One byte
+		if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+		{
+			for( Macindex = 0; Macindex < 6; ++Macindex )
+			{
+				mac[Macindex] = (unsigned char) arr[Macindex];
+			}
+		}
+		strcpy(output_string,mac);
+	}
+
+
 	return RETURN_OK;
 }
 
@@ -1620,51 +1718,248 @@ INT wifi_getRadioWifiTrafficStats(INT radioIndex, wifi_radioTrafficStats_t *outp
 
 INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_struct)
 {
-    char cmd[128];  
-	char buf[1280];
-	char *pos=NULL;
-	
+	/*char cmd[128];  
+	  char buf[1280];
+	  char *pos=NULL;*/
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;//RDKB-EMULATOR
 	if (NULL == output_struct) {
 		return RETURN_ERR;
 	} 
-	
 
-    memset(output_struct, 0, sizeof(wifi_basicTrafficStats_t));
 
-    snprintf(cmd, sizeof(cmd), "ifconfig %s%d", AP_PREFIX, apIndex);
-    _syscmd(cmd,buf, sizeof(buf));
+	memset(output_struct, 0, sizeof(wifi_basicTrafficStats_t));
 
-    pos = buf;
-    if((pos=strstr(pos,"RX packets:"))==NULL)
-        return RETURN_ERR;
-    output_struct->wifi_PacketsReceived = atoi(pos+strlen("RX packets:"));
-    
-    if((pos=strstr(pos,"TX packets:"))==NULL)
-        return RETURN_ERR;
-    output_struct->wifi_PacketsSent = atoi(pos+strlen("TX packets:"));
+	/* snprintf(cmd, sizeof(cmd), "ifconfig %s%d", AP_PREFIX, apIndex);
+	   _syscmd(cmd,buf, sizeof(buf));
 
-    if((pos=strstr(pos,"RX bytes:"))==NULL)
-		return RETURN_ERR;    
-    output_struct->wifi_BytesReceived = atoi(pos+strlen("RX bytes:"));
+	   pos = buf;
+	   if((pos=strstr(pos,"RX packets:"))==NULL)
+	   return RETURN_ERR;
+	   output_struct->wifi_PacketsReceived = atoi(pos+strlen("RX packets:"));
 
-    if((pos=strstr(pos,"TX bytes:"))==NULL)
-		return RETURN_ERR; 
-    output_struct->wifi_BytesSent = atoi(pos+strlen("TX bytes:"));
-        
-    sprintf(cmd, "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
-	_syscmd(cmd, buf, sizeof(buf));
-	sscanf(buf,"%lu", &output_struct->wifi_Associations);
-	
+	   if((pos=strstr(pos,"TX packets:"))==NULL)
+	   return RETURN_ERR;
+	   output_struct->wifi_PacketsSent = atoi(pos+strlen("TX packets:"));
+
+	   if((pos=strstr(pos,"RX bytes:"))==NULL)
+	   return RETURN_ERR;    
+	   output_struct->wifi_BytesReceived = atoi(pos+strlen("RX bytes:"));
+
+	   if((pos=strstr(pos,"TX bytes:"))==NULL)
+	   return RETURN_ERR; 
+	   output_struct->wifi_BytesSent = atoi(pos+strlen("TX bytes:"));
+
+	   sprintf(cmd, "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
+	   _syscmd(cmd, buf, sizeof(buf));
+	   sscanf(buf,"%lu", &output_struct->wifi_Associations);*/
+
+	//RDKB-EMULATOR
+
+	if(apIndex == 1)
+	{
+		fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		output_struct->wifi_BytesReceived = atol(status);
+		printf(" the status %s and %ld \n",status,output_struct->wifi_BytesReceived);
+		pclose(fp);
+
+		fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		output_struct->wifi_BytesSent = atol(status);
+		pclose(fp);
+
+		fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_PacketsSent = atol(status);
+
+		fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_PacketsReceived = atol(status);
+	}
+	else if(apIndex == 5)
+	{
+		fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		output_struct->wifi_BytesReceived = atol(status);
+		pclose(fp);
+
+		fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		output_struct->wifi_BytesSent = atol(status);
+		pclose(fp);
+
+		fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_PacketsSent = atol(status);
+
+		fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_PacketsReceived = atol(status);
+	}	
 	return RETURN_OK;
 }
 
 INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 {
-	if (NULL == output_struct) {
+	/*	if (NULL == output_struct) {
 		return RETURN_ERR;
-	} else {
+		} else {
 		memset(output_struct, 0, sizeof(wifi_trafficStats_t));
 		return RETURN_OK;
+		}*/
+	//RDKB-EMULATOR
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;//RDKB-EMULATOR
+	if(apIndex == 1)
+	{
+		fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_ErrorsSent = atol(status);
+
+		fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_ErrorsReceived = atol(status);
+	}
+	else if(apIndex == 5)
+	{
+		fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_ErrorsSent = atol(status);
+
+		fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+		output_struct->wifi_ErrorsReceived = atol(status);
 	}
 }
 
