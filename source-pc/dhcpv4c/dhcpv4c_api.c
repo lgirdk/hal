@@ -607,8 +607,8 @@ ULONG CcspHalNoofClientConnected()
  *
  *  Parameters    : None
  *  Return_values : The status of the operation
- *     @retval TRUE , if successful
- *     @retval FALSE , if any error is detected
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
  */
 bool checkLan()
 {
@@ -858,3 +858,468 @@ void CcspHalDHCPv4DeleteReservedClients(HALPCOSA_DML_DHCPS_SADDR pDhcpStaticAddr
 	//Restart the dnsmasq
 	RestartDnsmasq();
 }
+
+/*
+ *  Procedure           : GetInterfaceMacAddressValue
+ *  Purpose             : To Get NULL MAC Address,If that interface is not there
+ *
+ *  Parameters          : 
+ *   interface_details  : Having Mac Address Value is NULL
+ *  Return_values       : None
+ */
+
+void GetInterfaceMacAddressValue(struct ethernet_port_details *interface_details)
+{
+	int bssidindex=0;
+	int arr[6];
+	char MacAddress[100] = {0};
+	UCHAR Mac[250] = {0};
+	// Store in One byte
+	strcpy(MacAddress,"00:00:00:00:00:00");
+	if( 6 == sscanf(MacAddress, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+	{
+		for( bssidindex = 0; bssidindex < 6; ++bssidindex )
+		{
+			interface_details->Mac[bssidindex] = (unsigned char) arr[bssidindex];
+		}
+	}
+}
+
+/*
+ *  Procedure           : CcspHalGetInterfaceDetails
+ *  Purpose             : To Get all Interface Details(like Name,Mac Address).
+ *
+ *  Parameters          : 
+ *   interface_details  : Having Interface Details of Static Information.
+ *   ulIndex            : Instance Number of Interfaces
+ *  Return_values       : None
+ */
+void CcspHalGetInterfaceDetails(ULONG ulIndex,struct ethernet_port_details *interface_details)
+{
+	UCHAR strMac[128] = {0};
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;
+	if(ulIndex == 1)
+	{
+		strcpy(interface_details->Name,"eth1");
+		fp = popen("ifconfig | grep eth1 | grep -v grep | wc -l","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"1") == 0)
+		{
+			if ( -1 != _getMac(interface_details->Name, strMac) )
+				AnscCopyMemory(interface_details->Mac,strMac,6);
+		}
+		else
+			       GetInterfaceMacAddressValue(interface_details);
+	pclose(fp);
+	}
+	else if(ulIndex == 2)
+	{
+		strcpy(interface_details->Name,"eth0");
+		fp = popen("ifconfig | grep eth0 | grep -v grep | wc -l","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"1") == 0)
+		{
+			if ( -1 != _getMac(interface_details->Name,strMac) )
+				AnscCopyMemory(interface_details->Mac,strMac,6);
+		}
+		else
+			       GetInterfaceMacAddressValue(interface_details);
+	pclose(fp);
+	}
+	else if(ulIndex == 3)
+	{
+		strcpy(interface_details->Name,"eth2");
+		fp = popen("ifconfig | grep eth2 | grep -v grep | wc -l","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"1") == 0)
+		{
+			if ( -1 != _getMac(interface_details->Name,strMac) )
+				AnscCopyMemory(interface_details->Mac,strMac,6);
+		}
+		else
+			       GetInterfaceMacAddressValue(interface_details);
+	pclose(fp);
+	}
+}
+/*
+ *  Procedure           : CcspHalGetInterfaceStatusDetails
+ *  Purpose             : To Get all Interface Status Detail.
+ *
+ *  Parameters          : 
+ *   pInfo              : Having Interface Status Detail.
+ *   ulInstanceNumber   : Instance Number of Interfaces
+ *  Return_values       : None
+ */
+
+void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PORT_DINFO pInfo)
+{
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;
+	if (ulInstanceNumber == 1)
+	{
+		fp = popen("ifconfig eth1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"RUNNING") == 0)
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Up;
+		else
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Down;
+		pclose(fp);
+	}
+	else if (ulInstanceNumber == 2)
+	{
+		fp = popen("ifconfig eth0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"RUNNING") == 0)
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Up;
+		else
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Down;
+		pclose(fp);
+	}
+	else if (ulInstanceNumber == 3)
+	{
+		fp = popen("ifconfig eth2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		if(strcmp(status,"RUNNING") == 0)
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Up;
+		else
+			pInfo->Status = HALCOSA_DML_IF_STATUS_Down;
+		pclose(fp);
+	}
+}
+/*
+ *  Procedure         : CcspHalGetInterfaceEnableDetails
+ *  Purpose           : To check the LAN and WAN Enable Status in Emulator
+ *
+ *  Parameters        : 
+ *     InstanceNumber : Having Instance Number of Interface
+ *  Return_values     : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber)
+{
+        FILE *fp;
+        char path[256] = {0},status[100] = {0};
+        int count = 0;
+        if (InstanceNumber == 1)
+        {
+                fp = popen("ifconfig | grep eth1 | grep -v grep | wc -l","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                while(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                pclose(fp);
+                if(strcmp(status,"1") == 0)
+                        return true;
+                else
+                        return false;
+        }
+        else if (InstanceNumber == 2)
+        {
+                fp = popen("ifconfig | grep eth0 | grep -v grep | wc -l","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                while(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                pclose(fp);
+                if(strcmp(status,"1") == 0)
+                        return true;
+                else
+                        return false;
+        }
+	else if (InstanceNumber == 3)
+        {
+                fp = popen("ifconfig | grep eth2 | grep -v grep | wc -l","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                while(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                pclose(fp);
+                if(strcmp(status,"1") == 0)
+                        return true;
+                else
+                        return false;
+        }
+}
+
+/*
+ *  Procedure            : CcspHalGetBridgePortNames
+ *  Purpose              : To get Bridge Port Names
+ *
+ *  Parameters           : 
+ *   ulBrgInstanceNumber : Having Instance number of Bridge
+ *   ulIndex             : Having Instance number of port
+ *   string              : Having Bridge_Port Names
+ *  Return_values        : None
+ */
+
+void CcspHalGetBridgePortNames(ULONG ulBrgInstanceNumber,ULONG ulIndex,char *string)
+{
+        if( (ulIndex == 1) && ( ulBrgInstanceNumber == 1))
+                strcpy(string,"brlan0");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 1))
+                strcpy(string,"eth1");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 1))
+                strcpy(string,"wlan0");
+        else if( (ulIndex == 1) && ( ulBrgInstanceNumber == 2))
+                strcpy(string,"brlan1");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 2))
+                strcpy(string,"gretap0");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 2))
+                strcpy(string,"wlan0_0");
+
+}
+
+/*
+ *  Procedure         : GetBridgePortStatus
+ *  Purpose           : To Get Bridge Port Current Status
+ *
+ *  Parameters        : 
+ *     string         : Having Current Interface
+ *  Return_values     : The status of the operation
+ *     @retval up   , if successful
+ *     @retval down , if any error is detected
+ */
+
+HALCOSA_DML_IF_STATUS GetBridgePortStatus(char *string)
+{
+        FILE *fp;
+        char path[256] = {0},status[100] = {0} , command[100] = {0};
+        int count = 0;
+        sprintf(command,"%s%s%s","ifconfig ",string," | grep RUNNING | tr -s ' ' | cut -d ' ' -f4 > /tmp/BridgePort_Status");
+        system(command);
+        fp = popen("cat /tmp/BridgePort_Status","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        while(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+                for(count=0;path[count]!='\n';count++)
+                        status[count]=path[count];
+                status[count]='\0';
+        }
+        pclose(fp);
+        if(strcmp(status,"RUNNING") == 0)
+                return HALCOSA_DML_IF_STATUS_Up;
+        else
+                return HALCOSA_DML_IF_STATUS_Down;
+
+}
+
+/*
+ *  Procedure              : CcspHalGetBridgePortStatus
+ *  Purpose                : To Get Bridge Port Current Status
+ *
+ *  Parameters             : 
+ *     ulBrgInstanceNumber : Having Instance Number of Bridge
+ *     ulIndex             : Having Instance Number of Port
+ *  Return_values          : The status of the operation
+ *     @retval up    , if successful
+ *     @retval down  , if any error is detected
+ */
+
+HALCOSA_DML_IF_STATUS CcspHalGetBridgePortStatus(ULONG ulBrgInstanceNumber,ULONG ulIndex)
+{
+        if( (ulIndex == 1) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortStatus("brlan0");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortStatus("eth1");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortStatus("wlan0");
+        else if( (ulIndex == 1) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortStatus("brlan1");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortStatus("gretap0");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortStatus("wlan0_0");
+}
+
+/*
+ *  Procedure         : GetBridgePortEnable
+ *  Purpose           : To Get Bridge Port Enable Status
+ *
+ *  Parameters        : 
+ *     string         : Having current Interface
+ *  Return_values     : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool GetBridgePortEnable(char *string)
+{
+        FILE *fp;
+        char path[256] = {0},status[100] = {0} , command[100] = {0};
+        int count = 0;
+        if(strcmp(string,"wlan0") == 0)
+        {
+                system("ifconfig | grep wlan0 | grep -v wlan0_0 | grep -v mon.wlan0 | wc -l > /tmp/BridgePort_Enable");
+        }
+        else
+        {
+                sprintf(command,"%s%s%s","ifconfig | grep ",string," | wc -l  > /tmp/BridgePort_Enable");
+                printf(" The command is %s \n",command);
+                system(command);
+        }
+        fp = popen("cat /tmp/BridgePort_Enable","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        while(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+                for(count=0;path[count]!='\n';count++)
+                        status[count]=path[count];
+                status[count]='\0';
+        }
+        pclose(fp);
+        if(strcmp(status,"1") == 0)
+                return true;
+        else
+                return false;
+
+}
+
+/*
+ *  Procedure              : CcspHalGetBridgePortEnable
+ *  Purpose                : To Get Bridge Port Enable Status
+ *
+ *  Parameters             : 
+ *     ulBrgInstanceNumber : Having Instance Number of Bridge
+ *     ulIndex             : Having Instance Number of Port
+ *  Return_values          : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool CcspHalGetBridgePortEnable(ULONG ulIndex,ULONG ulBrgInstanceNumber)
+{
+        if( (ulIndex == 1) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortEnable("brlan0");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortEnable("eth1");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 1))
+                return GetBridgePortEnable("wlan0");
+        else if( (ulIndex == 1) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortEnable("brlan1");
+        else if( (ulIndex == 2) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortEnable("gretap0");
+        else if( (ulIndex == 3) && ( ulBrgInstanceNumber == 2))
+                return GetBridgePortEnable("wlan0_0");
+}
+
+/*
+ *  Procedure           : CcspHalGetBridgePortStats
+ *  Purpose             : To get Bridge Port Status Value is NULL
+ *
+ *  Parameters          : 
+ *   pStats             : Having Bridge port stats details.
+ *  Return_values       : None
+ */
+
+void CcspHalGetBridgePortStats(HALPCOSA_DML_ETH_STATS pStats)
+{
+        pStats->BroadcastPacketsReceived = 0;
+        pStats->BroadcastPacketsSent = 0;
+        pStats->BytesReceived = 0;
+        pStats->BytesSent = 0;
+        pStats->DiscardPacketsReceived = 0;
+        pStats->DiscardPacketsSent = 0;
+        pStats->ErrorsReceived = 0;
+        pStats->ErrorsSent = 0;
+        pStats->MulticastPacketsReceived = 0;
+        pStats->MulticastPacketsSent = 0;
+        pStats->PacketsReceived = 0;
+        pStats->PacketsSent = 0;
+        pStats->UnicastPacketsReceived = 0;
+        pStats->UnicastPacketsSent = 0;
+        pStats->UnknownProtoPacketsReceived = 0;
+}
+
