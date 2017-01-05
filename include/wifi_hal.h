@@ -18,33 +18,10 @@
 */
 
 /**********************************************************************
-   Copyright [2015] [Comcast, Corp.]
- 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
- 
-       http://www.apache.org/licenses/LICENSE-2.0
- 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-**********************************************************************/
-
-/**********************************************************************
 
     module: wifi_hal.h
 
         For CCSP Component:  Wifi_Provisioning_and_management
-
-    ---------------------------------------------------------------
-
-    copyright:
-
-        Comcast, Corp., 2015
-        All Rights Reserved.
 
     ---------------------------------------------------------------
 
@@ -91,6 +68,10 @@
 	  1. Add wifi_setRadioTrafficStatsMeasure, wifi_setRadioTrafficStatsRadioStatisticsEnable
 	What is new for 2.2.2
 	  1. Add Band Steering HAL
+	What is new for 2.3.0  
+	  1. Add AP Beacon Rate control HAL
+	  2. Add Dynamic Channel Selection (phase 2) HAL
+	  3. Add Air Time Management HAL
 **********************************************************************/
 /**
 * @file wifi_hal.h
@@ -171,10 +152,10 @@
 #define AP_INDEX_16 16
 #endif
 
-//defines for HAL version 2.2.2
+//defines for HAL version 2.3.0
 #define WIFI_HAL_MAJOR_VERSION 2   // This is the major verion of this HAL.
-#define WIFI_HAL_MINOR_VERSION 2   // This is the minor verson of the HAL.
-#define WIFI_HAL_MAINTENANCE_VERSION 2   // This is the maintenance version of the HAL.
+#define WIFI_HAL_MINOR_VERSION 3   // This is the minor verson of the HAL.
+#define WIFI_HAL_MAINTENANCE_VERSION 0   // This is the maintenance version of the HAL.
 
 /**********************************************************************
                 STRUCTURE DEFINITIONS
@@ -687,6 +668,155 @@ INT wifi_setRadioCountryCode(INT radioIndex, CHAR *CountryCode);
 
 //Device.WiFi.
 
+//---------------------------------------------------------------------------------------------------
+// Air Time Management HAL.
+//---------------------------------------------------------------------------------------------------
+/**
+* @description Get the ATM Capable
+* \n Device.WiFi.X_RDKCENTRAL-COM_ATM_Capable	boolean	R
+* @param output_bool - Indication as to whether supports Air Time Management
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getATMCapable(BOOL *output_bool); 
+
+/**
+* @description Set ATM Enable
+*  The type of algorithm to apply across the configured Access Points and/or clients; 
+* \n Device.WiFi.X_RDKCENTRAL-COM_ATM_Enable	uint	W
+* @param enable - false = Disabled; true = Dynamic (Sharing of unused Airtime Between AP Groups allowed)
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_setATMEnable(BOOL enable); 
+
+/**
+* @description Get ATM Enable status
+* \n Device.WiFi.X_RDKCENTRAL-COM_ATM_Enable	uint	W
+* @param output_enable - false = Disabled; true = Dynamic (Sharing of unused Airtime Between AP Groups allowed)
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getATMEnable(BOOL *output_enable); 
+
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_NumberAPGroups	uint	R	default to 8
+
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.	objectA grouping of Access Points and the percentage of Airtime Assigned to them.
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.APList 			String	W	Comma Separated List of AP Indexes assigned to this group. apList= "1,2"  ap index is start from 0
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.AirTimePercent	uint	W The Percentage of Available Airtime assigned to this ATM AP Group (5%-100%) The sum of all percentages assigned to all groups must be <= 100%"
+/**
+* @description Set Ap Air Time Percent
+* \n Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.AirTimePercent	uint	W
+* @param apIndex - AP index 
+* @param ap_AirTimePercent - The Percentage of Available Airtime assigned to this ATM AP Group (5%-100%) The sum of all percentages assigned to all groups must be <= 100%"
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_setApATMAirTimePercent(INT apIndex, UINT ap_AirTimePercent); 
+
+/**
+* @description Get Ap Air Time Percent
+* \n Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.AirTimePercent	uint	W
+* @param apIndex - AP index 
+* @param output_ap_AirTimePercent - The Percentage of Available Airtime assigned to this ATM AP Group (5%-100%) 
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getApATMAirTimePercent(INT apIndex, UINT *output_ap_AirTimePercent); 
+
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.NumberSta		uint	R The number of assured throughput Clients configured for ATM
+/**
+* @description Get the list for Air Time Percent for each STA
+* 
+* @param apIndex - AP index 
+* @param output_sta_MAC_ATM_array - caller allocated buffer,  output_sta_MAC_ATM_array contains the atm array in format of "$MAC $ATM_percent|$MAC $ATM_percent|$MAC $ATM_percent"
+* @param buf_size - the size for output_sta_MAC_ATM_array
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getApATMSta(INT apIndex, UCHAR *output_sta_MAC_ATM_array, UINT  buf_size);  //output_sta_MAC_ATM_array contains the atm array in format of "$MAC $ATM_percent|$MAC $ATM_percent|$MAC $ATM_percent"
+																				//buf_size is the size for output_sta_MAC_ATM_array
+
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.Sta.{i}	object		
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.Sta.{i}.MAC	string(18)	W	[MACAddress] The MAC Address to which the Following Configuration Applies
+//Device.WiFi.X_RDKCENTRAL-COM_ATM_APGroup.{i}.Sta.{i}.AirTimePercent	uint	W	The Percentage of Available Airtime assigned to this ATM within an AP Group for this client.
+/**
+* @description Set Air Time Percent for each STA
+* 
+* @param apIndex - AP index 
+* @param sta_MAC - if sta_MAC is new, HAL need to add this new record into ATM table for this AP; if sta_MAC is not new, HAL need to change sta_AirTimePercent for this MAC in ATM table for this AP
+* @param sta_AirTimePercent - if sta_AirTimePercent is 0, HAL needd to remove this recordC from the ATM table
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_setApATMSta(INT apIndex, UCHAR *sta_MAC, UINT sta_AirTimePercent);  	//if sta_MAC is new, HAL need to add this new record into ATM table for this AP
+																			//if sta_MAC is not new, HAL need to change sta_AirTimePercent for this MAC in ATM table for this AP
+																			//if sta_AirTimePercent is 0, HAL needd to remove this recordC from the ATM table
+//Air Time Management HAL end
+																			
 /* wifi_getRadioNumberOfEntries() function */
 /**
 * @description Get the total number of radios in this wifi subsystem
@@ -1324,6 +1454,119 @@ INT wifi_getRadioDCSScanTime(INT radioIndex, INT *output_interval_seconds, INT *
 */
 INT wifi_setRadioDCSScanTime(INT radioIndex, INT interval_seconds, INT dwell_milliseconds);
 
+//---------------------------------------------------------------------------------------------------
+// Dynamic Channel Selection (phase 2) HAL.
+//---------------------------------------------------------------------------------------------------
+typedef struct _wifi_apRssi {  
+	CHAR  ap_BSSID[6];    		//BSSID
+	UINT  ap_channelWidth;   	//The channel width; 1 for 20Mhz, 2 for 40 MHz, 4 for 80 MHz, 8 for 160 MHz, 10 for 80+80Mhz
+	INT   ap_rssi;       		//RSSI of the neighboring AP in dBm.
+} wifi_apRssi_t;
+
+typedef struct _wifi_channelMetrics {
+	INT  channel_number;		//each channel is only 20MHz bandwidth
+	BOOL channel_in_pool; 	    //If channel_in_pool is false, driver do not need to scan this channel
+	INT  channel_noise;		    //this is used to return the average noise floor in dbm
+	BOOL channel_radar_noise;	//if channel_number is in DFS channel, this is used to return if radar signal is present on DFS channel (5G only)
+	INT  channel_non_80211_noise;			//average non 802.11 noise
+	INT  channel_utilization;	//this is used to return the 802.11 utilization in percent
+	INT  channel_txpower;		//this is used to return the current txpower in dbm on this channel	
+
+	wifi_apRssi_t channel_rssi_list[64];	//RSSI list from the neighbor AP on this channel. The list should be sorted descendly based on ap_rssi. If there are more than 64 AP on this channel, return first 64.   
+	UINT channel_rssi_count; 	//RSSI counter in channel_rssi_list
+} wifi_channelMetrics_t;
+ 
+ 
+//Device.WiFi.Radio.i.X_RDKCENTRAL-COM_DCSEnable	boolean	W	
+//Indication as to whether DCS is enabled
+//INT wifi_setRadioDcsScanning(INT radioIndex, BOOL enable_background_scanning);
+//INT wifi_getRadioDcsScanning(INT radioIndex, BOOL *output_enable_background_scanning);
+
+/**
+* @description Set radio Dcs Dwell time.
+* \n Device.WiFi.Radio.{i}.X_RDKCENTRAL-COM_DCSDwelltime	integer	W	
+*
+* @param radioIndex - Index of Wi-Fi radio 
+* @param millisecond - Dwell time on each channel
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_setRadioDcsDwelltime(INT radioIndex, INT millisecond); 
+
+/**
+* @description Get radio Dcs Dwell time.
+* \n Device.WiFi.Radio.{i}.X_RDKCENTRAL-COM_DCSDwelltime	integer	W	
+*
+* @param radioIndex - Index of Wi-Fi radio 
+* @param output_millisecond - Dwell time on each channel
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getRadioDcsDwelltime(INT radioIndex, INT *output_millisecond);
+
+//Device.WiFi.Radio.i.X_RDKCENTRAL-COM_DCSHighChannelUsageThreshold	integer	W
+
+/**
+* @description Get radio Channel Metrics.
+*
+* @param radioIndex - Index of Wi-Fi radio 
+* @param input_output_channelMetrics_array - caller allocated buffer
+* @param array_size - the count for wifi_channelMetrics_t that caller allocated
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and should not invoke any blocking system
+* calls. This is blocking call.
+*
+*/
+INT wifi_getRadioDcsChannelMetrics(INT radioIndex, wifi_channelMetrics_t *input_output_channelMetrics_array, INT array_size);
+
+/**
+* @description instantlly change the radio Channel.
+*  Use Channels Switch Announcements (CSAs) (in 802.11h) to notify the client, 
+*  and channel change instantly. Do not save wifi config (channel change is not 
+*  persistent over wifi reboot)
+* @param radioIndex - Index of Wi-Fi radio 
+* @param channel - net channel
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and should not invoke any blocking system 
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_pushRadioChannel(INT radioIndex, UINT channel);
+//Dynamic Channel Selection (phase 2) HAL END
+
+
 /* wifi_getRadioDfsSupport() function */
 /**
 * @description Get radio DFS support.
@@ -1901,6 +2144,7 @@ INT wifi_getRadioBeaconPeriod(INT radioIndex, UINT *output);
 *
 */
 INT wifi_setRadioBeaconPeriod(INT radioIndex, UINT BeaconPeriod); 
+
 
 /* wifi_getRadioBasicDataTransmitRates() function */
 /**
@@ -2593,6 +2837,8 @@ INT wifi_getBandSteeringRSSIThreshold (INT radioIndex, INT *pRssiThreshold);
 /* wifi_setBandSteeringRSSIThreshold() function */
 /**
 * @description To set the band steering RSSIThreshold parameters. 
+* \n For 2.4G, the expectation is if the 2G rssi is below the set value steer to 2G
+* \n For 5G, if the set value is greater than the set threshold value then steer to 5
 * \n Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.RSSIThreshold int r/w
 *
 * @param radioIndex - Radio Index
@@ -2907,7 +3153,7 @@ INT wifi_setRadioRxChainMask(INT radioIndex, INT numStreams);            //P2  /
 /** Deprecated */
 INT wifi_pushBridgeInfo(INT apIndex); 									 //P2  // Push the BridgeInfo environment variables to the hardware
 /** Deprecated */
-INT wifi_pushRadioChannel(INT radioIndex, UINT channel);                 //P2  // push the channel number setting to the hardware  //Applying changes with wifi_applyRadioSettings().
+//INT wifi_pushRadioChannel(INT radioIndex, UINT channel);                 //P2  // push the channel number setting to the hardware  //Applying changes with wifi_applyRadioSettings().
 /** Deprecated */
 INT wifi_pushRadioChannelMode(INT radioIndex);                           //P2  // push the channel mode enviornment variable that is set by "wifi_setChannelMode()" to the hardware  //Applying changes with wifi_applyRadioSettings().
 /** Deprecated */
@@ -4282,7 +4528,49 @@ INT wifi_getApIsolationEnable(INT apIndex, BOOL *output); //Tr181
 * calls. It should probably just send a message to a driver event handler task.
 *
 */
-INT wifi_setApIsolationEnable(INT apIndex, BOOL enable); //Tr181					
+INT wifi_setApIsolationEnable(INT apIndex, BOOL enable); //Tr181			
+
+
+/**
+* @description Set AP Beacon TX rate
+* \n Device.WiFi.AccessPoint.{i}.X_RDKCENTRAL-COM_BeaconRate
+*
+* @param apIndex - will be 0, 2,4,6,8 10, 12, 14(for 2.4G) only;
+* @param sBeaconRate - sBeaconRate could be "1Mbps"; "5.5Mbps"; "6Mbps"; "2Mbps"; "11Mbps"; "12Mbps"; "24Mbps"
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_setApBeaconRate(INT apIndex, char *sBeaconRate);
+
+/**
+* @description Get AP Beacon TX rate
+* \n Device.WiFi.AccessPoint.{i}.X_RDKCENTRAL-COM_BeaconRate
+*
+* @param apIndex - Index of Wi-Fi AP
+* @param output_BeaconRate - beacon rate output
+*
+* @return The status of the operation
+* @retval RETURN_OK if successful
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous
+* @sideeffect None
+*
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
+*
+*/
+INT wifi_getApBeaconRate(INT apIndex, char *output_BeaconRate);
+	
 
 /* wifi_getApMaxAssociatedDevices() function */
 /**
