@@ -372,3 +372,8 @@ INT cm_hal_Get_ErouterResetCount(ULONG *resetcnt)
         return RETURN_OK;
     }
 }
+
+INT cm_hal_HTTP_LED_Flash( BOOLEAN LedFlash )
+{
+    return RETURN_OK;
+}
