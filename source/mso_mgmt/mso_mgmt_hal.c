@@ -6,9 +6,9 @@
 
 /* mso_getpwd() function */
 /**
-* Description: Gets the password of the day for mso user.
-* Parameters : pwd:a pointer to a buffer that was preallocated by the caller.  This is where the output is written 
-* Newer Broadband Devices MUST decrypt the seed on demand when this HAL is called.
+* @description Gets the password of the day for mso user.
+* @param pwd - a pointer to a buffer that was preallocated by the caller.  This is where the output is 
+written.
 * 
 * @return The status of the operation.
 * @retval mso_pwd_ret_status
@@ -31,13 +31,12 @@ mso_pwd_ret_status mso_validatepwd(char *pwd)
 
 /* mso_set_pod_seed : */
 /**
-* Description: Sets the PoD seed for mso password validation,
-* Parameters: 
-*    CHAR* seed - PoD seed
+* @description Sets the PoD seed for mso password validation.
+* @param seed - PoD seed
 *
 * @return the status of the operation.
-* @returnval RETURN_OK if successful.
-* @returnval RETURN_ERR if any error is detected.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected.
 *
 * @execution Synchronous.
 * @sideeffect None.
@@ -60,13 +59,13 @@ INT mso_set_pod_seed(char* pSeed)
 
 /* mso_get_pod_seed : */
 /**
-* Description: Gets the PoD seed for mso password validation,
-* Parameters: 
+* @description Gets the PoD seed for mso password validation,
+* @param 
 *    CHAR* pSseed - a pointer to a buffer that was preallocated by the caller.  This is where the output is written
 *
 * @return the status of the operation.
-* @returnval RETURN_OK if successful.
-* @returnval RETURN_ERR if any error is detected.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected.
 *
 * @execution Synchronous.
 * @sideeffect None.

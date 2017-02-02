@@ -1,3 +1,10 @@
+/**
+* @file mso_mgmt_hal.h
+* @brief MSO Management HAL
+*
+* @description This header file gives the function call prototypes and structure definitions used for the RDK-Broadband hardware abstraction layer for 
+MSO Management.
+*/
 #ifndef __MSO_MGMT_HAL_H__
 #define __MSO_MGMT_HAL_H__
 
@@ -65,8 +72,8 @@ mso_pwd_ret_status;
 
 /* mso_validatepwd() function */
 /**
-* Description: Validate whether the password passed in matches the password of the day for mso user.
-* Parameters : pwd:a pointer to a buffer that was preallocated by the caller. 
+* @description Validate whether the password passed in matches the password of the day for mso user.
+* @param pwd - a pointer to a buffer that was preallocated by the caller. 
 * 
 * @return The status of the operation.
 * @retval mso_pwd_ret_status
@@ -83,13 +90,13 @@ mso_pwd_ret_status mso_validatepwd(char *pwd);
 
 /* mso_set_pod_seed : */
 /**
-* Description: Sets the PoD seed for mso password validation,
-* Parameters: 
+* @description Sets the PoD seed for mso password validation.
+* @param 
 *    CHAR* - PoD seed
 *
 * @return the status of the operation.
-* @returnval RETURN_OK if successful.
-* @returnval RETURN_ERR if any error is detected.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected.
 *
 * @execution Synchronous.
 * @sideeffect None.
@@ -102,13 +109,13 @@ INT mso_set_pod_seed(char *);
 
 /* mso_get_pod_seed : */
 /**
-* Description: Gets the PoD seed for mso password validation,
-* Parameters: 
+* @description Gets the PoD seed for mso password validation,
+* @param 
 *    CHAR* pSeed - a pointer to a buffer that was preallocated by the caller.  This is where the output is written
 *
 * @return the status of the operation.
-* @returnval RETURN_OK if successful.
-* @returnval RETURN_ERR if any error is detected.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected.
 *
 * @execution Synchronous.
 * @sideeffect None.
