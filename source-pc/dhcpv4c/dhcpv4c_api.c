@@ -1323,3 +1323,158 @@ void CcspHalGetBridgePortStats(HALPCOSA_DML_ETH_STATS pStats)
         pStats->UnknownProtoPacketsReceived = 0;
 }
 
+/*
+ *  Procedure           : CcspHaldhcpv4cGetGw
+ *  Purpose             : To get WAN Default Gateway Address 
+ *
+ *  Parameters          : 
+ *   Gateway_Address    : Having WAN Default Gateway Address
+ *  Return_values       : None
+ */
+
+void CcspHaldhcpv4cGetGw(char Gateway_Address[120])
+{
+	FILE *fp;
+        char path[256] = {0},status[100] = {0};
+        int count = 0;
+        fp = popen("route -n | grep UG | tr -s ' ' | cut -d ' ' -f2","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        if(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+        for(count=0;path[count]!='\n';count++)
+                status[count]=path[count];
+        status[count]='\0';
+        }
+        strcpy(Gateway_Address,status);
+        pclose(fp);
+}
+
+/*
+ *  Procedure           : CcspHalGetDNSServerValue
+ *  Purpose             : To get primary and secondary DNSServer values
+ *
+ *  Parameters          : 
+ *   InstanceNum        : Having Instance Number 
+ *   DNSServer		: Having DNSServer Value
+ *  Return_values       : None
+ */
+
+void CcspHalGetDNSServerValue(ULONG InstanceNum, char DNSServer[64])
+{
+	FILE *fp;
+	char path[256] = {0},status[100] = {0};
+	int count = 0;
+	fp = popen("cat /etc/resolv.conf | grep nameserver | cut -d ' ' -f2","r");
+	if(fp == NULL)
+	{
+		printf("Failed to run command in Function %s\n",__FUNCTION__);
+		return 0;
+	}
+	if(InstanceNum == 1)
+	{
+		if(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+	}
+	else if(InstanceNum == 2)
+	{
+		fgets(path, sizeof(path)-1, fp);
+		if(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+	}
+	pclose(fp);
+	strcpy(DNSServer,status);
+}
+
+/*
+ *  Procedure           : CcspHalGetWanAddressMode
+ *  Purpose             : Whether DHCP is enabled or disabled
+ *
+ *  Parameters          : None
+ *  Return_values       : Status of the Operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+
+bool CcspHalGetWanAddressMode()
+{
+	FILE *fp = NULL;
+	char path[512] = {0};
+	unsigned long RX_packets = 0,RX_bytes = 0;
+	int count = 0,c = 0,wlan0_0_count = 0;
+	fp = popen ("ifconfig gretap0 | grep packets | grep RX | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+	if(fp == NULL)
+		return 0;
+	fgets(path,512,fp);
+	RX_packets = atoi ( path );
+	fp = popen ("ifconfig gretap0 | grep bytes | grep RX | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+	if(fp == NULL)
+		return 0;
+	fgets(path,512,fp);
+	RX_bytes = atoi ( path );
+	fp = popen ("ps -eaf | grep CcspHotspot | grep -v grep | wc -l","r");
+	if(fp == NULL)
+		return 0;
+	fgets(path,512,fp);
+	count = atoi ( path );
+	fp = popen ("ifconfig | grep gretap0 | grep -v grep | wc -l","r");
+        if(fp == NULL)
+                return 0;
+        while(fgets(path,512,fp) != NULL);
+        c = atoi ( path );
+	fp = popen ("iw dev wlan0_0 station dump | grep wlan0_0 | wc -l","r");
+        if(fp == NULL)
+                return 0;
+        fgets(path,512,fp);
+        wlan0_0_count = atoi ( path );
+	pclose(fp);
+	if((RX_bytes > 0) && (RX_packets > 0) && (count == 1) && (c == 1) && (wlan0_0_count > 0))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+/*
+ *  Procedure           : CcspHalDhcpcGetInfo
+ *  Purpose             : To get LeaseTimeRemaining information for connected clients
+ *
+ *  Parameters          : None
+ *  Return_values       : LeaseTimeRemaining value
+ */
+
+int CcspHalDhcpcGetInfo()
+{
+	FILE *fp;
+	char path[256] = {0},lease_val[100] = {0};
+	int count = 0,LeaseTimeRemaining = 0;
+	fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f4 ", "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+	}
+	else
+	{
+		fgets(path, sizeof(path)-1, fp);
+		for(count=0;path[count]!='\n';count++)
+			lease_val[count]=path[count];
+		lease_val[count]='\0';
+	}
+	pclose(fp);
+	LeaseTimeRemaining = atoi(lease_val);
+	return LeaseTimeRemaining;
+}

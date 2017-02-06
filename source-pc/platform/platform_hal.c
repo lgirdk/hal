@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "platform_hal_emu.h" 
+#include "platform_hal.h" 
 
 /* Note that 0 == RETURN_OK == STATUS_OK    */
 /* Note that -1 == RETURN_ERR == STATUS_NOK */
@@ -71,73 +71,28 @@ INT platform_hal_GetSerialNumber(CHAR* pValue)
 {
 	//	strcpy(pValue, "Serial Number"); 
 	char status[100] ={0},path[256] = {0},serial_no[256] ={0};
-	strcpy(serial_no,"RDKB-EMULATOR_");
+	strcpy(serial_no,"RDKBEMULATOR-");
 	FILE *fp;
 	int count = 0;
-	fp = popen("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5","r");
-	if(fp == NULL)
-	{
-		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
-	}
-	if(fgets(path, sizeof(path)-1, fp) != NULL)
-	{
-		for(count=0;path[count]!='\n';count++)
-			status[count]=path[count];
-		status[count]='\0';
-	}
-	strcat(serial_no,status);
-	strcpy(pValue,serial_no);
+	system("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5 > /tmp/WAN_MAC.txt");
+        system("sed -i '/:/s///g' /tmp/WAN_MAC.txt");
+        fp = popen("cat /tmp/WAN_MAC.txt","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        if(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+                for(count=0;path[count]!='\n';count++)
+                        status[count]=path[count];
+                status[count]='\0';
+        }
+        strcat(serial_no,status);
+        strcpy(pValue,serial_no);
 	return RETURN_OK;
 }
 
-INT platform_hal_GetManufacturerOUI(CHAR* pValue)
-{
-	char status[100] ={0},path[256] = {0},status_2[50] ={0},status_3[50] = {0};
-	FILE *fp;
-	int count = 0;
-	fp = popen("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5 | cut -d ':' -f1","r");
-	if(fp == NULL)
-	{
-		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
-	}
-	if(fgets(path, sizeof(path)-1, fp) != NULL)
-	{
-		for(count=0;path[count]!='\n';count++)
-			status[count]=path[count];
-		status[count]='\0';
-	}
-	fp = popen("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5 | cut -d ':' -f2","r");
-	if(fp == NULL)
-	{
-		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
-	}
-	if(fgets(path, sizeof(path)-1, fp) != NULL)
-	{
-		for(count=0;path[count]!='\n';count++)
-			status_2[count]=path[count];
-		status_2[count]='\0';
-	}
-	fp = popen("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5 | cut -d ':' -f3","r");
-	if(fp == NULL)
-	{
-		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
-	}
-	if(fgets(path, sizeof(path)-1, fp) != NULL)
-	{
-		for(count=0;path[count]!='\n';count++)
-			status_3[count]=path[count];
-		status_3[count]='\0';
-	}
-
-	strcat(status,status_2);
-	strcat(status,status_3);
-	strcpy(pValue,status);
-	return RETURN_OK;
-}
 INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
     if (pValue == NULL)
