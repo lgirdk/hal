@@ -60,12 +60,34 @@ INT platform_hal_PandMDBInit(void) { return RETURN_OK; }
 INT platform_hal_DocsisParamsDBInit(void) { return RETURN_OK; }
 INT platform_hal_GetModelName(CHAR* pValue) { strcpy(pValue, "Model Name"); return RETURN_OK; }
 INT platform_hal_GetHardwareVersion(CHAR* pValue) { strcpy(pValue, "Hardware Version"); return RETURN_OK; }
-INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Software Version"); return RETURN_OK; }
 INT platform_hal_GetBootloaderVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Bootloader Version"); return RETURN_OK; }
 INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Firmware Name"); return RETURN_OK; }
 INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
+
+
+INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) { 
+	//strcpy(pValue, "Software Version");//RDKB-EMU 
+	FILE *fp;
+	char path[256] = {0},status[256] = {0};
+	int count;
+	fp = popen("cat /fss/gw/version.txt | grep imagename | cut -d '=' -f2", "r");
+	if(fp == NULL)
+	{
+		printf("Failed to run command in Function %s\n",__FUNCTION__);
+		return 0;
+	}
+	if(fgets(path, sizeof(path)-1, fp) != NULL)
+	{
+		for(count=0;path[count]!='\n';count++)
+			status[count]=path[count];
+		status[count]='\0';
+	}
+	pclose(fp);
+	strcpy(pValue, status);
+	return RETURN_OK;
+}
 
 INT platform_hal_GetSerialNumber(CHAR* pValue)
 {
