@@ -688,18 +688,68 @@ INT wifi_getSSIDNumberOfEntries(ULONG *output) //Tr181
 //Get the Radio enable config parameter
 INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
 {
-	if (NULL == output_bool) {
+	/*if (NULL == output_bool) {
 		return RETURN_ERR;
 	} else {
 		*output_bool = FALSE;
 		return RETURN_OK;
-	}
+	}*/ //RDKB-EMU
+	FILE *fp;
+        char path[256] = {0},status[256] = {0};
+        int count;
+        if(radioIndex == 1)
+        {
+                fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+        else if(radioIndex == 5)
+        {
+                fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+        if(strcmp(status,"RUNNING") == 0)
+                *output_bool = TRUE;
+        else
+                *output_bool = FALSE;
+
+	return RETURN_OK;
 }
 
 //Set the Radio enable config parameter
 INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 {
 	//Set wifi config. Wait for wifi reset to apply
+	//RDKB-EMU
+        if((radioIndex == 1) && (enable == false))
+                system("ifconfig wlan0 down");
+        else if((radioIndex == 1) && (enable == true))
+                KillHostapd();
+        else if((radioIndex == 5) && (enable == false))
+                system("ifconfig wlan0_0 down");
+        else if((radioIndex == 5) && (enable == true))
+                KillHostapd();
 	return RETURN_OK;
 }
 
