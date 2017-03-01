@@ -99,8 +99,8 @@
 
 /* CcspHalEthSwInit :  */
 /**
-* Description: Do what needed to intialize the Eth hal.
-* Parameters : None
+* @description Do what needed to intialize the Eth hal.
+* @param None
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -110,8 +110,8 @@
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -126,13 +126,12 @@ CcspHalEthSwInit
 
 /* CcspHalEthSwGetPortStatus :  */
 /**
-* Description: Retrieve the current port status -- link speed, duplex mode, etc.
+* @description Retrieve the current port status -- link speed, duplex mode, etc.
 
-* Parameters :
-    PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    pLinkRate   -- Receives the current link rate, as in CCSP_HAL_ETHSW_LINK_RATE
-    pDuplexMode -- Receives the current duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
-    pStatus     -- Receives the current link status, as in CCSP_HAL_ETHSW_LINK_STATUS
+* @param PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+* @param pLinkRate   -- Receives the current link rate, as in CCSP_HAL_ETHSW_LINK_RATE
+* @param pDuplexMode -- Receives the current duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
+* @param pStatus     -- Receives the current link status, as in CCSP_HAL_ETHSW_LINK_STATUS
 
 *
 * @return The status of the operation.
@@ -143,8 +142,8 @@ CcspHalEthSwInit
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -208,12 +207,11 @@ CcspHalEthSwGetPortStatus
 
 /* CcspHalEthSwGetPortCfg :  */
 /**
-* Description: Retrieve the current port config -- link speed, duplex mode, etc.
+* @description Retrieve the current port config -- link speed, duplex mode, etc.
 
-* Parameters :
-    PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    pLinkRate   -- Receives the current link rate, as in CCSP_HAL_ETHSW_LINK_RATE
-    pDuplexMode -- Receives the current duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
+* @param PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+* @param pLinkRate   -- Receives the current link rate, as in CCSP_HAL_ETHSW_LINK_RATE
+* @param pDuplexMode -- Receives the current duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
 
 *
 * @return The status of the operation.
@@ -224,8 +222,8 @@ CcspHalEthSwGetPortStatus
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -283,12 +281,11 @@ CcspHalEthSwGetPortCfg
 
 /* CcspHalEthSwSetPortCfg :  */
 /**
-* Description: Set the port configuration -- link speed, duplex mode
+* @description Set the port configuration -- link speed, duplex mode
 
-* Parameters :
-    PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    LinkRate    -- Set the link rate, as in CCSP_HAL_ETHSW_LINK_RATE
-    DuplexMode  -- Set the duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
+* @param PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+* @param LinkRate    -- Set the link rate, as in CCSP_HAL_ETHSW_LINK_RATE
+* @param DuplexMode  -- Set the duplex mode, as in CCSP_HAL_ETHSW_DUPLEX_MODE
 
 *
 * @return The status of the operation.
@@ -299,8 +296,8 @@ CcspHalEthSwGetPortCfg
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -346,11 +343,10 @@ CcspHalEthSwSetPortCfg
 
 /* CcspHalEthSwGetPortAdminStatus :  */
 /**
-* Description: Retrieve the current port admin status.
+* @description Retrieve the current port admin status.
 
-* Parameters :
-    PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    pAdminStatus-- Receives the current admin status
+* @param PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+* @param pAdminStatus -- Receives the current admin status
 
 *
 * @return The status of the operation.
@@ -361,8 +357,8 @@ CcspHalEthSwSetPortCfg
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -413,10 +409,9 @@ CcspHalEthSwGetPortAdminStatus
 
 /* CcspHalEthSwSetPortAdminStatus :  */
 /**
-* Description: Set the ethernet port admin status
+* @description Set the ethernet port admin status
 
-* Parameters :
-    AdminStatus -- set the admin status, as defined in CCSP_HAL_ETHSW_ADMIN_STATUS
+* @param AdminStatus -- set the admin status, as defined in CCSP_HAL_ETHSW_ADMIN_STATUS
 
 *
 * @return The status of the operation.
@@ -427,8 +422,8 @@ CcspHalEthSwGetPortAdminStatus
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -473,11 +468,10 @@ CcspHalEthSwSetPortAdminStatus
 
 /* CcspHalEthSwSetAgingSpeed :  */
 /**
-* Description: Set the ethernet port configuration -- admin up/down, link speed, duplex mode
+* @description Set the ethernet port configuration -- admin up/down, link speed, duplex mode
 
-* Parameters :
-    PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    AgingSpeed  -- integer value of aging speed
+* @param PortId      -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+* @param AgingSpeed  -- integer value of aging speed
 *
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
@@ -487,8 +481,8 @@ CcspHalEthSwSetPortAdminStatus
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
@@ -506,11 +500,10 @@ CcspHalEthSwSetAgingSpeed
 
 /* CcspHalEthSwLocatePortByMacAddress :  */
 /**
-* Description: Retrieve the port number that the specificed MAC address is associated with (seen)
+* @description Retrieve the port number that the specificed MAC address is associated with (seen)
 
-* Parameters :
-    pMacAddr    -- Specifies the MAC address -- 6 bytes
-    pPortId     -- Receives the found port number that the MAC address is seen on
+* @param pMacAddr    -- Specifies the MAC address -- 6 bytes
+* @param pPortId     -- Receives the found port number that the MAC address is seen on
 
 *
 * @return The status of the operation.
@@ -521,8 +514,8 @@ CcspHalEthSwSetAgingSpeed
 * @sideeffect None.
 
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking system
+* calls. It should probably just send a message to a driver event handler task.
 *
 */
 INT
