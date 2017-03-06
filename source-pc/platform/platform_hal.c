@@ -72,7 +72,7 @@ INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) {
 	FILE *fp;
 	char path[256] = {0},status[256] = {0};
 	int count;
-	fp = popen("cat /fss/gw/version.txt | grep imagename | cut -d '=' -f2", "r");
+	fp = popen("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2", "r");
 	if(fp == NULL)
 	{
 		printf("Failed to run command in Function %s\n",__FUNCTION__);
