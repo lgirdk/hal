@@ -3105,6 +3105,8 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 	char path[FILE_SIZE];
         FILE *fp = NULL;
         char *password;
+	int count = 0;
+        char tmp_password[50],copy_password[50];
         fp = popen("cat /etc/hostapd.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
@@ -3114,7 +3116,11 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         if(path[0] != '#')
         {
                 password = strchr(path,'=');
-                strcpy(output_string,password+1);
+                strcpy(tmp_password,password+1);
+		for(count=0;tmp_password[count]!='\n';count++)
+                        copy_password[count] = tmp_password[count];
+                copy_password[count]='\0';
+		strcpy(output_string,copy_password);
         }
         else
         {
