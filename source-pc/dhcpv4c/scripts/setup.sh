@@ -44,15 +44,16 @@ wifi=`ifconfig | grep wlan0 | wc -l`
 echo "wlan0count=$wifi"
 
 sleep 5
-wifi=`ifconfig | grep wlan0 | wc -l`
+wifi=`ifconfig | grep wlan | wc -l`
 
-if [ $wifi != 0 ];then
-echo "wlan0 interface exists"
+INTERFACE_2G=`cat /etc/hostapd_2.4G.conf | grep -w interface | head -1 | cut -d '=' -f2`
+if [ $wifi != 0 ];then                                                      
+echo "wlan0 interface exists"                                                                           
 ######### Add Wireless interface to Bridge interface ######################
-#ifconfig wlan0 192.168.1.120 up
-iw dev wlan0 set 4addr on
-brctl addif brlan0 wlan0
-fi
+#ifconfig wlan0 192.168.1.120 up                                                     
+iw dev $INTERFACE_2G set 4addr on                                   
+brctl addif brlan0 $INTERFACE_2G                                                        
+fi  
 
 if [ $count ] || [ $wifi ];then
 ########### Set ip Address for Bridge interface for udhcpd server##########
@@ -80,7 +81,7 @@ rm -f wifi_clients.txt
 fi
 
 ################### Getting wlan0_0 mac Address(public wifi) #############
-sh /lib/rdk/Getting_wlan0_0_mac.sh
+sh /lib/rdk/Getting_wlan0_0_mac.sh wlan0
 
 ############################ iptables-restore ########################
 iptables-restore < /etc/iptables/rules.v4

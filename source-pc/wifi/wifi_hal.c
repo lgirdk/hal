@@ -182,50 +182,172 @@ void Hostapd_PrivateWifi_status(char status[50])
 /*******************************************************************
 	    Restarting Hostapd with new configuration
 ********************************************************************/
+
+void GetInterfaceName(char interface_name[50],char conf_file[100])
+{
+	FILE *fp;
+	char path[256] = {0},output_string[256] = {0};
+	int count = 0;
+	char *interface;
+	if(strcmp(conf_file,"/etc/hostapd_5G.conf") == 0)
+		fp = popen("cat /etc/hostapd_5G.conf | grep -w interface","r");
+	else if(strcmp(conf_file,"/etc/hostapd_2.4G.conf") == 0)
+		fp = popen("cat /etc/hostapd_2.4G.conf | grep -w interface","r");
+	else if(strcmp(conf_file,"/etc/hostapd_xfinity_5G.conf") == 0)
+		fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w interface","r");
+	if(fp == NULL)
+	{
+		printf("Failed to run command in Function %s\n",__FUNCTION__);
+		return 0;
+	}
+	if(fgets(path, sizeof(path)-1, fp) != NULL)
+	{
+		interface = strchr(path,'=');
+		strcpy(output_string,interface+1);
+	}
+	for(count = 0;output_string[count]!='\n';count++)
+		interface_name[count] = output_string[count];
+	interface_name[count]='\0';
+	fclose(fp);
+}
+
+void GetInterfaceName_virtualInterfaceName_2G(char interface_name[50])
+{
+        FILE *fp;
+        char path[256] = {0},output_string[256] = {0};
+        int count = 0;
+        char *interface;
+       	fp = popen("cat /etc/hostapd_2.4G.conf | grep -w bss","r");
+        if(fp == NULL)
+        {
+                printf("Failed to run command in Function %s\n",__FUNCTION__);
+                return 0;
+        }
+        if(fgets(path, sizeof(path)-1, fp) != NULL)
+        {
+                interface = strchr(path,'=');
+                strcpy(output_string,interface+1);
+        }
+	for(count = 0;output_string[count]!='\n';count++)
+                interface_name[count] = output_string[count];
+        interface_name[count]='\0';
+
+        fclose(fp);
+}
+
 void RestartHostapd()
 {
-        system("ifconfig wlan0 up");
+	char interface_name[512];
+	char virtual_interface_name[512],buf[512];
+	GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"up");
+	system(buf);
+        //system("ifconfig wlan0 up");
         system("ps -eaf | grep hostapd_2.4G | grep -v grep | awk '{print $2}' | xargs kill -9");
         system("hostapd -B /etc/hostapd_2.4G.conf");
-        system("ifconfig mon.wlan0 up");
-        system("ifconfig wlan0_0 up");
+	sprintf(buf,"%s%s %s","ifconfig mon.",interface_name,"up");
+	system(buf);
+        //system("ifconfig mon.wlan0 up");
+	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"up");
+	system(buf);
+        //system("ifconfig wlan0_0 up");
 }
 
 void KillHostapd()
 {
-        system("ifconfig mon.wlan0 down");
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+        GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+	sprintf(buf,"%s%s %s","ifconfig mon.",interface_name,"down");
+        system(buf);
+       // system("ifconfig mon.wlan0 down");
         system("ps -eaf | grep hostapd_2.4G | grep -v grep | awk '{print $2}' | xargs kill -9");
-        system("ifconfig wlan0 down");
-        system("ifconfig wlan0_0 down");
-        system("ifconfig wlan0 up");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+        system(buf);
+
+       // system("ifconfig wlan0 down");
+	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
+        system(buf);
+        //system("ifconfig wlan0_0 down");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"up");
+        system(buf);
+        //system("ifconfig wlan0 up");
         system("hostapd -B /etc/hostapd_2.4G.conf");
-        system("ifconfig mon.wlan0 up");
-        system("ifconfig wlan0_0 up");
-        system("ifconfig wlan0 up");
+	sprintf(buf,"%s%s %s","ifconfig mon.",interface_name,"up");
+        system(buf);
+        //system("ifconfig mon.wlan0 up");
+	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"up");
+        system(buf);
+        //system("ifconfig wlan0_0 up");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"up");
+        system(buf);
+
+        //system("ifconfig wlan0 up");
         system("ps -eaf | grep hostapd_2.4G | grep -v grep | awk '{print $2}' | xargs kill -9");
         system("hostapd -B /etc/hostapd_2.4G.conf");
-        system("ifconfig mon.wlan0 up");
-        system("ifconfig wlan0_0 up");
+	sprintf(buf,"%s%s %s","ifconfig mon.",interface_name,"up");
+        system(buf);
+        //system("ifconfig mon.wlan0 up");
+	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"up");
+        system(buf);
+        //system("ifconfig wlan0_0 up");
 }
 
 void KillHostapd_5g()
 {
+	char interface_name[512],buf[512];
+        GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 	system("ps -eaf | grep hostapd_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
-	system("ifconfig wlan1 down");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+        system(buf);
+	//system("ifconfig wlan1 down");
 	system("sleep 3");
-	system("ifconfig wlan1 up");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"up");
+        system(buf);
+	//system("ifconfig wlan1 up");
         system("hostapd -B /etc/hostapd_5G.conf");
 
 }
 
+void KillHostapd_xfinity_5g()
+{
+	char interface_name[512],buf[512];
+        GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+	system("ps -eaf | grep hostapd_xfinity_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+        system(buf);
+        //system("ifconfig wlan2 down");
+        system("sleep 3");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"up");
+        system(buf);
+        //system("ifconfig wlan2 up");
+        system("hostapd -B /etc/hostapd_xfinity_5G.conf");
+}
+
 void killXfinityWiFi()
 {
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+        GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
         system("killall CcspHotspot");
         system("killall hotspot_arpd");
-        system("brctl delif brlan1 gretap0");
-        system("brctl delif brlan1 wlan0_0");
+        system("brctl delif brlan1 gretap0.100");
+	sprintf(buf,"%s %s","brctl delif brlan1",virtual_interface_name);
+	system(buf);
+        //system("brctl delif brlan1 wlan0_0");
         system("ifconfig brlan1 down");
         system("brctl delbr brlan1");
+	system("vconfig rem gretap0.100");
+        system("brctl delif brlan2 gretap0.101");
+	sprintf(buf,"%s %s","brctl delif brlan2",interface_name);
+	system(buf);
+        //system("brctl delif brlan2 wlan2");
+        system("ifconfig brlan2 down");
+        system("brctl delbr brlan2");
+	system("vconfig rem gretap0.101");
         system("ip link del gretap0");
         system("iptables -D FORWARD -j general_forward");
         system("iptables -D OUTPUT -j general_output");
@@ -272,7 +394,7 @@ BOOL checkWifi()
 BOOL checkLanInterface()
 {
         FILE *fp = NULL;
-        fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | wc -l", "r");
+        fp = popen("ifconfig | grep wlan | wc -l", "r");
         char path[FILE_SIZE];
         int count;
         if(fp == NULL)
@@ -293,22 +415,37 @@ BOOL checkLanInterface()
 #if 1
 void DisableWifi(int InstanceNumber)
 {
-        char str[100];
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+
         if(InstanceNumber == 1)
         {
-		system("ifconfig wlan0 down");
+        	GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+		system(buf);
+		//system("ifconfig wlan0 down");
         }
-        if(InstanceNumber == 2)
+        else if(InstanceNumber == 2)
         {
-		system("ifconfig wlan1 down");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+                system(buf);
+		//system("ifconfig wlan1 down");
         }
-        if(InstanceNumber == 5)
+        else if(InstanceNumber == 5)
         {
-		system("ifconfig wlan0_0 down");
+		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+		sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
+                system(buf);
+		//system("ifconfig wlan0_0 down");
         }
-        if(InstanceNumber == 6)
+        else if(InstanceNumber == 6)
         {
-		system("ifconfig wlan1_0 down");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+                system(buf);
+		//system("ifconfig wlan2 down");
         }
 }
 void EnableWifi(int InstanceNumber,int line_no)
@@ -389,11 +526,15 @@ void EnableWifi(int InstanceNumber,int line_no)
                 for(count=0;output[count]!='\n';count++)
                         val[count]=output[count];
                 val[count]='\0';
+
+		sprintf(str1,"%s%s","ssid=",val);
+	        sprintf(str2,"%s%s","ssid=",param_value);
+                sprintf(str,"%s%s%s/%s%s","sed -i '","28s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
                 }
 
 		else if(InstanceNumber == 6)//Getting public_ssid value in /etc/hostapd.conf
                 {
-                fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
+                fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
                 if (fp == NULL) {
                         printf("Failed to run command inside function %s\n",__FUNCTION__);
                         return;
@@ -407,15 +548,17 @@ void EnableWifi(int InstanceNumber,int line_no)
                 for(count=0;output[count]!='\n';count++)
                         val[count]=output[count];
                 val[count]='\0';
-                }
-
-                pclose(fp);
+                
 		sprintf(str1,"%s%s","ssid=",val);
 	        sprintf(str2,"%s%s","ssid=",param_value);
-                sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
+                sprintf(str,"%s%s%s/%s%s","sed -i '","28s/",str1,str2,"/' /etc/hostapd_xfinity_5G.conf");//Replace string with line numbers
+		}
+                pclose(fp);
 		system(str);
 		if(InstanceNumber == 2)
 		KillHostapd_5g();
+		else if(InstanceNumber == 6)
+		KillHostapd_xfinity_5g();
 	}
 }
 #endif
@@ -904,12 +1047,18 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
 		*output_bool = FALSE;
 		return RETURN_OK;
 	}*/ //RDKB-EMU
-	FILE *fp;
-        char path[256] = {0},status[256] = {0};
+	FILE *fp=NULL;
+        char path[256] = {0},status[256] = {0},interface_name[100] = {0};
         int count;
         if(radioIndex == 1)
         {
-                fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+                	fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+                	fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+                	fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -925,7 +1074,13 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
         }
 	else if(radioIndex == 2)
         {
-                fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+                	fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+                	fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+                	fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -942,7 +1097,13 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
 
         else if(radioIndex == 5)
         {
-                fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName_virtualInterfaceName_2G(interface_name);
+		if(strcmp(interface_name,"wlan0_0") == 0)
+                	fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1_0") == 0)
+                	fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2_0") == 0)
+                	fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -958,7 +1119,13 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
         }
 	else if(radioIndex == 6)
         {
-                fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+                	fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+                	fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+                	fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -986,8 +1153,16 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 {
 	//Set wifi config. Wait for wifi reset to apply
 	//RDKB-EMU
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+
 	if((radioIndex == 1) && (enable == false))
-		system("ifconfig wlan0 down");
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+		system(buf);
+		//system("ifconfig wlan0 down");
+	}
 	else if((radioIndex == 1) && (enable == true))
 	{
 		wifi_stopHostApd();
@@ -995,16 +1170,38 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 	}
 	//KillHostapd();
 	else if((radioIndex == 2) && (enable == false))
-		system("ifconfig wlan1 down");
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+                system(buf);
+		//system("ifconfig wlan1 down");
+	}
 	else if((radioIndex == 2) && (enable == true))
 		KillHostapd_5g();
 	else if((radioIndex == 5) && (enable == false))
-		system("ifconfig wlan0_0 down");
+	{
+		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+		sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
+                system(buf);
+		//system("ifconfig wlan0_0 down");
+	}
 	else if((radioIndex == 5) && (enable == true))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
 	}
+	else if((radioIndex == 6) && (enable == false))
+        {
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+                system(buf);
+                //system("ifconfig wlan0_0 down");
+        }
+        else if((radioIndex == 6) && (enable == true))
+	{
+		KillHostapd_xfinity_5g();
+        }
+
 	//KillHostapd();
 	return RETURN_OK;
 }
@@ -1157,12 +1354,12 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
-	if((radioIndex == 1) || (radioIndex == 5))
-        {
 	char path[1024];
         char channelvalue[50];
         FILE *fp = NULL;
         char *channel;
+	if((radioIndex == 1) || (radioIndex == 5))
+        {
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
         if (fp == NULL) {
                 printf("Failed to run command in function %s\n",__FUNCTION__);
@@ -1174,13 +1371,22 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
         *output_ulong =(unsigned long)atol(channelvalue);
         pclose(fp);
 	}
-	if((radioIndex == 2) || (radioIndex == 6))
+	else if(radioIndex == 2)
         {
-        char path[1024];
-        char channelvalue[50];
-        FILE *fp = NULL;
-        char *channel;
         fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        channel = strchr(path,'=');
+        strcpy(channelvalue,channel+1);
+        *output_ulong =(unsigned long)atol(channelvalue);
+        pclose(fp);
+        }
+	else if(radioIndex == 6)
+        {
+        fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
         if (fp == NULL) {
                 printf("Failed to run command in function %s\n",__FUNCTION__);
                 return;
@@ -1203,14 +1409,14 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	//Set to wifi config only. Wait for wifi reset or wifi_pushRadioChannel to apply.
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	if((radioIndex == 1) || (radioIndex == 5))
-	{
-	char path[1024];
-        char channelvalue[50],current_channel_value[50],channel_value[50];
-	char str[100],str1[100],str2[100];
+	char path[1024] = {0};
+        char channelvalue[50] = {0},current_channel_value[50] = {0},channel_value[50] = {0};
+	char str[100] = {0},str1[100] = {0},str2[100] = {0};
         FILE *fp = NULL;
         char *Channel;
-	int count;
+	int count = 0;
+	if((radioIndex == 1) || (radioIndex == 5))
+	{
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
         if (fp == NULL) {
                 printf("Failed to run command in function %s\n",__FUNCTION__);
@@ -1229,16 +1435,11 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	system(str);
 	pclose(fp);
 	if(radioIndex == 5)
-		KillHostapd();
+		//KillHostapd();
+		 system("sh /lib/rdk/start_hostapd_5g.sh");
 	}
-	if((radioIndex == 2) || (radioIndex == 6))
+	else if(radioIndex == 2) 
         {
-        char path[1024];
-        char channelvalue[50],current_channel_value[50],channel_value[50];
-        char str[100],str1[100],str2[100];
-        FILE *fp = NULL;
-        char *Channel;
-        int count;
         fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
         if (fp == NULL) {
                 printf("Failed to run command in function %s\n",__FUNCTION__);
@@ -1256,9 +1457,30 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
         sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_5G.conf");
         system(str);
         pclose(fp);
-        if(radioIndex == 6)
-                KillHostapd_5g();
+        KillHostapd_5g();
         }
+	else if(radioIndex == 6) 
+        {
+        fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        Channel = strchr(path,'=');
+        strcpy(channel_value,Channel+1);
+        for(count=0;channel_value[count]!='\n';count++)
+                current_channel_value[count]=channel_value[count];
+        current_channel_value[count]='\0';
+        sprintf(str1,"%s%s","channel=",current_channel_value);
+        sprintf(channelvalue,"%lu",channel);
+        sprintf(str2,"%s%s","channel=",channelvalue);
+        sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_xfinity_5G.conf");
+        system(str);
+        pclose(fp);
+        KillHostapd_xfinity_5g();
+        }
+
 
 #endif
         return 0;
@@ -1684,9 +1906,17 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 	FILE *fp;
 	char path[256] = {0},status[100] = {0};
 	int count = 0;
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
 	if(ssidIndex == 1)
 	{
-		fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -1704,9 +1934,15 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 			strcpy(output_string,"Disabled");
 		pclose(fp);
 	}
-	if(ssidIndex == 5)
+	else if(ssidIndex == 5)
 	{
+		GetInterfaceName_virtualInterfaceName_2G(interface_name);
+		if(strcmp(interface_name,"wlan0_0") == 0)
 		fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(strcmp(interface_name,"wlan1_0") == 0)
+		fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(strcmp(interface_name,"wlan2_0") == 0)
+		fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -1724,9 +1960,15 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 			strcpy(output_string,"Disabled");
 		pclose(fp);
 	}
-	if(ssidIndex == 2)
+	else if(ssidIndex == 2)
         {
-                fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -1744,9 +1986,15 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
                         strcpy(output_string,"Disabled");
                 pclose(fp);
         }
-        if(ssidIndex == 6)
+        else if(ssidIndex == 6)
         {
-                fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -1793,7 +2041,7 @@ INT wifi_getSSIDName(INT apIndex, CHAR *output)
 	else if(apIndex == 5)
 		strcpy(output,"wlan0_0");
 	else if(apIndex == 6)
-		strcpy(output,"wlan1_0");
+		strcpy(output,"wlan2");
 
 	return RETURN_OK;
 }
@@ -1841,7 +2089,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         }*/
         }
 
-	if(apIndex == 2)//Private_ssid with 5G
+	else if(apIndex == 2)//Private_ssid with 5G
         {
                 fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
         if (fp == NULL) {
@@ -1870,7 +2118,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         }*/
         }
 
-	if(apIndex == 5)//Public_ssid with 2.4G
+	else if(apIndex == 5)//Public_ssid with 2.4G
         {
 
                  fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
@@ -1915,7 +2163,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         //display uplink mac address
         printf("%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 //Getting xfinity_wifi_5G SSID value
-	fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
+	fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__);
                 return;
@@ -1940,10 +2188,10 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         system("/lib/rdk/hotspot_restart.sh");
         }
 
-	if(apIndex == 6)//Public_ssid with 5G
+	else if(apIndex == 6)//Public_ssid with 5G
         {
 
-                 fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
+                 fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__);
                 return;
@@ -1959,6 +2207,17 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         for(count=0;output[count]!='\n';count++)
                 val[count]=output[count];
         val[count]='\0';
+
+        sprintf(str1,"%s%s","ssid=",val);
+        sprintf(str2,"%s%s","ssid=",ssid_string);
+        sprintf(str,"%s%s/%s%s","sed -i '28s/",str1,str2,"/' /etc/hostapd_xfinity_5G.conf");
+
+        system(str);
+        killXfinityWiFi();
+        printf("Before Getting the MAc Address \n");
+        get_mac(&mac);
+	//display uplink mac address
+        printf("%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
 //Getting Xfinity_wifi_2.4Ghz ssid value
 	fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
@@ -1977,30 +2236,6 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         for(count=0;output[count]!='\n';count++)
                 value[count]=output[count];
         value[count]='\0';
-
-
-        if(path[0] == '#')
-        {
-                for(count=0;path[count]!='=';count++)
-                        val1[count] = path[count];
-                val1[count] = '\0';
-
-        sprintf(str1,"%s%c%s",val1,'=',val);
-        sprintf(str2,"%s%c%s",val1,'=',ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd_5G.conf");
-        }
-        else
-        {
-        sprintf(str1,"%s%s","ssid=",val);
-        sprintf(str2,"%s%s","ssid=",ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd_5G.conf");
-        }
-        system(str);
-        killXfinityWiFi();
-        printf("Before Getting the MAc Address \n");
-        get_mac(&mac);
-	//display uplink mac address
-        printf("%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
 //sysevent daemon updation with new ssid
         sprintf(str,"%s %c%.2x:%.2x:%.2x:%.2x:%.2x:%.2x;%s;%c%c","sysevent set snooper-queue1-circuitID",'"',mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],value,'o','"');
@@ -2038,9 +2273,18 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         int bssidindex=0;
         int arr[MACADDRESS_SIZE];
         unsigned char mac[6];
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+
         if(ssidIndex == 1) //private_wifi for 2.4G
         {
-        fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	if(strcmp(interface_name,"wlan0") == 0)
+        	fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+        	fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+        	fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2058,9 +2302,15 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         }
         strcpy(output_string,mac);
         }
-	if(ssidIndex == 2) //private_wifi for 5G
+	else if(ssidIndex == 2) //private_wifi for 5G
         {
-        fp = popen("ifconfig | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+	if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2079,9 +2329,15 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         strcpy(output_string,mac);
         }
 
-        if(ssidIndex == 5) //public_wifi for 2.4G
+        else if(ssidIndex == 5) //public_wifi for 2.4G
         {
-        fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+	if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+        	fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+	        fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+        	fp = popen("ifconfig -a | grep wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2100,9 +2356,15 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         strcpy(output_string,mac);
         }
 
-	if(ssidIndex == 6) //public_wifi for 5G
+	else if(ssidIndex == 6) //public_wifi for 5G
         {
-        fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+	GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+	if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2143,9 +2405,18 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 	int Macindex=0;
 	int arr[MACADDRESS_SIZE];
 	unsigned char mac[6];
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
 	if(ssidIndex == 1) //private_wifi eith 2.4G
 	{
-		fp = popen("ifconfig | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+        if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+
 		if (fp == NULL) {
 			printf("Failed to run command inside function %s\n",__FUNCTION__ );
 			exit(1);
@@ -2163,9 +2434,16 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 		}
 		strcpy(output_string,mac);
 	}
-	if(ssidIndex == 2) //private_wifi with 5G
+	else if(ssidIndex == 2) //private_wifi with 5G
         {
-                fp = popen("ifconfig | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+        if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+
                 if (fp == NULL) {
                         printf("Failed to run command inside function %s\n",__FUNCTION__ );
                         exit(1);
@@ -2184,9 +2462,16 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
                 strcpy(output_string,mac);
         }
 
-	if(ssidIndex == 5)//public_wifi with 2.4G
+	else if(ssidIndex == 5)//public_wifi with 2.4G
 	{
-		fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+        if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+                fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+                fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+                fp = popen("ifconfig -a | grep wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+
 		if (fp == NULL) {
 			printf("Failed to run command inside function %s\n",__FUNCTION__ );
 			exit(1);
@@ -2204,9 +2489,16 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 		}
 		strcpy(output_string,mac);
 	}
-	if(ssidIndex == 6)//public_wifi with 5G
+	else if(ssidIndex == 6)//public_wifi with 5G
         {
-                fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+        if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+
                 if (fp == NULL) {
                         printf("Failed to run command inside function %s\n",__FUNCTION__ );
                         exit(1);
@@ -2340,7 +2632,8 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		return RETURN_ERR;
 	} 
 
-
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
 	memset(output_struct, 0, sizeof(wifi_basicTrafficStats_t));
 
 	/* snprintf(cmd, sizeof(cmd), "ifconfig %s%d", AP_PREFIX, apIndex);
@@ -2371,7 +2664,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 	if(apIndex == 1) //private_wifi with 2.4G
 	{
-		fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2386,8 +2685,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		output_struct->wifi_BytesReceived = atol(status);
 		printf(" the status %s and %ld \n",status,output_struct->wifi_BytesReceived);
 		pclose(fp);
-
-		fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2401,8 +2705,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		}
 		output_struct->wifi_BytesSent = atol(status);
 		pclose(fp);
-
-		fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2416,8 +2725,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		}
 		pclose(fp);
 		output_struct->wifi_PacketsSent = atol(status);
-
-		fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2435,7 +2749,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 	else if(apIndex == 2)//private_wifi with 5G
         {
-                fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2450,7 +2770,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 output_struct->wifi_BytesReceived = atol(status);
                 pclose(fp);
 
-                fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2465,7 +2790,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 output_struct->wifi_BytesSent = atol(status);
                 pclose(fp);
 
-                fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2480,7 +2810,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 pclose(fp);
                 output_struct->wifi_PacketsSent = atol(status);
 
-                fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
                 if(fp == NULL)
 		{
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2498,7 +2833,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 	else if(apIndex == 5) //public_wifi with 2.4G
 	{
-		fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2513,7 +2854,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		output_struct->wifi_BytesReceived = atol(status);
 		pclose(fp);
 
-		fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2528,7 +2874,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		output_struct->wifi_BytesSent = atol(status);
 		pclose(fp);
 
-		fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2542,8 +2893,13 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		}
 		pclose(fp);
 		output_struct->wifi_PacketsSent = atol(status);
-
-		fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2560,7 +2916,14 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 	}	
 	else if(apIndex == 6) //public_wifi with 5G
         {
-                fp = popen("ifconfig wlan1_0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2575,7 +2938,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 output_struct->wifi_BytesReceived = atol(status);
                 pclose(fp);
 
-                fp = popen("ifconfig wlan1_0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep bytes | tr -s ' ' | cut -d ' ' -f7 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2590,7 +2958,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 output_struct->wifi_BytesSent = atol(status);
                 pclose(fp);
 
-                fp = popen("ifconfig wlan1_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2605,7 +2978,12 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 pclose(fp);
                 output_struct->wifi_PacketsSent = atol(status);
 
-                fp = popen("ifconfig wlan1_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f3 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2637,9 +3015,17 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 	FILE *fp;
 	char path[256] = {0},status[100] = {0};
 	int count = 0;//RDKB-EMULATOR
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
 	if(apIndex == 1)//private_wifi with 2.4G
 	{
-		fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		if(strcmp(interface_name,"wlan0") == 0 )
+			fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0 )
+			fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0 )
+			fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2653,8 +3039,13 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 		}
 		pclose(fp);
 		output_struct->wifi_ErrorsSent = atol(status);
-
-		fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		
+		if(strcmp(interface_name,"wlan0") == 0 )
+			fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan1") == 0 )
+			fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(interface_name,"wlan2") == 0 )
+			fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2671,7 +3062,14 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 	}
 	else if(apIndex == 2)//private_wifi with 5G
         {
-                fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0 )
+                        fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0 )
+                        fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0 )
+                        fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2686,7 +3084,13 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
                 pclose(fp);
                 output_struct->wifi_ErrorsSent = atol(status);
 
-                fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		if(strcmp(interface_name,"wlan0") == 0 )
+                        fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0 )
+                        fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0 )
+                        fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2704,7 +3108,13 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 
 	else if(apIndex == 5)//public_wifi with 2.4G
 	{
-		fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2719,7 +3129,13 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 		pclose(fp);
 		output_struct->wifi_ErrorsSent = atol(status);
 
-		fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		
+		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2736,7 +3152,14 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 	}
 	else if(apIndex == 6)//public_wifi with 5G
         {
-                fp = popen("ifconfig wlan1_0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0 )
+                        fp = popen("ifconfig wlan0 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0 )
+                        fp = popen("ifconfig wlan1 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0 )
+                        fp = popen("ifconfig wlan2 | grep TX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+	
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2751,7 +3174,12 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
                 pclose(fp);
                 output_struct->wifi_ErrorsSent = atol(status);
 
-                fp = popen("ifconfig wlan1_0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                if(strcmp(interface_name,"wlan0") == 0 )
+                        fp = popen("ifconfig wlan0 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan1") == 0 )
+                        fp = popen("ifconfig wlan1 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
+                else if(strcmp(interface_name,"wlan2") == 0 )
+                        fp = popen("ifconfig wlan2 | grep RX | grep packets | tr -s ' ' | cut -d ' ' -f4 | cut -d ':' -f2","r");
                 if(fp == NULL)
                 {
                         printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2842,9 +3270,17 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
         int arr1[MACADDRESS_SIZE];
         unsigned char mac[MACADDRESS_SIZE];
         unsigned long wifi_count = 0;
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
 	if(apIndex == 1)
 	{
-        fp = popen("iw dev wlan0 station dump | grep wlan0 | wc -l", "r");
+	GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	if(strcmp(interface_name,"wlan0") == 0)
+	        fp = popen("iw dev wlan0 station dump | grep wlan0 | wc -l", "r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+	        fp = popen("iw dev wlan1 station dump | grep wlan1 | wc -l", "r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+        	fp = popen("iw dev wlan2 station dump | grep wlan2 | wc -l", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2861,7 +3297,13 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
         {
                 return -1;
         }
-        fp = popen("iw dev wlan0 station dump | grep Station | cut -d ' ' -f 2","r");
+
+	if(strcmp(interface_name,"wlan0") == 0)	
+	        fp = popen("iw dev wlan0 station dump | grep Station | cut -d ' ' -f 2","r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+	        fp = popen("iw dev wlan1 station dump | grep Station | cut -d ' ' -f 2","r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+	        fp = popen("iw dev wlan2 station dump | grep Station | cut -d ' ' -f 2","r");
         if(fp)
         {
                 for(count =0 ; count < wifi_count ;count++)
@@ -2885,7 +3327,12 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
                 }
 	 }
         pclose(fp);
-        fp = popen("iw dev wlan0 station dump | grep avg | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_2.4G.txt","r");
+	if(strcmp(interface_name,"wlan0") == 0)
+	        fp = popen("iw dev wlan0 station dump | grep avg | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_2.4G.txt","r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+        	fp = popen("iw dev wlan1 station dump | grep avg | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_2.4G.txt","r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+        fp = popen("iw dev wlan2 station dump | grep avg | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_2.4G.txt","r");
         pclose(fp);
         fp = popen("cat /tmp/wifi_signalstrngth_2.4G.txt | tr -s ' ' | cut -f 2","r");
         if(fp)
@@ -2907,7 +3354,13 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
 	}
 	else if(apIndex == 2)
 	{
+	        GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+		 fp = popen("iw dev wlan0 station dump | grep wlan1 | wc -l", "r");
+		else if(strcmp(interface_name,"wlan1") == 0)
 		 fp = popen("iw dev wlan1 station dump | grep wlan1 | wc -l", "r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+		 fp = popen("iw dev wlan2 station dump | grep wlan1 | wc -l", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -2924,7 +3377,12 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
         {
                 return -1;
         }
-        fp = popen("iw dev wlan1 station dump | grep Station | cut -d ' ' -f 2","r");
+	if(strcmp(interface_name,"wlan0") == 0)
+        	fp = popen("iw dev wlan0 station dump | grep Station | cut -d ' ' -f 2","r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+	        fp = popen("iw dev wlan1 station dump | grep Station | cut -d ' ' -f 2","r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+        	fp = popen("iw dev wlan2 station dump | grep Station | cut -d ' ' -f 2","r");
         if(fp)
         {
                 for(count =0 ; count < wifi_count ;count++)
@@ -2948,7 +3406,12 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
                 }
          }
 	pclose(fp);
-        fp = popen("iw dev wlan1 station dump | grep avg | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_5G.txt","r");
+	if(strcmp(interface_name,"wlan0") == 0)
+	        fp = popen("iw dev wlan0 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_5G.txt","r");
+	else if(strcmp(interface_name,"wlan1") == 0)
+        	fp = popen("iw dev wlan1 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_5G.txt","r");
+	else if(strcmp(interface_name,"wlan2") == 0)
+	        fp = popen("iw dev wlan2 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrngth_5G.txt","r");
         pclose(fp);
         fp = popen("cat /tmp/wifi_signalstrngth_5G.txt | tr -s ' ' | cut -f 2","r");
         if(fp)
@@ -3323,17 +3786,185 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
 	char buf[WORD_SIZE];
+	char path[1024],security_mode[150],WEP_mode[512],wep_mode[512],security_mode_5g[512];
+	int count = 0;
+        FILE *fp = NULL;
+
+	//For WPA-PSK  - 2.4Ghz
+	if((strcmp(encMode,"WPA-Personal")==0) || (strcmp(encMode,"WPA2-Personal")==0) || (strcmp(encMode,"WPA-WPA2-Personal")==0) || (strcmp(encMode,"None")==0))
+	{
+	fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wpa | tail -1", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+	for(count = 0;path[count]!='\n';count++)
+		security_mode[count] = path[count];
+	security_mode[count]='\0';
+        pclose(fp);
+	}
+
+	//For WPA-PSK  - 5Ghz
+        if((strcmp(encMode,"WPA-Personal")==0) || (strcmp(encMode,"WPA2-Personal")==0) || (strcmp(encMode,"WPA-WPA2-Personal")==0) ||(strcmp(encMode,"None")==0))
+        {
+        fp = popen("cat /etc/hostapd_5G.conf | grep -w wpa | tail -1", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                security_mode_5g[count] = path[count];
+        security_mode_5g[count]='\0';
+        pclose(fp);
+        }
+
+
+	if((strcmp(encMode,"WEP-64")==0) || (strcmp(encMode,"WEP-128")==0))
+	{
+	printf(" In WEP-Mode \n");
+	//For WEP Mode - 2.4Ghz
+	fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wep_key_len_broadcast", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+	for(count = 0;path[count]!='\n';count++)
+		WEP_mode[count] = path[count];
+	WEP_mode[count]='\0';
+        pclose(fp);
+	}
+
+	if((strcmp(encMode,"WEP-64")==0) || (strcmp(encMode,"WEP-128")==0))
+        {
+        //For WEP Mode - 2.4Ghz
+        fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wep_key_len_unicast", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                wep_mode[count] = path[count];
+        wep_mode[count]='\0';
+        pclose(fp);
+        }
+
+
 	if(apIndex == 1)//private_wifi with 2.4G
 	{
         if(strcmp(encMode,"None")==0)
         {
-                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%c%s%s%s%c %s","sed -i ",'"','/',security_mode,"/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-		sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/ignore_broadcast_ssid=0/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wmm_enabled=1/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+       /*       sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+        }
+        else if(strcmp(encMode,"WPA-Personal")==0)
+        {
+		
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=1/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+	/*	sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+        }
+        else if(strcmp(encMode,"WPA2-Personal")==0)
+        {
+		sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=2/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+	/*	sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+	}
+	else if(strcmp(encMode,"WPA-WPA2-Personal")==0)
+        {
+		sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=3/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+	/*	sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+	}
+	else if(strcmp(encMode,"WEP-64")==0)
+        {
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_key0=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",WEP_mode,"/wep_key_len_broadcast=\"5\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",wep_mode,"/wep_key_len_unicast=\"5\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+		printf(" Buffer %s \n",buf);
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);	
+		sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
                 sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
@@ -3344,29 +3975,35 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
                 sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
         }
-        else if(strcmp(encMode,"WPA-Personal")==0)
+	else if(strcmp(encMode,"WEP-128")==0)
         {
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+		
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/ignore_broadcast_ssid=0/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_key0=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wmm_enabled=1/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%s%s","sed -i -e 's/",WEP_mode,"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa=2/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%s%s","sed -i -e 's/",wep_mode,"/wep_key_len_unicast=\"10\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+		sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
-                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
                 system(buf);
         }
         //KillHostapd();
 	}
 	else if(apIndex == 2) //private_wifi with 5G
         {
+#if 0
         if(strcmp(encMode,"None")==0)
         {
                 sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
@@ -3405,6 +4042,62 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
                 sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
                 system(buf);
         }
+#endif
+	if(strcmp(encMode,"None")==0)
+        {
+                sprintf(buf,"%s%c%c%s%s%s%c %s","sed -i ",'"','/',security_mode_5g,"/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WPA-Personal")==0)
+        {
+
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=1/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+	 else if(strcmp(encMode,"WPA2-Personal")==0)
+        {
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=2/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WPA-WPA2-Personal")==0)
+        {
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=3/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+
+
         //KillHostapd();
         }
 
@@ -3660,10 +4353,18 @@ INT wifi_stopHostApd()
 	sprintf(cmd,"killall hostapd");
 	_syscmd(cmd, buf, sizeof(buf));*/
 //	system("ifconfig mon.wlan0 down");
+	char interface_name[512];
+        char virtual_interface_name[512],buf[512];
+        GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
         system("ps -eaf | grep hostapd_2.4G | grep -v grep | awk '{print $2}' | xargs kill -9");
-        system("ifconfig wlan0 down");
+	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
+	system(buf);
+        //system("ifconfig wlan0 down");
 	system("sleep 3");
-        system("ifconfig wlan0_0 down");
+	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
+	system(buf);
+        //system("ifconfig wlan0_0 down");
 	return RETURN_OK;	
 }
 // sets the AP enable status variable for the specified ap.
@@ -4007,7 +4708,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 	char path[FILE_SIZE];
         FILE *fp = NULL;
         char *password;
-	if((apIndex == 1 ) || (apIndex == 5))
+	if(apIndex == 1 ) 
 	{
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
@@ -4026,7 +4727,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         }
         pclose(fp);
 	}
-	if((apIndex == 2 ) || (apIndex == 6))
+	else if(apIndex == 2 )
         {
         fp = popen("cat /etc/hostapd_5G.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
@@ -4045,7 +4746,8 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         }
         pclose(fp);
         }
-
+	else if((apIndex == 5 ) || (apIndex == 6 ))
+			strcpy(output_string,"");
 
 	return RETURN_OK;
 #endif
