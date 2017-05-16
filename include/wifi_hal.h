@@ -541,13 +541,31 @@ typedef struct _wifi_associated_dev_rate_info_tx_stats {
 |  7  | 15 |    VO    |
 -----------------------
 */
-typedef struct wifi_associated_dev_tid_stats
+
+typedef enum
 {
-    UCHAR  ac;						// BE, BK. VI, VO 
+    WIFI_RADIO_QUEUE_TYPE_VI = 0,
+    WIFI_RADIO_QUEUE_TYPE_VO,
+    WIFI_RADIO_QUEUE_TYPE_BE,
+    WIFI_RADIO_QUEUE_TYPE_BK,
+    WIFI_RADIO_QUEUE_TYPE_CAB,
+    WIFI_RADIO_QUEUE_TYPE_BCN,
+    WIFI_RADIO_QUEUE_MAX_QTY,
+    WIFI_RADIO_QUEUE_TYPE_NONE = -1
+} wifi_radioQueueType_t;
+
+typedef struct wifi_associated_dev_tid_entry
+{
+    UCHAR  ac;						// BE, BK. VI, VO (wifi_radioQueueType_t)
     UCHAR  tid;                       			// 0 - 16
     ULLONG ewma_time_ms;					// Moving average value based on last couple of transmitted msdus
     ULLONG sum_time_ms;					// Delta of cumulative msdus times over interval
     ULLONG num_msdus;					// Number of msdus in given interval
+} wifi_associated_dev_tid_entry_t;
+
+typedef struct wifi_associated_dev_tid_stats
+{
+    wifi_associated_dev_tid_entry_t tid_array[16];
 } wifi_associated_dev_tid_stats_t;
 
 /*    Explanation:
@@ -2912,7 +2930,7 @@ INT wifi_applySSIDSettings(INT ssidIndex);
 * HAL funciton should allocate an data structure array, and return to caller with 
 "neighbor_ap_array". 
 *
-* @param radioIndex - Radio index
+* @param apIndex - AP index
 * @param neighbor_ap_array - wifi_neighbor_ap2_t **neighbor_ap_array, neighbour 
 access point info to be returned
 * @param output_array_size - UINT *output_array_size, to be returned
@@ -2930,7 +2948,18 @@ access point info to be returned
 */
 //Start the wifi scan and get the result into output buffer for RDKB to parser. The result will be used to manage endpoint list
 //HAL funciton should allocate an data structure array, and return to caller with "neighbor_ap_array"
-INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size); //Tr181	
+INT wifi_getNeighboringWiFiDiagnosticResult2(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size); //Tr181
+
+typedef enum
+{
+    WIFI_RADIO_SCAN_MODE_NONE = 0,
+    WIFI_RADIO_SCAN_MODE_FULL,
+    WIFI_RADIO_SCAN_MODE_ONCHAN,
+    WIFI_RADIO_SCAN_MODE_OFFCHAN,
+    WIFI_RADIO_SCAN_MODE_SURVEY
+} wifi_neighborScanMode_t;
+
+INT wifi_startNeighborScan(INT apIndex, wifi_neighborScanMode_t scan_mode, INT dwell_time, UINT chan_num, UINT *chan_list);
 
 //>> Deprecated: used for old RDKB code. 
 /** Deprecated: used for old RDKB code. */
