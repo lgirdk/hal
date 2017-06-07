@@ -2275,7 +2275,19 @@ INT wifi_cancelApWPS(INT apIndex)
 	else
 		return RETURN_ERR;
 }                                 
-
+//Get the ApManagementFramePowerControl
+INT wifi_getApManagementFramePowerControl(INT apIndex, INT *output_dBm)
+{
+	if (NULL == output_dBm) 
+		return RETURN_ERR;
+		*output_dBm=0;
+		return RETURN_OK;
+}
+//Set the ApManagementFramePowerControl
+INT wifi_setApManagementFramePowerControl(INT apIndex, INT dBm)	
+{
+	return RETURN_ERR;
+}
 //Device.WiFi.AccessPoint.{i}.AssociatedDevice.*
 //HAL funciton should allocate an data structure array, and return to caller with "associated_dev_array"
 INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_t **associated_dev_array, UINT *output_array_size)
