@@ -2410,6 +2410,22 @@ INT wifi_setBandSteeringEnable(BOOL enable) {
 	return RETURN_OK;
 }
 
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.APGroup string r/w
+//To get Band Steering AP group
+INT wifi_getBandSteeringApGroup(char *output_ApGroup) {
+
+        if(NULL == output_ApGroup)
+                return RETURN_ERR;
+
+        strcpy(output_ApGroup,"1,2");
+        return RETURN_OK;
+}
+
+//To set Band Steering AP group
+INT wifi_setBandSteeringApGroup(char *ApGroup) {
+
+        return RETURN_OK;
+}
 
 //Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.UtilizationThreshold int r/w
 //to set and read the band steering BandUtilizationThreshold parameters 
@@ -2448,6 +2464,29 @@ INT wifi_setBandSteeringPhyRateThreshold (INT radioIndex, INT prThreshold) { //I
 	return RETURN_ERR;
 }
 
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.OverloadInactiveTime int r/w 
+//to set and read the inactivity time (in seconds) for steering under overload condition
+INT wifi_getBandSteeringOverloadInactiveTime (INT radioIndex, INT *pPrThreshold) {
+
+        return RETURN_ERR;
+}
+
+INT wifi_setBandSteeringOverloadInactiveTime (INT radioIndex, INT prThreshold) {
+
+        return RETURN_ERR;
+}
+
+//Device.WiFi.X_RDKCENTRAL-COM_BandSteering.BandSetting.{i}.IdleInactiveTime int r/w 
+//to set and read the inactivity time (in seconds) for steering under Idle condition
+INT wifi_getBandSteeringIdleInactiveTime (INT radioIndex, INT *pPrThreshold) {
+
+        return RETURN_ERR;
+}
+
+INT wifi_setBandSteeringIdleInactiveTime (INT radioIndex, INT prThreshold) {
+
+        return RETURN_ERR;
+}
 
 //Device.WiFi.X_RDKCENTRAL-COM_BandSteering.History string r/o
 //pClientMAC[64]
