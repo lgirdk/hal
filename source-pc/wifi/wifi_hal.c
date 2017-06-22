@@ -4705,9 +4705,10 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
-	char path[FILE_SIZE];
+	char path[FILE_SIZE],output_pwd[FILE_SIZE];
         FILE *fp = NULL;
         char *password;
+	int count = 0;
 	if(apIndex == 1 ) 
 	{
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wpa_passphrase ", "r");
@@ -4719,7 +4720,10 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         if(path[0] != '#')
         {
                 password = strchr(path,'=');
-                strcpy(output_string,password+1);
+                strcpy(output_pwd,password+1);
+		for(count = 0;output_pwd[count]!='\n';count++)
+                        output_string[count] = output_pwd[count];
+                output_string[count]='\0';
         }
         else
         {
@@ -4738,7 +4742,10 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         if(path[0] != '#')
         {
                 password = strchr(path,'=');
-                strcpy(output_string,password+1);
+                strcpy(output_pwd,password+1);
+		for(count = 0;output_pwd[count]!='\n';count++)
+                        output_string[count] = output_pwd[count];
+                output_string[count]='\0';
         }
         else
         {
