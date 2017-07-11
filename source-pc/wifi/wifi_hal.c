@@ -1403,87 +1403,123 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 #endif
 }
 
+void wifi_updateRadiochannel(INT radioIndex,ULONG channel)
+{
+	char path[1024] = {0};
+	char channelvalue[50] = {0},current_channel_value[50] = {0},channel_value[50] = {0};
+	char str[100] = {0},str1[100] = {0},str2[100] = {0};
+	FILE *fp = NULL;
+	char *Channel;
+	int count = 0;
+	if (( radioIndex == 1 ) || (radioIndex == 5 ))
+		fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
+	else if ( radioIndex == 2 )
+		fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
+	else if (radioIndex == 6 )
+		fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
+
+	if (fp == NULL) {
+		printf("Failed to run command in function %s\n",__FUNCTION__);
+		return;
+	}
+
+	fgets(path, sizeof(path)-1, fp);
+	Channel = strchr(path,'=');
+	strcpy(channel_value,Channel+1);
+	for(count=0;channel_value[count]!='\n';count++)
+		current_channel_value[count]=channel_value[count];
+	current_channel_value[count]='\0';
+	sprintf(str1,"%s%s","channel=",current_channel_value);
+	sprintf(channelvalue,"%lu",channel);
+	sprintf(str2,"%s%s","channel=",channelvalue);
+	if (( radioIndex == 1 ) || (radioIndex == 5 ))
+		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_2.4G.conf");
+	else if ( radioIndex == 2 )
+		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_5G.conf");
+	else if (radioIndex == 6 )
+		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_xfinity_5G.conf");
+	system(str);
+	pclose(fp);
+}
+void wifi_setAutoChannelEnableVal(INT radioIndex,ULONG channel)
+{
+#if 1//LNT_EMU
+	if((radioIndex == 1) || (radioIndex == 5))
+	{
+		wifi_updateRadiochannel(radioIndex,channel);
+		if(radioIndex == 5)
+			//KillHostapd();
+			system("sh /lib/rdk/start_hostapd_5g.sh");
+	}
+	else if(radioIndex == 2)
+	{
+		wifi_updateRadiochannel(radioIndex,channel);
+	//	KillHostapd_5g();
+	}
+	else if(radioIndex == 6)
+	{
+		wifi_updateRadiochannel(radioIndex,channel);
+		KillHostapd_xfinity_5g();
+	}
+
+#endif
+}
+void wifi_storeprevchanval(INT radioIndex) //for AutoChannelEnable
+{
+	FILE *fp = NULL;
+	char path[1024] = {0}, channel_value[1024] = {0},current_channel_value[1024] = {0},str[1024] = {0};
+	char *Channel;
+	int count = 0;
+	if((radioIndex == 1 ) || (radioIndex == 5))
+		fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
+	else if(radioIndex == 2)
+		fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
+	else if(radioIndex == 6)
+		fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
+	if (fp == NULL) {
+		printf("Failed to run command in function %s\n",__FUNCTION__);
+		return;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	Channel = strchr(path,'=');
+	strcpy(channel_value,Channel+1);
+	for(count=0;channel_value[count]!='\n';count++)
+		current_channel_value[count]=channel_value[count];
+	current_channel_value[count]='\0';
+	sprintf(str,"%s%s%s","echo ",current_channel_value," > /tmp/prevchanval_AutoChannelEnable");
+	printf("The Required String is %s \n",str);
+	system(str);
+}
 //Set the running channel number 
 INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 {
 	//Set to wifi config only. Wait for wifi reset or wifi_pushRadioChannel to apply.
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	char path[1024] = {0};
-        char channelvalue[50] = {0},current_channel_value[50] = {0},channel_value[50] = {0};
-	char str[100] = {0},str1[100] = {0},str2[100] = {0};
-        FILE *fp = NULL;
-        char *Channel;
-	int count = 0;
 	if((radioIndex == 1) || (radioIndex == 5))
 	{
-        fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command in function %s\n",__FUNCTION__);
-                return;
-        }
-        fgets(path, sizeof(path)-1, fp);
-        Channel = strchr(path,'=');
-        strcpy(channel_value,Channel+1);
-	for(count=0;channel_value[count]!='\n';count++)
-                current_channel_value[count]=channel_value[count];
-        current_channel_value[count]='\0';
-	sprintf(str1,"%s%s","channel=",current_channel_value);
-	sprintf(channelvalue,"%lu",channel);
-	sprintf(str2,"%s%s","channel=",channelvalue);
-	sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_2.4G.conf");
-	system(str);
-	pclose(fp);
-	if(radioIndex == 5)
-		//KillHostapd();
-		 system("sh /lib/rdk/start_hostapd_5g.sh");
+		wifi_storeprevchanval(radioIndex);
+		wifi_updateRadiochannel(radioIndex,channel);
+		if(radioIndex == 5)
+			//KillHostapd();
+			system("sh /lib/rdk/start_hostapd_5g.sh");
 	}
 	else if(radioIndex == 2) 
-        {
-        fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command in function %s\n",__FUNCTION__);
-                return;
-        }
-        fgets(path, sizeof(path)-1, fp);
-        Channel = strchr(path,'=');
-        strcpy(channel_value,Channel+1);
-        for(count=0;channel_value[count]!='\n';count++)
-                current_channel_value[count]=channel_value[count];
-        current_channel_value[count]='\0';
-        sprintf(str1,"%s%s","channel=",current_channel_value);
-        sprintf(channelvalue,"%lu",channel);
-        sprintf(str2,"%s%s","channel=",channelvalue);
-        sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_5G.conf");
-        system(str);
-        pclose(fp);
-        KillHostapd_5g();
-        }
+	{
+		wifi_storeprevchanval(radioIndex);
+		wifi_updateRadiochannel(radioIndex,channel);
+	//	KillHostapd_5g();
+	}
 	else if(radioIndex == 6) 
-        {
-        fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command in function %s\n",__FUNCTION__);
-                return;
-        }
-        fgets(path, sizeof(path)-1, fp);
-        Channel = strchr(path,'=');
-        strcpy(channel_value,Channel+1);
-        for(count=0;channel_value[count]!='\n';count++)
-                current_channel_value[count]=channel_value[count];
-        current_channel_value[count]='\0';
-        sprintf(str1,"%s%s","channel=",current_channel_value);
-        sprintf(channelvalue,"%lu",channel);
-        sprintf(str2,"%s%s","channel=",channelvalue);
-        sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_xfinity_5G.conf");
-        system(str);
-        pclose(fp);
-        KillHostapd_xfinity_5g();
-        }
+	{
+		wifi_storeprevchanval(radioIndex);
+		wifi_updateRadiochannel(radioIndex,channel);
+		KillHostapd_xfinity_5g();
+	}
 
 
 #endif
-        return 0;
+	return 0;
 }
 
 //Enables or disables a driver level variable to indicate if auto channel selection is enabled on this radio
@@ -3356,11 +3392,11 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
 	{
 	        GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
-		 fp = popen("iw dev wlan0 station dump | grep wlan1 | wc -l", "r");
+		 fp = popen("iw dev wlan0 station dump | grep wlan0 | wc -l", "r");
 		else if(strcmp(interface_name,"wlan1") == 0)
 		 fp = popen("iw dev wlan1 station dump | grep wlan1 | wc -l", "r");
 		else if(strcmp(interface_name,"wlan2") == 0)
-		 fp = popen("iw dev wlan2 station dump | grep wlan1 | wc -l", "r");
+		 fp = popen("iw dev wlan2 station dump | grep wlan2 | wc -l", "r");
         if (fp == NULL) {
                 printf("Failed to run command inside function %s\n",__FUNCTION__ );
                 exit(1);
@@ -4407,7 +4443,106 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                 *output_bool = FALSE;
         }
 
-#endif	
+#endif
+//RDKB-EMU
+	FILE *fp=NULL;
+        char path[256] = {0},status[256] = {0},interface_name[100] = {0};
+        int count;
+        if(apIndex == 1)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+        else if(apIndex == 2)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+
+        else if(apIndex == 5)
+        {
+                GetInterfaceName_virtualInterfaceName_2G(interface_name);
+                if(strcmp(interface_name,"wlan0_0") == 0)
+                        fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1_0") == 0)
+                        fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2_0") == 0)
+                        fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+        else if(apIndex == 6)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+                fclose(fp);
+        }
+
+        if(strcmp(status,"RUNNING") == 0)
+                *output_bool = TRUE;
+        else
+                *output_bool = FALSE;
+	
 	return RETURN_OK;	
 }
 
@@ -4705,7 +4840,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
-	char path[FILE_SIZE],output_pwd[FILE_SIZE];
+	char path[FILE_SIZE] = {0},output_pwd[FILE_SIZE] = {0};
         FILE *fp = NULL;
         char *password;
 	int count = 0;
