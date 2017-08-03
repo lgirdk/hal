@@ -292,7 +292,16 @@ void KillHostapd()
         //system("ifconfig mon.wlan0 up");
 	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"up");
         system(buf);
+	sleep(5);
         //system("ifconfig wlan0_0 up");
+}
+void xfinitywifi_5g()
+{
+	system("hostapd -B /etc/hostapd_xfinity_5G.conf");
+}
+void privatewifi_5g()
+{
+	system("hostapd -B /etc/hostapd_5G.conf");
 }
 
 void KillHostapd_5g()
@@ -300,6 +309,10 @@ void KillHostapd_5g()
 	char interface_name[512],buf[512];
         GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 	system("ps -eaf | grep hostapd_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
+	system("rmmod rtl8812au");
+	system("sleep 3");
+	system("insmod /lib/modules/3.14.4-yocto-standard/kernel/drivers/net/wireless/rtl8812au/rtl8812au.ko");
+	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
 	//system("ifconfig wlan1 down");
@@ -308,7 +321,8 @@ void KillHostapd_5g()
         system(buf);
 	//system("ifconfig wlan1 up");
         system("hostapd -B /etc/hostapd_5G.conf");
-
+	xfinitywifi_5g();
+	sleep(5);
 }
 
 void KillHostapd_xfinity_5g()
@@ -316,6 +330,10 @@ void KillHostapd_xfinity_5g()
 	char interface_name[512],buf[512];
         GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
 	system("ps -eaf | grep hostapd_xfinity_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
+	system("rmmod rtl8812au");
+	system("sleep 3");
+	system("insmod /lib/modules/3.14.4-yocto-standard/kernel/drivers/net/wireless/rtl8812au/rtl8812au.ko");
+	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
         //system("ifconfig wlan2 down");
@@ -324,6 +342,8 @@ void KillHostapd_xfinity_5g()
         system(buf);
         //system("ifconfig wlan2 up");
         system("hostapd -B /etc/hostapd_xfinity_5G.conf");
+	privatewifi_5g();
+	sleep(5);
 }
 
 void killXfinityWiFi()
@@ -1486,8 +1506,7 @@ void wifi_storeprevchanval(INT radioIndex) //for AutoChannelEnable
 	for(count=0;channel_value[count]!='\n';count++)
 		current_channel_value[count]=channel_value[count];
 	current_channel_value[count]='\0';
-	sprintf(str,"%s%s%s","echo ",current_channel_value," > /tmp/prevchanval_AutoChannelEnable");
-	printf("The Required String is %s \n",str);
+	sprintf(str,"%s%s%s","echo ",current_channel_value," > /var/prevchanval_AutoChannelEnable");
 	system(str);
 }
 //Set the running channel number 
