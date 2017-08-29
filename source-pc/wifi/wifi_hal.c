@@ -1274,7 +1274,7 @@ INT wifi_getRadioSupportedFrequencyBands(INT radioIndex, CHAR *output_string)	//
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(output_string, 64, "2.4GHz,5GHz");
+	snprintf(output_string, 64, (radioIndex==0)?"2.4GHz":"5GHz");
 	return RETURN_OK;
 }
 
