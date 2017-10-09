@@ -1047,30 +1047,36 @@ INT wifi_setRadioCountryCode(INT radioIndex, CHAR *CountryCode)
 //Get the total number of radios in this wifi subsystem
 INT wifi_getRadioNumberOfEntries(ULONG *output) //Tr181
 {
-	*output=2;
+	if (NULL == output)
+		return RETURN_ERR;
+	else
+		*output=2;
 	return RETURN_OK;
 }
 
 //Get the total number of SSID entries in this wifi subsystem 
 INT wifi_getSSIDNumberOfEntries(ULONG *output) //Tr181
 {
-	*output=16;
+	if (NULL == output)
+		return RETURN_ERR;
+	else
+		*output=16;
 	return RETURN_OK;
 }
 
 //Get the Radio enable config parameter
 INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
 {
-	/*if (NULL == output_bool) {
+	if (NULL == output_bool) 
 		return RETURN_ERR;
-	} else {
+	/*} else {
 		*output_bool = FALSE;
 		return RETURN_OK;
 	}*/ //RDKB-EMU
 	FILE *fp=NULL;
         char path[256] = {0},status[256] = {0},interface_name[100] = {0};
         int count;
-        if(radioIndex == 1)
+        if(radioIndex == 0)
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
@@ -1092,7 +1098,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                 }
                 fclose(fp);
         }
-	else if(radioIndex == 2)
+	else if(radioIndex == 1)
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
@@ -1115,7 +1121,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                 fclose(fp);
         }
 
-        else if(radioIndex == 5)
+        else if(radioIndex == 4)
         {
 		GetInterfaceName_virtualInterfaceName_2G(interface_name);
 		if(strcmp(interface_name,"wlan0_0") == 0)
@@ -1137,7 +1143,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                 }
                 fclose(fp);
         }
-	else if(radioIndex == 6)
+	else if(radioIndex == 5)
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
@@ -1176,48 +1182,48 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
 
-	if((radioIndex == 1) && (enable == false))
+	if((radioIndex == 0) && (enable == false))
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
 		system(buf);
 		//system("ifconfig wlan0 down");
 	}
-	else if((radioIndex == 1) && (enable == true))
+	else if((radioIndex == 0) && (enable == true))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
 	}
 	//KillHostapd();
-	else if((radioIndex == 2) && (enable == false))
+	else if((radioIndex == 1) && (enable == false))
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
                 system(buf);
 		//system("ifconfig wlan1 down");
 	}
-	else if((radioIndex == 2) && (enable == true))
+	else if((radioIndex == 1) && (enable == true))
 		KillHostapd_5g();
-	else if((radioIndex == 5) && (enable == false))
+	else if((radioIndex == 4) && (enable == false))
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 		sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
                 system(buf);
 		//system("ifconfig wlan0_0 down");
 	}
-	else if((radioIndex == 5) && (enable == true))
+	else if((radioIndex == 4) && (enable == true))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
 	}
-	else if((radioIndex == 6) && (enable == false))
+	else if((radioIndex == 5) && (enable == false))
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
                 sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
                 system(buf);
                 //system("ifconfig wlan0_0 down");
         }
-        else if((radioIndex == 6) && (enable == true))
+        else if((radioIndex == 5) && (enable == true))
 	{
 		KillHostapd_xfinity_5g();
         }
@@ -1325,15 +1331,67 @@ INT wifi_setRadioChannelMode(INT radioIndex, CHAR *channelMode, BOOL gOnlyFlag, 
 	return RETURN_ERR;
 }
 
-
+char* wifi_get_possiblechannels(char PossibleChannels[256])
+{
+		FILE *fp = NULL;
+		char path[256] ={0};
+		int c = 0;
+		system(PossibleChannels);
+		fp = popen("cat /tmp/Possible_Channels.txt","r");
+		if(fp == NULL)
+			return RETURN_ERR;
+		if(fgets(path,sizeof(path),fp) != NULL);
+		pclose(fp);		
+		if(strcmp(path,"") == 0)
+			strcpy(path,"NULL");
+		return path;
+}
 //Get the list of supported channel. eg: "1-11"
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(output_string, 64, (radioIndex==0)?"1-11":"36,40");
+	//snprintf(output_string, 64, (radioIndex==0)?"1-11":"36,40");
+	char PossibleChannels[256] = {0},interface_name[256] = {0};
+	if(radioIndex == 0)
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/Possible_Channels.txt");
+	}
+	else if(radioIndex == 1)
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/Possible_Channels.txt");
+	}
+	else if(radioIndex == 4)
+        {
+                GetInterfaceName_virtualInterfaceName_2G(interface_name);
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/Possible_Channels.txt");
+	}
+	else if(radioIndex == 5)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/Possible_Channels.txt");
+	}
+	strcpy(output_string,wifi_get_possiblechannels(PossibleChannels));
 	return RETURN_OK;
+}
+
+char* wifi_gets_ChannelsInUse(char Channels[256])
+{
+                FILE *fp = NULL;
+                char path[256] ={0};
+                int c = 0;
+                system(Channels);
+                fp = popen("cat /tmp/ChannelsInUse.txt","r");
+                if(fp == NULL)
+                        return RETURN_ERR;
+                if(fgets(path,sizeof(path),fp) != NULL);
+                pclose(fp);
+		if(strcmp(path,"") == 0)
+			strcpy(path,"NULL");
+                return path;
 }
 
 //Get the list for used channel. eg: "1,6,9,11"
@@ -1342,20 +1400,43 @@ INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(output_string, 256, (radioIndex==0)?"1,6,11":"36,40");
+	//snprintf(output_string, 256, (radioIndex==0)?"1,6,11":"36,40");
+	char Channels[256] = {0},interface_name[256] = {0};
+        if(radioIndex == 0)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/ChannelsInUse.txt");
+        }
+        else if(radioIndex == 1)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/ChannelsInUse.txt");
+        }
+        else if(radioIndex == 4)
+        {
+                GetInterfaceName_virtualInterfaceName_2G(interface_name);
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/ChannelsInUse.txt");
+        }
+        else if(radioIndex == 5)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' > /tmp/ChannelsInUse.txt");
+        }
+        strcpy(output_string,wifi_gets_ChannelsInUse(Channels));
+
 	return RETURN_OK;
 }
 
 //Get the running channel number 
 INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 {
+	if (NULL == output_ulong) 
+		return RETURN_ERR;
 #if 0//LNT_EMU
 	char cmd[128]={0};
 	char buf[256]={0};
 	INT apIndex;
 
-	if (NULL == output_ulong) 
-		return RETURN_ERR;
 
 	apIndex=(radioIndex==0)?0:1;
 
@@ -1378,7 +1459,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
         char channelvalue[50];
         FILE *fp = NULL;
         char *channel;
-	if((radioIndex == 1) || (radioIndex == 5))
+	if((radioIndex == 0) || (radioIndex == 4))
         {
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
         if (fp == NULL) {
@@ -1391,7 +1472,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
         *output_ulong =(unsigned long)atol(channelvalue);
         pclose(fp);
 	}
-	else if(radioIndex == 2)
+	else if(radioIndex == 1)
         {
         fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
         if (fp == NULL) {
@@ -1404,7 +1485,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
         *output_ulong =(unsigned long)atol(channelvalue);
         pclose(fp);
         }
-	else if(radioIndex == 6)
+	else if(radioIndex == 5)
         {
         fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
         if (fp == NULL) {
@@ -1431,11 +1512,11 @@ void wifi_updateRadiochannel(INT radioIndex,ULONG channel)
 	FILE *fp = NULL;
 	char *Channel;
 	int count = 0;
-	if (( radioIndex == 1 ) || (radioIndex == 5 ))
+	if (( radioIndex == 0 ) || (radioIndex == 4 ))
 		fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
-	else if ( radioIndex == 2 )
+	else if ( radioIndex == 1 )
 		fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
-	else if (radioIndex == 6 )
+	else if (radioIndex == 5 )
 		fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
 
 	if (fp == NULL) {
@@ -1452,11 +1533,11 @@ void wifi_updateRadiochannel(INT radioIndex,ULONG channel)
 	sprintf(str1,"%s%s","channel=",current_channel_value);
 	sprintf(channelvalue,"%lu",channel);
 	sprintf(str2,"%s%s","channel=",channelvalue);
-	if (( radioIndex == 1 ) || (radioIndex == 5 ))
+	if (( radioIndex == 0 ) || (radioIndex == 4 ))
 		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_2.4G.conf");
-	else if ( radioIndex == 2 )
+	else if ( radioIndex == 1 )
 		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_5G.conf");
-	else if (radioIndex == 6 )
+	else if (radioIndex == 5 )
 		sprintf(str,"%s%s/%s%s%s","sed -i -e 's/",str1,str2,"/g' ","/etc/hostapd_xfinity_5G.conf");
 	system(str);
 	pclose(fp);
@@ -1464,19 +1545,19 @@ void wifi_updateRadiochannel(INT radioIndex,ULONG channel)
 void wifi_setAutoChannelEnableVal(INT radioIndex,ULONG channel)
 {
 #if 1//LNT_EMU
-	if((radioIndex == 1) || (radioIndex == 5))
+	if((radioIndex == 0) || (radioIndex == 4))
 	{
 		wifi_updateRadiochannel(radioIndex,channel);
-		if(radioIndex == 5)
+		if(radioIndex == 4)
 			//KillHostapd();
 			system("sh /lib/rdk/start_hostapd_5g.sh");
 	}
-	else if(radioIndex == 2)
+	else if(radioIndex == 1)
 	{
 		wifi_updateRadiochannel(radioIndex,channel);
 	//	KillHostapd_5g();
 	}
-	else if(radioIndex == 6)
+	else if(radioIndex == 5)
 	{
 		wifi_updateRadiochannel(radioIndex,channel);
 		KillHostapd_xfinity_5g();
@@ -1490,11 +1571,11 @@ void wifi_storeprevchanval(INT radioIndex) //for AutoChannelEnable
 	char path[1024] = {0}, channel_value[1024] = {0},current_channel_value[1024] = {0},str[1024] = {0};
 	char *Channel;
 	int count = 0;
-	if((radioIndex == 1 ) || (radioIndex == 5))
+	if((radioIndex == 0 ) || (radioIndex == 4))
 		fp = popen("cat /etc/hostapd_2.4G.conf | grep -w channel ", "r");
-	else if(radioIndex == 2)
+	else if(radioIndex == 1)
 		fp = popen("cat /etc/hostapd_5G.conf | grep -w channel ", "r");
-	else if(radioIndex == 6)
+	else if(radioIndex == 5)
 		fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w channel ", "r");
 	if (fp == NULL) {
 		printf("Failed to run command in function %s\n",__FUNCTION__);
@@ -1515,21 +1596,21 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	//Set to wifi config only. Wait for wifi reset or wifi_pushRadioChannel to apply.
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	if((radioIndex == 1) || (radioIndex == 5))
+	if((radioIndex == 0) || (radioIndex == 4))
 	{
 		wifi_storeprevchanval(radioIndex);
 		wifi_updateRadiochannel(radioIndex,channel);
-		if(radioIndex == 5)
+		if(radioIndex == 4)
 			//KillHostapd();
 			system("sh /lib/rdk/start_hostapd_5g.sh");
 	}
-	else if(radioIndex == 2) 
+	else if(radioIndex == 1) 
 	{
 		wifi_storeprevchanval(radioIndex);
 		wifi_updateRadiochannel(radioIndex,channel);
 	//	KillHostapd_5g();
 	}
-	else if(radioIndex == 6) 
+	else if(radioIndex == 5) 
 	{
 		wifi_storeprevchanval(radioIndex);
 		wifi_updateRadiochannel(radioIndex,channel);
@@ -1950,14 +2031,14 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 {
 	/*	char cmd[128]={0};
 		char buf[128]={0};
-		if (NULL == output_string) 
-		return RETURN_ERR;
 		snprintf(cmd, sizeof(cmd), "ifconfig %s%d | grep %s%d", AP_PREFIX, ssidIndex, AP_PREFIX, ssidIndex);	
 		_syscmd(cmd, buf, sizeof(buf));
 
 		snprintf(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");*/
 
 	//RDKB-EMULATOR
+		if (NULL == output_string) 
+		return RETURN_ERR;
 	FILE *fp;
 	char path[256] = {0},status[100] = {0};
 	int count = 0;
@@ -2074,9 +2155,9 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 // Outputs a 32 byte or less string indicating the SSID name.  Sring buffer must be preallocated by the caller.
 INT wifi_getSSIDName(INT apIndex, CHAR *output)
 {
-	/*	if (NULL == output) 
+		if (NULL == output) 
 		return RETURN_ERR;
-		if(apIndex==0) 
+	/*	if(apIndex==0) 
 		snprintf(output, 64, "HOME-XXXX-2.4");
 		else if(apIndex==1)
 		snprintf(output, 64, "HOME-XXXX-5");
@@ -2313,8 +2394,6 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 #if 0//LNT_EMU
 	char cmd[128]={0};
 
-	if (NULL == output_string) 
-		return RETURN_ERR;
 
 	sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
 	_syscmd(cmd, output_string, 64);
@@ -2322,6 +2401,8 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
+	if (NULL == output_string) 
+		return RETURN_ERR;
 	FILE *fp = NULL;
         char bssid[20];
         char path[1024];
@@ -2448,12 +2529,12 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 {
 	/*	char cmd[128]={0};
 
-		if (NULL == output_string) 
-		return RETURN_ERR;
 
 		sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
 		_syscmd(cmd, output_string, 64);*/ 
 	//RDKB-EMULATOR
+		if (NULL == output_string) 
+		return RETURN_ERR;
 	FILE *fp = NULL;
 	char Mac[20];
 	char path[1024];
@@ -3060,9 +3141,9 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 {
-	/*	if (NULL == output_struct) {
+		if (NULL == output_struct) 
 		return RETURN_ERR;
-		} else {
+	/*	} else {
 		memset(output_struct, 0, sizeof(wifi_trafficStats_t));
 		return RETURN_OK;
 		}*/
@@ -3306,9 +3387,9 @@ INT wifi_getNeighboringWiFiDiagnosticResult(wifi_neighbor_ap_t **neighbor_ap_arr
 //>> Deprecated: used for old RDKB code.
 INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_device_t **output_struct)
 {
-#if 0//LNT_EMU
-	if (NULL == output_ulong || NULL == output_struct) {
+	if (NULL == output_ulong || NULL == output_struct) 
 		return RETURN_ERR;
+#if 0//LNT_EMU
 	} else {
 		*output_ulong = 0;
 		*output_struct = NULL;
@@ -4586,9 +4667,9 @@ INT wifi_getApStatus(INT apIndex, CHAR *output_string)
 INT wifi_getApSsidAdvertisementEnable(INT apIndex, BOOL *output_bool) 
 {
 	//get the running status
-	#if 0//LNT_EMU
 	if(!output_bool)
 		return RETURN_ERR;
+	#if 0//LNT_EMU
 	*output_bool=TRUE;	
 	return RETURN_OK;	
 	#endif
@@ -4853,12 +4934,12 @@ INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
 INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 {	
 #if 0//LNT_EMU
-	if(!output_string)
-		return RETURN_ERR;
 	snprintf(output_string, 64, "E4A7A43C99DFFA57");
 	return RETURN_OK;
 #endif
 #if 1//LNT_EMU
+	if(!output_string)
+		return RETURN_ERR;
 	char path[FILE_SIZE] = {0},output_pwd[FILE_SIZE] = {0};
         FILE *fp = NULL;
         char *password;
