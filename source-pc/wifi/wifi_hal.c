@@ -1357,7 +1357,7 @@ INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 	if(radioIndex == 0)
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
 	}
 	else if(radioIndex == 1)
 	{
@@ -1367,7 +1367,7 @@ INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 	else if(radioIndex == 4)
         {
                 GetInterfaceName_virtualInterfaceName_2G(interface_name);
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
 	}
 	else if(radioIndex == 5)
         {
@@ -1405,7 +1405,7 @@ INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
         if(radioIndex == 0)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
         }
         else if(radioIndex == 1)
         {
@@ -1415,7 +1415,7 @@ INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
         else if(radioIndex == 4)
         {
                 GetInterfaceName_virtualInterfaceName_2G(interface_name);
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
         }
         else if(radioIndex == 5)
         {
