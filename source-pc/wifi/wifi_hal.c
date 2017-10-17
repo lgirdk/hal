@@ -208,7 +208,7 @@ void GetInterfaceName(char interface_name[50],char conf_file[100])
 	for(count = 0;output_string[count]!='\n';count++)
 		interface_name[count] = output_string[count];
 	interface_name[count]='\0';
-	fclose(fp);
+	pclose(fp);
 }
 
 void GetInterfaceName_virtualInterfaceName_2G(char interface_name[50])
@@ -232,7 +232,7 @@ void GetInterfaceName_virtualInterfaceName_2G(char interface_name[50])
                 interface_name[count] = output_string[count];
         interface_name[count]='\0';
 
-        fclose(fp);
+        pclose(fp);
 }
 
 void RestartHostapd()
@@ -1587,7 +1587,10 @@ void wifi_storeprevchanval(INT radioIndex) //for AutoChannelEnable
 	for(count=0;channel_value[count]!='\n';count++)
 		current_channel_value[count]=channel_value[count];
 	current_channel_value[count]='\0';
-	sprintf(str,"%s%s%s","echo ",current_channel_value," > /var/prevchanval_AutoChannelEnable");
+	if((radioIndex == 0 ) || (radioIndex == 4))
+		sprintf(str,"%s%s%s","echo ",current_channel_value," > /var/prevchanval2G_AutoChannelEnable");
+	else if(radioIndex == 1)
+		sprintf(str,"%s%s%s","echo ",current_channel_value," > /var/prevchanval5G_AutoChannelEnable");
 	system(str);
 }
 //Set the running channel number 
