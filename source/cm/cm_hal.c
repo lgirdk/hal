@@ -308,6 +308,11 @@ INT cm_hal_HTTP_Download_Reboot_Now()
     return RETURN_OK;
 }
 
+INT cm_hal_FWupdateAndFactoryReset()
+{
+    return RETURN_OK;
+}
+
 INT cm_hal_ReinitMac()
 {
     return RETURN_OK;
