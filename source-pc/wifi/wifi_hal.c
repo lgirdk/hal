@@ -3923,7 +3923,7 @@ INT wifi_setApWpaEncryptionMode(INT apIndex, CHAR *encMode)
 {
 	//Save the encMode to wifi config and hostpad config. wait for wifi restart or hotapd restart to apply
 	//return RETURN_ERR;//LNT_EMU
-#if 1//LNT_EMU
+#if 0//LNT_EMU
 	char buf[WORD_SIZE];
 	char path[1024],security_mode[150],WEP_mode[512],wep_mode[512],security_mode_5g[512];
 	int count = 0;
@@ -4920,14 +4920,365 @@ INT wifi_getApSecurityModeEnabled(INT apIndex, CHAR *output)
 {
 	if(!output)
 		return RETURN_ERR;
-	snprintf(output, 128, "WPA-WPA2-Personal");
+	//snprintf(output, 128, "WPA-WPA2-Personal");
+	FILE *fp = NULL;
+	char path[256] = {0},securitymode[256] = {0},output_string[50] = {0};
+	int count = 0;
+	char *SecurityMode;
+	if(apIndex == 1)
+		fp = popen("cat /etc/hostapd_2.4G.conf | grep wpa=","r");
+	else if(apIndex == 2)
+		fp = popen("cat /etc/hostapd_5G.conf | grep wpa=","r");
+	if(fp == NULL)
+	{
+		printf("Command not Found ,%s\n",__FUNCTION__);
+		return RETURN_ERR;
+	}
+	fgets(path, sizeof(path)-1, fp);
+	if (path[0] == '#')
+		strcpy(output,"None");
+	else
+	{
+	SecurityMode = strchr(path,'=');
+	strcpy(securitymode,SecurityMode+1);
+	for(count=0;securitymode[count]!='\n';count++)
+		output_string[count] = securitymode[count];
+	output_string[count]='\0';
+	pclose(fp);
+	if(strcmp(output_string,"1") == 0)
+		strcpy(output,"WPA-Personal");
+	else if(strcmp(output_string,"2") == 0)
+		strcpy(output,"WPA2-Personal");
+	else if(strcmp(output_string,"3") == 0)
+		strcpy(output,"WPA-WPA2-Personal");
+	}
+	
 	return RETURN_OK;
 }
   
 INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
 {
 	//store settings and wait for wifi up to apply
-	return RETURN_ERR;
+	//return RETURN_ERR;
+	#if 1//LNT_EMU
+        char buf[WORD_SIZE];
+        char path[1024],security_mode[150],WEP_mode[512],wep_mode[512],security_mode_5g[512];
+        int count = 0;
+        FILE *fp = NULL;
+
+        //For WPA-PSK  - 2.4Ghz
+        if((strcmp(encMode,"WPA-Personal")==0) || (strcmp(encMode,"WPA2-Personal")==0) || (strcmp(encMode,"WPA-WPA2-Personal")==0) || (strcmp(encMode,"None")==0))
+        {
+        fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wpa | tail -1", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                security_mode[count] = path[count];
+        security_mode[count]='\0';
+        pclose(fp);
+        }
+
+        //For WPA-PSK  - 5Ghz
+        if((strcmp(encMode,"WPA-Personal")==0) || (strcmp(encMode,"WPA2-Personal")==0) || (strcmp(encMode,"WPA-WPA2-Personal")==0) ||(strcmp(encMode,"None")==0))
+        {
+        fp = popen("cat /etc/hostapd_5G.conf | grep -w wpa | tail -1", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                security_mode_5g[count] = path[count];
+        security_mode_5g[count]='\0';
+        pclose(fp);
+        }
+
+
+        if((strcmp(encMode,"WEP-64")==0) || (strcmp(encMode,"WEP-128")==0))
+        {
+        //For WEP Mode - 2.4Ghz
+        fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wep_key_len_broadcast", "r");
+        if (fp == NULL) {
+			printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                WEP_mode[count] = path[count];
+        WEP_mode[count]='\0';
+        pclose(fp);
+        }
+
+        if((strcmp(encMode,"WEP-64")==0) || (strcmp(encMode,"WEP-128")==0))
+        {
+        //For WEP Mode - 2.4Ghz
+        fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wep_key_len_unicast", "r");
+        if (fp == NULL) {
+                printf("Failed to run command in function %s\n",__FUNCTION__);
+                return;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        for(count = 0;path[count]!='\n';count++)
+                wep_mode[count] = path[count];
+        wep_mode[count]='\0';
+        pclose(fp);
+        }
+
+
+        if(apIndex == 1)//private_wifi with 2.4G
+        {
+        if(strcmp(encMode,"None")==0)
+        {
+                sprintf(buf,"%s%c%c%s%s%s%c %s","sed -i ",'"','/',security_mode,"/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+       /*       sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+        }
+        else if(strcmp(encMode,"WPA-Personal")==0)
+	{
+
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=1/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+        /*      sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+        }
+        else if(strcmp(encMode,"WPA2-Personal")==0)
+        {
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=2/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+        /*      sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+        }
+        else if(strcmp(encMode,"WPA-WPA2-Personal")==0)
+        {
+		sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode,"/wpa=3/g",'"',"/etc/hostapd_2.4G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+        /*      sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key0=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_broadcast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_key_len_unicast=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);*/
+
+        }
+        else if(strcmp(encMode,"WEP-64")==0)
+        {
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_key0=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",WEP_mode,"/wep_key_len_broadcast=\"5\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",wep_mode,"/wep_key_len_unicast=\"5\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+                printf(" Buffer %s \n",buf);
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WEP-128")==0)
+	{
+
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_default_key=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_key0=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",WEP_mode,"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+                system(buf);
+                sprintf(buf,"%s%s%s","sed -i -e 's/",wep_mode,"/wep_key_len_unicast=\"10\"/g' /etc/hostapd_2.4G.conf");//sed -i -e 's/wep_key_len_broadcast=\"5\"/wep_key_len_broadcast=\"10\"/g' /etc/hostapd_2.4G.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wep_rekey_period=/ s/^#*//",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_2.4G.conf");
+                system(buf);
+        }
+        //KillHostapd();
+        }
+        else if(apIndex == 2) //private_wifi with 5G
+        {
+#if 0
+        if(strcmp(encMode,"None")==0)
+        {
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/ignore_broadcast_ssid=0/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wmm_enabled=1/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa=2/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WPA-Personal")==0)
+        {
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/auth_algs=3/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/ignore_broadcast_ssid=0/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wmm_enabled=1/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa=2/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+#endif
+        if(strcmp(encMode,"None")==0)
+        {
+                sprintf(buf,"%s%c%c%s%s%s%c %s","sed -i ",'"','/',security_mode_5g,"/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^/","#/",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WPA-Personal")==0)
+        {
+
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=1/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+         else if(strcmp(encMode,"WPA2-Personal")==0)
+        {
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=2/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+        else if(strcmp(encMode,"WPA-WPA2-Personal")==0)
+        {
+                sprintf(buf,"%s%c%s%s%s%c %s","sed -i -e ",'"',"s/",security_mode_5g,"/wpa=3/g",'"',"/etc/hostapd_5G.conf");//sed -i -e "s/wpa=2/wpa=1/g" /etc/hostapd.conf
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_passphrase=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_key_mgmt=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wpa_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+                sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/rsn_pairwise=/ s/^#*//",'"',"/etc/hostapd_5G.conf");
+                system(buf);
+        }
+
+
+        //KillHostapd();
+        }
+
+        return RETURN_OK;
+#endif
+
 }   
 
 
