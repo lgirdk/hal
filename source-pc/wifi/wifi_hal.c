@@ -526,9 +526,12 @@ void EnableWifi(int InstanceNumber,int line_no)
 
                 sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
         	system(str);
-
-		wifi_stopHostApd();
-                wifi_startHostApd();
+		
+		if(InstanceNumber == 5)
+		{
+		 	wifi_stopHostApd();
+	                wifi_startHostApd();
+		}
 	}
 	else if((InstanceNumber == 2) || (InstanceNumber == 6))
 	{
@@ -575,10 +578,10 @@ void EnableWifi(int InstanceNumber,int line_no)
 		}
                 pclose(fp);
 		system(str);
-		if(InstanceNumber == 2)
-		KillHostapd_5g();
-		else if(InstanceNumber == 6)
-		KillHostapd_xfinity_5g();
+		/*if(InstanceNumber == 2)
+		KillHostapd_5g();*/
+		if(InstanceNumber == 6)
+			KillHostapd_xfinity_5g();
 	}
 }
 #endif
@@ -1074,7 +1077,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
 		return RETURN_OK;
 	}*/ //RDKB-EMU
 	FILE *fp=NULL;
-        char path[256] = {0},status[256] = {0},interface_name[100] = {0};
+        char path[256] = {0},status[256] = {0},tmp_status[256] = {0},interface_name[100] = {0};
         int count;
         if(radioIndex == 0)
         {
@@ -1096,7 +1099,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 	else if(radioIndex == 1)
         {
@@ -1118,7 +1121,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 
         else if(radioIndex == 4)
@@ -1141,7 +1144,7 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 	else if(radioIndex == 5)
         {
@@ -1163,14 +1166,39 @@ INT wifi_getRadioEnable(INT radioIndex, BOOL *output_bool)	//RDKB
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 
         if(strcmp(status,"RUNNING") == 0)
                 *output_bool = TRUE;
         else
-                *output_bool = FALSE;
-
+	{
+		if((radioIndex == 4) || (radioIndex == 5))
+		{
+                        *output_bool = FALSE;
+			return 0;
+		}
+                else if(radioIndex == 0)
+                        fp = fopen("/tmp/Get2gRadioEnable.txt","r");
+                else if(radioIndex == 1)
+                        fp = fopen("/tmp/Get5gRadioEnable.txt","r");
+                if(fp == NULL)
+		{
+                        *output_bool = FALSE;
+			return 0;
+		}
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                tmp_status[count]=path[count];
+                        tmp_status[count]='\0';
+                }
+                fclose(fp);
+                if(strcmp(tmp_status,"0") == 0)
+                        *output_bool = FALSE;
+                else
+                        *output_bool = TRUE;
+	}
 	return RETURN_OK;
 }
 
@@ -1189,11 +1217,11 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 		system(buf);
 		//system("ifconfig wlan0 down");
 	}
-	else if((radioIndex == 0) && (enable == true))
+/*	else if((radioIndex == 0) && (enable == true))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
-	}
+	}*/
 	//KillHostapd();
 	else if((radioIndex == 1) && (enable == false))
 	{
@@ -1202,8 +1230,8 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
                 system(buf);
 		//system("ifconfig wlan1 down");
 	}
-	else if((radioIndex == 1) && (enable == true))
-		KillHostapd_5g();
+/*	else if((radioIndex == 1) && (enable == true))
+		KillHostapd_5g();*/
 	else if((radioIndex == 4) && (enable == false))
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
@@ -4549,7 +4577,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
 #endif
 //RDKB-EMU
 	FILE *fp=NULL;
-        char path[256] = {0},status[256] = {0},interface_name[100] = {0};
+        char path[256] = {0},status[256] = {0},interface_name[100] = {0},tmp_status[256] = {0};
         int count;
         if(apIndex == 1)
         {
@@ -4571,7 +4599,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
         else if(apIndex == 2)
         {
@@ -4593,7 +4621,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 
         else if(apIndex == 5)
@@ -4616,7 +4644,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
         else if(apIndex == 6)
         {
@@ -4638,14 +4666,39 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                fclose(fp);
+                pclose(fp);
         }
 
         if(strcmp(status,"RUNNING") == 0)
                 *output_bool = TRUE;
         else
-                *output_bool = FALSE;
-	
+	{
+		if((apIndex == 5) || (apIndex == 6))
+		{
+	                *output_bool = FALSE;
+			return 0;
+		}
+		else if(apIndex == 1)
+                	fp = fopen("/tmp/Get2gssidEnable.txt","r");
+		else if(apIndex == 2)
+                	fp = fopen("/tmp/Get5gssidEnable.txt","r");
+                if(fp == NULL)
+		{
+                        *output_bool = FALSE;
+			return 0;
+		}
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                tmp_status[count]=path[count];
+                        tmp_status[count]='\0';
+                }
+                fclose(fp);
+       		if(strcmp(tmp_status,"0") == 0)
+			*output_bool = FALSE;	 
+		else
+			*output_bool = TRUE;
+	}
 	return RETURN_OK;	
 }
 
