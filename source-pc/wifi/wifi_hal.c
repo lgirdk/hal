@@ -2071,7 +2071,7 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 		if (NULL == output_string) 
 		return RETURN_ERR;
 	FILE *fp;
-	char path[256] = {0},status[100] = {0};
+	char path[256] = {0},status[100] = {0},tmp_status[256] = {0};
 	int count = 0;
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
@@ -2095,10 +2095,6 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 				status[count]=path[count];
 			status[count]='\0';
 		}
-		if(strcmp(status,"RUNNING") == 0)
-			strcpy(output_string,"Enabled");
-		else
-			strcpy(output_string,"Disabled");
 		pclose(fp);
 	}
 	else if(ssidIndex == 5)
@@ -2121,10 +2117,6 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 				status[count]=path[count];
 			status[count]='\0';
 		}
-		if(strcmp(status,"RUNNING") == 0)
-			strcpy(output_string,"Enabled");
-		else
-			strcpy(output_string,"Disabled");
 		pclose(fp);
 	}
 	else if(ssidIndex == 2)
@@ -2147,10 +2139,6 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                if(strcmp(status,"RUNNING") == 0)
-                        strcpy(output_string,"Enabled");
-                else
-                        strcpy(output_string,"Disabled");
                 pclose(fp);
         }
         else if(ssidIndex == 6)
@@ -2173,12 +2161,40 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
                                 status[count]=path[count];
                         status[count]='\0';
                 }
-                if(strcmp(status,"RUNNING") == 0)
-                        strcpy(output_string,"Enabled");
-                else
-                        strcpy(output_string,"Disabled");
                 pclose(fp);
+        }	
+	if(strcmp(status,"RUNNING") == 0)
+                strcpy(output_string,"Enabled");
+        else
+        {
+                if((ssidIndex == 5) || (ssidIndex == 6) ||(ssidIndex == 3) || (ssidIndex == 4))
+                {
+                        strcpy(output_string,"Disabled");
+                        return RETURN_OK;
+                }
+                else if(ssidIndex == 1)
+                        fp = fopen("/tmp/Get2gssidEnable.txt","r");
+                else if(ssidIndex == 2)
+                        fp = fopen("/tmp/Get5gssidEnable.txt","r");
+                if(fp == NULL)
+                {
+                        strcpy(output_string,"Disabled");
+                        printf("FP %s \n",output_string);
+                        return RETURN_OK;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                tmp_status[count]=path[count];
+                        tmp_status[count]='\0';
+                }
+                fclose(fp);
+                if(strcmp(tmp_status,"0") == 0)
+                        strcpy(output_string,"Disabled");
+                else
+                        strcpy(output_string,"Enabled");
         }
+
 
 	return RETURN_OK;
 }
