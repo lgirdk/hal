@@ -540,7 +540,7 @@ int do_nonat(FILE *filter_fp,struct NetworkDetails *netDetails)
 		-j firewall_lan2lan_accept_log\n",lan_ipaddr,lan_netmask,lan_ipaddr,lan_netmask);
 		fprintf(filter_fp, "-A firewall_lan2wan -p gre -j firewall_lan2wan_accept_log\n");
 		fprintf(filter_fp, "-A firewall_lan2wan -p udp  -m udp  -m multiport  \
-		--dports 53,500,1194,1196  -j firewall_lan2wan_accept_log\n");
+		--dports 53,67,68,500,1194,1196  -j firewall_lan2wan_accept_log\n");
 		fprintf(filter_fp, "-A firewall_lan2wan -p tcp -m tcp  -m multiport \
 		--dports 80,443,53,119,123,25,110,143,465,587,993,995,3689,1723 \
 		-j firewall_lan2wan_accept_log\n");
@@ -554,7 +554,7 @@ int do_nonat(FILE *filter_fp,struct NetworkDetails *netDetails)
 		 ! --dports 80,443,53,119,123,25,110,143,465,587,993,995,3689,1723 \
 						  -j firewall_lan2wan_drop_log\n");
 		fprintf(filter_fp, "-A firewall_lan2wan -p udp  -m udp  -m multiport \
-		! --dports 53,500,1194,1196  -j firewall_lan2wan_drop_log\n");
+		! --dports 53,67,68,500,1194,1196  -j firewall_lan2wan_drop_log\n");
 		fprintf(filter_fp, "-A firewall_lan2wan -j firewall_lan2wan_drop_log\n");
 
 		fprintf(filter_fp, "-A firewall_wan2lan -p gre -j firewall_wan2lan_accept_log\n");
