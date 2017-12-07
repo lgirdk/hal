@@ -79,8 +79,14 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <net/if.h>   //ifreq
+#include <signal.h>
+//#include <net/if.h>   //ifreq
 #include <unistd.h>   //close
+#include <linux/wireless.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "ccsp/ansc_platform.h"//LNT_EMU
 #include "wifi_hal_emu.h"
 
@@ -89,8 +95,13 @@
 #endif
 
 #ifndef RADIO_PREFIX
-#define RADIO_PREFIX	"wifi"
+//#define RADIO_PREFIX	"wifi"
+#define RADIO_PREFIX	"wlan"
 #endif
+
+#define RADIO_24GHZ 0
+#define RADIO_5GHZ  1
+
 
 //PSM Access-LNT_EMU
 extern ANSC_HANDLE bus_handle;
@@ -98,6 +109,120 @@ extern char g_Subsystem[32];
 static char *BssSsid ="eRT.com.cisco.spvtg.ccsp.Device.WiFi.Radio.SSID.%d.SSID";
 
 static int MacFilter = 0 ;
+typedef unsigned char mac_address_t[6];
+
+/* The type of encryption the neighboring WiFi SSID advertises.          */
+/* Each list item is an enumeration of: TKIP, AES                        */
+void wlan_encryption_mode_to_string(char* encryption_mode, char* string)
+{
+   /* Ensure string starts with null */
+   string[0] = '\0';
+
+   if (strstr(encryption_mode, "(none)") != NULL)
+   {
+      strcpy(string, "None");
+   }
+   else if (strstr(encryption_mode, "group_tkip") != NULL)
+   {
+      strcpy(string, "TKIP");
+   }
+   else if (strstr(encryption_mode, "group_ccmp") != NULL)
+   {
+      strcpy(string, "CCMP");
+   }
+
+}
+
+
+void wlan_wireless_mode_to_supported_standards_string(char* wireless_mode,char* string,char* freq)
+{
+    /* Ensure string starts with null */
+   string[0] = '\0';
+
+   if (strcmp(wireless_mode, "ac") == 0)
+   {
+      strcpy(string, "a,n,ac");
+   }
+   else if ((strcmp(wireless_mode, "n") == 0) && (strcmp(freq,"2.4GHz") == 0))
+   {
+      strcpy(string, "b,g,n");
+   }
+   else if (strcmp(wireless_mode, "bgn") == 0)
+   {
+      strcpy(string, "b,g,n");
+   }
+   else if ((strcmp(wireless_mode, "n") == 0) && (strcmp(freq,"5GHz") == 0))
+   {
+      strcpy(string, "a,n");
+   }
+   else if (strcmp(wireless_mode, "a") == 0)
+   {
+      strcpy(string, "a");
+   }
+   else if (strcmp(wireless_mode, "g") == 0)
+   {
+      strcpy(string, "b,g");
+   }
+   else if (strcmp(wireless_mode, "b") == 0)
+   {
+      strcpy(string, "b");
+   }
+   else if (strcmp(wireless_mode, "an") == 0)
+   {
+      strcpy(string, "a,n");
+   }
+
+}
+
+void wlan_bitrate_to_operated_standards_string(char* bitrate,char* string,char* freq)
+{
+	/* Ensure string starts with null */
+   string[0] = '\0';
+	
+	ULONG rate = 0;
+	rate = atol(bitrate);
+	if(( rate == 54 ) && strcmp(freq,"2.4GHz") == 0)
+	{
+		strcpy(string,"g");
+	}
+	else if( rate == 11 )
+	{
+		strcpy(string,"b");
+	}
+	else if(( rate == 54 ) && strcmp(freq,"5GHz") == 0)
+	{
+		strcpy(string,"a");
+	}
+	else if(( rate >= 600 ) && (rate <= 900))
+	{
+		strcpy(string,"n");
+	}
+	else if(( rate >= 1200 ) && (rate <= 5300))
+	{
+		strcpy(string,"ac");
+	}
+	
+}
+
+void wlan_operated_standards_to_channel_bandwidth_string(char* wireless_mode,char* string)
+{
+        /* Ensure string starts with null */
+   string[0] = '\0';
+
+        if((strcmp(wireless_mode,"a") == 0) || strcmp(wireless_mode,"g") == 0)
+        {
+                strcpy(string,"20MHz");
+        }
+        else if(strcmp(wireless_mode,"n") == 0)
+        {
+                strcpy(string,"40MHz");
+        }
+        else if(strcmp(wireless_mode,"ac") == 0)
+        {
+                strcpy(string,"20/40/80MHz");
+        }
+}
+
 
 /****************************************************************************
 		Xfinity-wifi and Private-wifi (2.4Ghz) Function Definitions
@@ -437,30 +562,29 @@ void DisableWifi(int InstanceNumber)
 {
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
-        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 
-        if(InstanceNumber == 1)
+        if(InstanceNumber == 0)
         {
         	GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
 		system(buf);
 		//system("ifconfig wlan0 down");
         }
-        else if(InstanceNumber == 2)
+        else if(InstanceNumber == 1)
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
                 sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
                 system(buf);
 		//system("ifconfig wlan1 down");
         }
-        else if(InstanceNumber == 5)
+        else if(InstanceNumber == 4)
         {
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 		sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
                 system(buf);
 		//system("ifconfig wlan0_0 down");
         }
-        else if(InstanceNumber == 6)
+        else if(InstanceNumber == 5)
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
                 sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
@@ -482,10 +606,10 @@ void EnableWifi(int InstanceNumber,int line_no)
         	sprintf(param_name, BssSsid, InstanceNumber);
 	        PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
 
-	if((InstanceNumber == 1) || (InstanceNumber == 5))
+	if((InstanceNumber == 0) || (InstanceNumber == 4))
 	{
 		//PSM Access
-        	if(InstanceNumber == 1)//Getting Private_ssid value in /etc/hostapd.conf
+        	if(InstanceNumber == 0)//Getting Private_ssid value in /etc/hostapd.conf
         	{	
                 fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
                 if (fp == NULL) {
@@ -501,7 +625,7 @@ void EnableWifi(int InstanceNumber,int line_no)
                 val[count]='\0';
         	}
 
-		else if(InstanceNumber == 5)//Getting public_ssid value in /etc/hostapd.conf
+		else if(InstanceNumber == 4)//Getting public_ssid value in /etc/hostapd.conf
 	        {
                 fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
                 if (fp == NULL) {
@@ -527,15 +651,15 @@ void EnableWifi(int InstanceNumber,int line_no)
                 sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
         	system(str);
 		
-		if(InstanceNumber == 5)
+		if(InstanceNumber == 4)
 		{
 		 	wifi_stopHostApd();
 	                wifi_startHostApd();
 		}
 	}
-	else if((InstanceNumber == 2) || (InstanceNumber == 6))
+	else if((InstanceNumber == 1) || (InstanceNumber == 5))
 	{
-		if(InstanceNumber == 2)//Getting Private_ssid value in /etc/hostapd.conf
+		if(InstanceNumber == 1)//Getting Private_ssid value in /etc/hostapd.conf
                 {
                 fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
                 if (fp == NULL) {
@@ -555,7 +679,7 @@ void EnableWifi(int InstanceNumber,int line_no)
                 sprintf(str,"%s%s%s/%s%s","sed -i '","28s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
                 }
 
-		else if(InstanceNumber == 6)//Getting public_ssid value in /etc/hostapd.conf
+		else if(InstanceNumber == 5)//Getting public_ssid value in /etc/hostapd.conf
                 {
                 fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
                 if (fp == NULL) {
@@ -580,7 +704,7 @@ void EnableWifi(int InstanceNumber,int line_no)
 		system(str);
 		/*if(InstanceNumber == 2)
 		KillHostapd_5g();*/
-		if(InstanceNumber == 6)
+		if(InstanceNumber == 5)
 			KillHostapd_xfinity_5g();
 	}
 }
@@ -1063,7 +1187,8 @@ INT wifi_getSSIDNumberOfEntries(ULONG *output) //Tr181
 	if (NULL == output)
 		return RETURN_ERR;
 	else
-		*output=16;
+	//	*output=16; //RDKB-EMU
+		*output=6;
 	return RETURN_OK;
 }
 
@@ -2023,12 +2148,12 @@ INT wifi_getRadioStatsReceivedSignalLevel(INT radioIndex, INT signalIndex, INT *
 //Not all implementations may need this function.  If not needed for a particular implementation simply return no-error (0)
 INT wifi_applyRadioSettings(INT radioIndex) 
 {
-	if(radioIndex == 1)
+	if(radioIndex == 0)
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
 	}
-	else if(radioIndex == 2)
+	else if(radioIndex == 1)
 		KillHostapd_5g();	
 
 	return RETURN_OK;
@@ -2068,22 +2193,66 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 		snprintf(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");*/
 
 	//RDKB-EMULATOR
-		if (NULL == output_string) 
+	if (NULL == output_string) 
 		return RETURN_ERR;
 	FILE *fp;
-	char path[256] = {0},status[100] = {0},tmp_status[256] = {0};
+	char path[256] = {0},status[100] = {0},tmp_status[50] = {0};
 	int count = 0;
 	char interface_name[512];
-        char virtual_interface_name[512],buf[512];
-	if(ssidIndex == 1)
+	char virtual_interface_name[512],buf[512];
+	if(ssidIndex == 0)
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-                if(strcmp(interface_name,"wlan0") == 0)
-                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan1") == 0)
-                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan2") == 0)
-                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+	}
+	else if(ssidIndex == 4)
+	{
+		GetInterfaceName_virtualInterfaceName_2G(interface_name);
+		if(strcmp(interface_name,"wlan0_0") == 0)
+			fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(strcmp(interface_name,"wlan1_0") == 0)
+			fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(strcmp(interface_name,"wlan2_0") == 0)
+			fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		if(fp == NULL)
+		{
+			printf("Failed to run command in Function %s\n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{
+			for(count=0;path[count]!='\n';count++)
+				status[count]=path[count];
+			status[count]='\0';
+		}
+		pclose(fp);
+	}
+	else if(ssidIndex == 1)
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2099,13 +2268,13 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 	}
 	else if(ssidIndex == 5)
 	{
-		GetInterfaceName_virtualInterfaceName_2G(interface_name);
-		if(strcmp(interface_name,"wlan0_0") == 0)
-		fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-		if(strcmp(interface_name,"wlan1_0") == 0)
-		fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-		if(strcmp(interface_name,"wlan2_0") == 0)
-		fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+		if(strcmp(interface_name,"wlan0") == 0)
+			fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan1") == 0)
+			fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+		else if(strcmp(interface_name,"wlan2") == 0)
+			fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
@@ -2119,82 +2288,41 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 		}
 		pclose(fp);
 	}
-	else if(ssidIndex == 2)
-        {
-		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
-                if(strcmp(interface_name,"wlan0") == 0)
-                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan1") == 0)
-                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan2") == 0)
-                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                if(fp == NULL)
-                {
-                        printf("Failed to run command in Function %s\n",__FUNCTION__);
-                        return 0;
-                }
-                while(fgets(path, sizeof(path)-1, fp) != NULL)
-                {
-                        for(count=0;path[count]!='\n';count++)
-                                status[count]=path[count];
-                        status[count]='\0';
-                }
-                pclose(fp);
-        }
-        else if(ssidIndex == 6)
-        {
-		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-                if(strcmp(interface_name,"wlan0") == 0)
-                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan1") == 0)
-                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                else if(strcmp(interface_name,"wlan2") == 0)
-                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
-                if(fp == NULL)
-                {
-                        printf("Failed to run command in Function %s\n",__FUNCTION__);
-                        return 0;
-                }
-                while(fgets(path, sizeof(path)-1, fp) != NULL)
-                {
-                        for(count=0;path[count]!='\n';count++)
-                                status[count]=path[count];
-                        status[count]='\0';
-                }
-                pclose(fp);
-        }	
 	if(strcmp(status,"RUNNING") == 0)
-                strcpy(output_string,"Enabled");
-        else
-        {
-                if((ssidIndex == 5) || (ssidIndex == 6) ||(ssidIndex == 3) || (ssidIndex == 4))
-                {
-                        strcpy(output_string,"Disabled");
-                        return RETURN_OK;
-                }
-                else if(ssidIndex == 1)
-                        fp = fopen("/tmp/Get2gssidEnable.txt","r");
-                else if(ssidIndex == 2)
-                        fp = fopen("/tmp/Get5gssidEnable.txt","r");
-                if(fp == NULL)
-                {
-                        strcpy(output_string,"Disabled");
-                        printf("FP %s \n",output_string);
-                        return RETURN_OK;
-                }
-                if(fgets(path, sizeof(path)-1, fp) != NULL)
-                {
-                        for(count=0;path[count]!='\n';count++)
-                                tmp_status[count]=path[count];
-                        tmp_status[count]='\0';
-                }
-                fclose(fp);
-                if(strcmp(tmp_status,"0") == 0)
-                        strcpy(output_string,"Disabled");
-                else
-                        strcpy(output_string,"Enabled");
-        }
-
+		strcpy(output_string,"Enabled");
+	else
+	{
+		if((ssidIndex == 4) || (ssidIndex == 5) ||(ssidIndex == 2) || (ssidIndex == 3))
+		{
+			strcpy(output_string,"Disabled");
+			return RETURN_OK;
+		}
+		else if(ssidIndex == 0)
+			fp = fopen("/tmp/Get2gssidEnable.txt","r");
+		else if(ssidIndex == 1)
+			fp = fopen("/tmp/Get5gssidEnable.txt","r");
+		if(fp == NULL)
+		{
+			strcpy(output_string,"Disabled");
+			printf("FP %s \n",output_string);
+			return RETURN_OK;
+		}
+		else
+		{
+			printf("ssidindex value is %d \n",ssidIndex);
+			if(fgets(path, sizeof(path)-1, fp) != NULL)
+			{
+				for(count=0;path[count]!='\n';count++)
+					tmp_status[count]=path[count];
+				tmp_status[count]='\0';
+			}
+			fclose(fp);
+		}
+		if(strcmp(tmp_status,"0") == 0)
+			strcpy(output_string,"Disabled");
+		else
+			strcpy(output_string,"Enabled");
+	}
 
 	return RETURN_OK;
 }
@@ -2217,13 +2345,13 @@ INT wifi_getSSIDName(INT apIndex, CHAR *output)
 		else
 		snprintf(output, 64, "OOS");*/
 	//RDKB_EMULATOR
-	if(apIndex == 1)
+	if(apIndex == 0)
 		strcpy(output,"wlan0");
-	else if(apIndex == 2)  //RDKB-EMU
+	else if(apIndex == 1)  //RDKB-EMU
 		strcpy(output,"wlan1");
-	else if(apIndex == 5)
+	else if(apIndex == 4)
 		strcpy(output,"wlan0_0");
-	else if(apIndex == 6)
+	else if(apIndex == 5)
 		strcpy(output,"wlan2");
 
 	return RETURN_OK;
@@ -2243,7 +2371,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         char *strValue = NULL;
         unsigned char *mac;
         char status[50];
-        if(apIndex == 1)//Private_ssid with 2.4G
+        if(apIndex == 0)//Private_ssid with 2.4G
         {
                 fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
         if (fp == NULL) {
@@ -2272,7 +2400,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         }*/
         }
 
-	else if(apIndex == 2)//Private_ssid with 5G
+	else if(apIndex == 1)//Private_ssid with 5G
         {
                 fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
         if (fp == NULL) {
@@ -2301,7 +2429,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         }*/
         }
 
-	else if(apIndex == 5)//Public_ssid with 2.4G
+	else if(apIndex == 4)//Public_ssid with 2.4G
         {
 
                  fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
@@ -2371,7 +2499,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         system("/lib/rdk/hotspot_restart.sh");
         }
 
-	else if(apIndex == 6)//Public_ssid with 5G
+	else if(apIndex == 5)//Public_ssid with 5G
         {
 
                  fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
@@ -2459,7 +2587,7 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
 
-        if(ssidIndex == 1) //private_wifi for 2.4G
+        if(ssidIndex == 0) //private_wifi for 2.4G
         {
         GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 	if(strcmp(interface_name,"wlan0") == 0)
@@ -2485,7 +2613,7 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         }
         strcpy(output_string,mac);
         }
-	else if(ssidIndex == 2) //private_wifi for 5G
+	else if(ssidIndex == 1) //private_wifi for 5G
         {
 	GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 	if(strcmp(interface_name,"wlan0") == 0)
@@ -2512,7 +2640,7 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         strcpy(output_string,mac);
         }
 
-        else if(ssidIndex == 5) //public_wifi for 2.4G
+        else if(ssidIndex == 4) //public_wifi for 2.4G
         {
         GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 	if(strcmp(virtual_interface_name,"wlan0_0") == 0)
@@ -2539,7 +2667,7 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
         strcpy(output_string,mac);
         }
 
-	else if(ssidIndex == 6) //public_wifi for 5G
+	else if(ssidIndex == 5) //public_wifi for 5G
         {
 	GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
 	if(strcmp(interface_name,"wlan0") == 0)
@@ -2590,7 +2718,7 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 	unsigned char mac[6];
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
-	if(ssidIndex == 1) //private_wifi eith 2.4G
+	if(ssidIndex == 0) //private_wifi eith 2.4G
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
         if(strcmp(interface_name,"wlan0") == 0)
@@ -2617,7 +2745,7 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 		}
 		strcpy(output_string,mac);
 	}
-	else if(ssidIndex == 2) //private_wifi with 5G
+	else if(ssidIndex == 1) //private_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
         if(strcmp(interface_name,"wlan0") == 0)
@@ -2645,7 +2773,7 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
                 strcpy(output_string,mac);
         }
 
-	else if(ssidIndex == 5)//public_wifi with 2.4G
+	else if(ssidIndex == 4)//public_wifi with 2.4G
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
         if(strcmp(virtual_interface_name,"wlan0_0") == 0)
@@ -2672,7 +2800,7 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 		}
 		strcpy(output_string,mac);
 	}
-	else if(ssidIndex == 6)//public_wifi with 5G
+	else if(ssidIndex == 5)//public_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
         if(strcmp(interface_name,"wlan0") == 0)
@@ -2747,26 +2875,251 @@ INT wifi_applySSIDSettings(INT ssidIndex)
 	return RETURN_OK;
 }
 
+//Tr181
+INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size)
+{
+#if 0
+    int rc;
+    char buf[IOCTL_MAX_BUF_SIZE];
+    //char *ifName = _wifi_getApName(apIndex);
+    char ifName[50] = {0};
+    strcpy(ifName,"wlan0");
+    struct iwreq request;
 
+    *neighbor_ap_array = NULL;
+    *output_array_size = 0;
 
+    memset(buf, 0, sizeof(buf));
+    memset(&request, 0, sizeof(request));
+    request.u.data.pointer = buf;
+    request.u.data.length = sizeof(buf);
+    rc = _wifi_ioctl_iwreq_data(ifName, SIOCGIWSCAN, buf, sizeof(buf));
+    if (rc < 0) return RETURN_ERR;
+
+    int size = rc;
+    struct iw_event *iw_event;
+    char *ptr = buf;
+    unsigned len = size;
+    BOOL parse_error = TRUE;
+    int scan_count = 0;
+    int status;
+    wifi_neighbor_ap2_t *scan_array = NULL;
+    wifi_neighbor_ap2_t *scan_record = NULL;
+
+    while (len > IW_EV_LCP_LEN) {
+        // next event
+        iw_event = (struct iw_event *)ptr;
+        // end of buffer
+        if (len < iw_event->len) break;
+        // new record
+        if (SIOCGIWAP == iw_event->cmd)
+        {
+            // append new record to results
+            parse_error = FALSE;
+            scan_record = realloc(scan_array, sizeof(*scan_record) * (scan_count + 1));
+            if (!scan_record) {
+                free(scan_array);
+                return RETURN_ERR;
+            }
+            scan_array = scan_record;
+            scan_record = &scan_array[scan_count];
+            memset(scan_record, 0, sizeof(*scan_record));
+            scan_count++;
+        }
+
+        // Skip entry events in case of parser error
+        if (TRUE == parse_error) continue;
+
+        status = _wifi_scan_results_parse_event(iw_event, scan_record);
+	if (RETURN_OK != status)
+        {
+            // Clear previous data in case of error
+            memset(scan_record, 0, sizeof(*scan_record));
+            // Skip parsing of next events till new record is found
+            parse_error = TRUE;
+            // Reset count
+            scan_count--;
+        }
+
+        ptr += iw_event->len;
+        len -= iw_event->len;
+    }
+    *neighbor_ap_array = scan_array;
+    *output_array_size = scan_count;
+#endif
+    //CHAR  ap_SSID[64];
+    //CHAR  ap_BSSID[64];
+    //CHAR  ap_Mode[64];
+    //UINT  ap_Channel;
+    //INT   ap_SignalStrength;
+    //CHAR  ap_SecurityModeEnabled[64];
+    //CHAR  ap_EncryptionMode[64];
+    //CHAR  ap_OperatingFrequencyBand[16];
+    //CHAR  ap_SupportedStandards[64];
+    //CHAR  ap_OperatingStandards[16];
+    //CHAR  ap_OperatingChannelBandwidth[16];
+    //UINT  ap_BeaconPeriod;
+    //INT   ap_Noise;
+    //CHAR  ap_BasicDataTransferRates[256];
+    //CHAR  ap_SupportedDataTransferRates[256];
+    //UINT  ap_DTIMPeriod;
+    //UINT  ap_ChannelUtilization;
+    return RETURN_OK;
+}
+
+int GetScanningValues(char *file,char *value)
+{
+        FILE *fp = NULL;
+        char path[256] = {0};
+        fp = popen(file,"r");
+        int count = 0;
+        if(fp == NULL)
+        {
+                printf("=== %s == \n",__FUNCTION__);
+                return 0;
+        }
+        while(fgets(path,sizeof(path),fp) != NULL)
+        {
+                for(count = 0;path[count]!='\n';count++)
+                        value[count] = path[count];
+                value[count]='\0';
+        }
+        pclose(fp);
+}
+void converting_lowercase_to_uppercase(char *Value)
+{
+	int i = 0;
+	for(i=0;i<=strlen(Value);i++) //Converting lowercase to uppercase
+	{
+		if(Value[i]>=97 && Value[i]<=122)
+		{
+			Value[i]=Value[i]-32;
+		}
+	}
+}
+
+void wifihal_GettingNeighbouringAPScanningDetails(char *interface_name,wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size)
+{
+	FILE *fp = NULL;
+	wifi_neighbor_ap2_t *pt=NULL;
+	CHAR cmd[128]={0},Value[256] = {0},security_mode[256] = {0};
+	CHAR buf[8192]={0},str[256] = {0};
+	UINT count = 0,i = 0,index = 0;
+	fp = fopen("/tmp/wifiscan.txt","r");
+	if(fp == NULL)
+	{
+		printf("wifiscan.txt is not there,please check the wireless command \n");
+		*output_array_size=0;
+		return 0;
+	}
+
+	//For Total Number of AP's
+	sprintf(buf,"%s%s%s","cat /tmp/wifiscan.txt | grep ",interface_name," | wc -l");
+	GetScanningValues(buf,Value);
+	*output_array_size=atoi(Value);
+
+	//zqiu: HAL alloc the array and return to caller. Caller response to free it.
+	*neighbor_ap_array=(wifi_neighbor_ap2_t *)calloc(sizeof(wifi_neighbor_ap2_t), *output_array_size);
+	for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++) 
+	{
+		sprintf(buf,"%s%s%s%d","cat /tmp/wifiscan.txt | grep ",interface_name," | cut -d ' ' -f2 | cut -d '(' -f1 | head -",index+1);
+		GetScanningValues(buf,pt->ap_BSSID);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep SSID | cut -d ':' -f2 | sed 's/^ //g' | head -",index+1);
+		GetScanningValues(buf,pt->ap_SSID);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep freq | cut -d ':' -f2 | cut -d ' ' -f2 | head -",index+1);
+		GetScanningValues(buf,Value);
+		if(Value[0] == '2')
+			strcpy(pt->ap_OperatingFrequencyBand,"2.4GHz");
+		else
+			strcpy(pt->ap_OperatingFrequencyBand,"5GHz");
+
+		fp = popen("cat /tmp/wifiscanning.txt | sed -n '1!p' | cut -d ' ' -f1 | tr '[:upper:]' '[:lower:]'","r");
+		if(fp == NULL)
+		{
+			printf("Failed Function %s \n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(buf,sizeof(buf)-1,fp) != NULL)
+		{
+			for(count=0;buf[count]!='\n';count++)
+				Value[count] = buf[count];
+			Value[count] = '\0';
+			if(strcmp(pt->ap_BSSID,Value) == 0)
+			{
+				converting_lowercase_to_uppercase(Value);
+				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f4,5");
+				GetScanningValues(buf,pt->ap_SecurityModeEnabled);
+				if(strcmp(pt->ap_SecurityModeEnabled,"WPA WPA2") == 0)
+					strcpy(pt->ap_SecurityModeEnabled,"WPA-WPA2");
+				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f13-16");
+				if(strcmp(pt->ap_SecurityModeEnabled,"WPA ") == 0)
+					sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f17-19");
+				GetScanningValues(buf,str);
+				wlan_encryption_mode_to_string(str,pt->ap_EncryptionMode);
+				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f8");
+				if((strcmp(pt->ap_SecurityModeEnabled,"WPA ") == 0) || (strcmp(pt->ap_SecurityModeEnabled,"WPA2 ") == 0))
+					sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | awk '{print $3}'");
+				GetScanningValues(buf,str);
+				wlan_bitrate_to_operated_standards_string(str,pt->ap_OperatingStandards,pt->ap_OperatingFrequencyBand);
+				wlan_operated_standards_to_channel_bandwidth_string(pt->ap_OperatingStandards,pt->ap_OperatingChannelBandwidth);
+				break;
+			}
+		}
+		pclose(fp);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'primary channel' | cut -d ':' -f2 | cut -d ' ' -f2 | head -",index+1);
+		GetScanningValues(buf,Value);
+		pt->ap_Channel=atoi(Value);
+
+		fp = popen("cat /tmp/wifi-scan.txt | grep Address | cut -d '-' -f2 | cut -d ' ' -f3 | tr '[:upper:]' '[:lower:]'","r");
+		if(fp == NULL)
+		{
+			printf("Failed Function %s \n",__FUNCTION__);
+			return 0;
+		}
+		while(fgets(buf,sizeof(buf)-1,fp) != NULL)
+		{
+			for(count=0;buf[count]!='\n';count++)
+				Value[count] = buf[count];
+			Value[count] = '\0';
+			if(strcmp(pt->ap_BSSID,Value) == 0)
+			{
+				sprintf(buf,"%s%s%s","cat /tmp/iwlist-scan.txt | grep ",Value," | awk '{print $2}'");
+				GetScanningValues(buf,pt->ap_Mode);
+			}
+			if(strcmp(pt->ap_BSSID,Value) == 0)
+			{
+				sprintf(buf,"%s%s%s","cat /tmp/iwlist-scan.txt | grep ",Value," | awk '{print $3}'");
+				GetScanningValues(buf,str);
+				wlan_wireless_mode_to_supported_standards_string(str,pt->ap_SupportedStandards,pt->ap_OperatingFrequencyBand);
+			}
+		}
+
+		pclose(fp);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep signal | cut -d ':' -f2 | sed 's/^ //g' | head -",index+1);
+		GetScanningValues(buf,Value);
+		pt->ap_SignalStrength=atoi(Value);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'Supported rates' | cut -d ':' -f2 | sed 's/^ //g' | sed 's/ /,/g' | sed 's/,$//g' | head -",index+1);
+		GetScanningValues(buf,pt->ap_SupportedDataTransferRates);
+		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'beacon interval' | cut -d ':' -f2 | sed 's/^ //g' | cut -d ' ' -f1 | head -",index+1);
+		GetScanningValues(buf,Value);
+		pt->ap_BeaconPeriod=atoi(Value);
+		strcpy(pt->ap_BasicDataTransferRates,"1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54");
+	}
+}
 //Start the wifi scan and get the result into output buffer for RDKB to parser. The result will be used to manage endpoint list
 //HAL funciton should allocate an data structure array, and return to caller with "neighbor_ap_array"
 INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size) //Tr181	
 {
+#if 1
 	INT status = RETURN_ERR;
 	UINT index;
 	wifi_neighbor_ap2_t *pt=NULL;
-	char cmd[128]={0};
-	char buf[8192]={0};
-	
-	sprintf(cmd, "iwlist %s%d scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
-    _syscmd(cmd, buf, sizeof(buf));
-	
-	
-	*output_array_size=2;
-	//zqiu: HAL alloc the array and return to caller. Caller response to free it.
-	*neighbor_ap_array=(wifi_neighbor_ap2_t *)calloc(sizeof(wifi_neighbor_ap2_t), *output_array_size);
-	for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++) {
+	char cmd[512]={0},Value[256] = {0},security_mode[256] = {0};
+	char buf[8192]={0},str[256] = {0},interface_name[50] = {0},wifi_status[50] = {0};
+	int count = 0,i=0;
+	//sprintf(cmd, "iwlist %s%d scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
+	/*	sprintf(cmd, "iwlist wlan0 scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
+		_syscmd(cmd, buf, sizeof(buf));
 		strcpy(pt->ap_SSID,"");
 		strcpy(pt->ap_BSSID,"");
 		strcpy(pt->ap_Mode,"");
@@ -2783,11 +3136,98 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
 		strcpy(pt->ap_BasicDataTransferRates,"");
 		strcpy(pt->ap_SupportedDataTransferRates,"");
 		pt->ap_DTIMPeriod=1;
-		pt->ap_ChannelUtilization=0;
-	}
+		pt->ap_ChannelUtilization=0;*/
+	system("nmcli -f BSSID,SECURITY,RATE,WPA-FLAGS dev wifi > /tmp/wifiscanning.txt");
 
-	status = RETURN_OK;
-	return status;
+        if(radioIndex == 0)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+		printf("NeighbouringAp Index is %d \n",radioIndex);
+		wifihal_interfacestatus(wifi_status,interface_name);
+	        if(strcmp(wifi_status,"RUNNING") == 0)
+		{
+                	sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
+                	sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+		}
+		else
+		{
+			printf("2.4G Private Wifi Driver status is down \n");
+			*output_array_size = 0;
+			*neighbor_ap_array = NULL;
+			return RETURN_OK;
+		}
+			
+        }
+        else if(radioIndex == 1)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+		wifihal_interfacestatus(wifi_status,interface_name);
+		printf("NeighbouringAp Index is %d \n",radioIndex);
+                if(strcmp(wifi_status,"RUNNING") == 0)
+                {
+                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
+                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+                }
+                else
+                {
+                        printf("5G Private Wifi Driver status is down \n");
+                        *output_array_size = 0;
+                        *neighbor_ap_array = NULL;
+                        return RETURN_OK;
+                }
+
+        }
+#if 0
+        else if(radioIndex == 4)
+        {
+                GetInterfaceName_virtualInterfaceName_2G(interface_name);
+		wifihal_interfacestatus(wifi_status,interface_name);
+		printf("NeighbouringAp Index is %d \n",radioIndex);
+                if(strcmp(wifi_status,"RUNNING") == 0)
+                {
+                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
+                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+                }
+                else
+                {
+                        printf("2.4G Public Wifi Driver status is down \n");
+                        *output_array_size = 0;
+                        *neighbor_ap_array = NULL;
+                        return RETURN_OK;
+                }
+
+        }
+        else if(radioIndex == 5)
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+		wifihal_interfacestatus(wifi_status,interface_name);
+		printf("NeighbouringAp Index is %d \n",radioIndex);
+                if(strcmp(wifi_status,"RUNNING") == 0)
+                {
+                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
+                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+                }
+                else
+                {
+                        printf("5G Public Wifi Driver status is down \n");
+                        *output_array_size = 0;
+                        *neighbor_ap_array = NULL;
+                        return RETURN_OK;
+                }
+
+        }
+#endif
+        system(buf);
+        system(cmd);
+        sleep(2);
+        system("cat /tmp/wifi-scan.txt | grep Address | cut -d '-' -f2 | cut -d ' ' -f3 | tr '[:upper:]' '[:lower:]' > /tmp/f.t");
+        system("cat /tmp/wifi-scan.txt | grep Mode | tr -s ' ' | sed 's/ //g' | cut -d ':' -f2 > /tmp/s.t");
+        system("cat /tmp/wifi-scan.txt | grep Protocol | cut -d ':' -f2 | cut -d '.' -f2 | sed 's/11//g' > /tmp/t.t");
+        system("paste /tmp/f.t /tmp/s.t /tmp/t.t  > /tmp/iwlist-scan.txt");
+        sleep(2);
+	wifihal_GettingNeighbouringAPScanningDetails(interface_name,neighbor_ap_array,output_array_size);
+	return RETURN_OK;
+#endif
 }
 
 //>> Deprecated: used for old RDKB code. 
@@ -2845,7 +3285,7 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 	//RDKB-EMULATOR
 
-	if(apIndex == 1) //private_wifi with 2.4G
+	if(apIndex == 0) //private_wifi with 2.4G
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
@@ -2930,7 +3370,7 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		output_struct->wifi_PacketsReceived = atol(status);
 	}
 
-	else if(apIndex == 2)//private_wifi with 5G
+	else if(apIndex == 1)//private_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0)
@@ -3014,7 +3454,7 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
                 output_struct->wifi_PacketsReceived = atol(status);
         }
 
-	else if(apIndex == 5) //public_wifi with 2.4G
+	else if(apIndex == 4) //public_wifi with 2.4G
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
@@ -3097,7 +3537,7 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		pclose(fp);
 		output_struct->wifi_PacketsReceived = atol(status);
 	}	
-	else if(apIndex == 6) //public_wifi with 5G
+	else if(apIndex == 5) //public_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0)
@@ -3200,7 +3640,7 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 	int count = 0;//RDKB-EMULATOR
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
-	if(apIndex == 1)//private_wifi with 2.4G
+	if(apIndex == 0)//private_wifi with 2.4G
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 		if(strcmp(interface_name,"wlan0") == 0 )
@@ -3243,7 +3683,7 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 		pclose(fp);
 		output_struct->wifi_ErrorsReceived = atol(status);
 	}
-	else if(apIndex == 2)//private_wifi with 5G
+	else if(apIndex == 1)//private_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0 )
@@ -3289,7 +3729,7 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
                 output_struct->wifi_ErrorsReceived = atol(status);
         }
 
-	else if(apIndex == 5)//public_wifi with 2.4G
+	else if(apIndex == 4)//public_wifi with 2.4G
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
 		if(strcmp(virtual_interface_name,"wlan0_0") == 0)
@@ -3333,7 +3773,7 @@ INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 		pclose(fp);
 		output_struct->wifi_ErrorsReceived = atol(status);
 	}
-	else if(apIndex == 6)//public_wifi with 5G
+	else if(apIndex == 5)//public_wifi with 5G
         {
 		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0 )
@@ -3455,7 +3895,7 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
         unsigned long wifi_count = 0;
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
-	if(apIndex == 1)
+	if(apIndex == 0)
 	{
 	GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
 	if(strcmp(interface_name,"wlan0") == 0)
@@ -3535,7 +3975,7 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
         pclose(fp);
         *output_struct = temp;
 	}
-	else if(apIndex == 2)
+	else if(apIndex == 1)
 	{
 	        GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 		if(strcmp(interface_name,"wlan0") == 0)
@@ -4556,9 +4996,9 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 	//Store the AP enable settings and wait for wifi up to apply
 #if 1//LNT_EMU
 	int line_no;//ssid line number in /etc/hostapd.conf
-        if((apIndex == 1) || (apIndex == 5) || (apIndex == 2) || (apIndex == 6))
+        if((apIndex == 0) || (apIndex == 4) || (apIndex == 1) || (apIndex == 5))
         {
-	if((apIndex == 1) || (apIndex == 2)) 
+	if((apIndex == 0) || (apIndex == 1) || (apIndex == 5)) 
 		line_no=28;//Private_Wifi
 	else
 		line_no=55;//Xfinity_wifi(Public)
@@ -4595,7 +5035,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
 	FILE *fp=NULL;
         char path[256] = {0},status[256] = {0},interface_name[100] = {0},tmp_status[256] = {0};
         int count;
-        if(apIndex == 1)
+        if(apIndex == 0)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
                 if(strcmp(interface_name,"wlan0") == 0)
@@ -4617,7 +5057,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                 }
                 pclose(fp);
         }
-        else if(apIndex == 2)
+        else if(apIndex == 1)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0)
@@ -4640,7 +5080,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                 pclose(fp);
         }
 
-        else if(apIndex == 5)
+        else if(apIndex == 4)
         {
                 GetInterfaceName_virtualInterfaceName_2G(interface_name);
                 if(strcmp(interface_name,"wlan0_0") == 0)
@@ -4662,7 +5102,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                 }
                 pclose(fp);
         }
-        else if(apIndex == 6)
+        else if(apIndex == 5)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
                 if(strcmp(interface_name,"wlan0") == 0)
@@ -4689,14 +5129,14 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                 *output_bool = TRUE;
         else
 	{
-		if((apIndex == 5) || (apIndex == 6))
+		if((apIndex == 4) || (apIndex == 5))
 		{
 	                *output_bool = FALSE;
 			return 0;
 		}
-		else if(apIndex == 1)
+		else if(apIndex == 0)
                 	fp = fopen("/tmp/Get2gssidEnable.txt","r");
-		else if(apIndex == 2)
+		else if(apIndex == 1)
                 	fp = fopen("/tmp/Get5gssidEnable.txt","r");
                 if(fp == NULL)
 		{
@@ -4749,7 +5189,7 @@ INT wifi_getApSsidAdvertisementEnable(INT apIndex, BOOL *output_bool)
         char path[FILE_SIZE],output[WORD_SIZE];
         char *broadcastssid;
         int  broadcastvalue;
-	if(apIndex == 1)
+	if(apIndex == 0)
 	{
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ignore_broadcast_ssid ", "r");
         if (fp == NULL) {
@@ -4767,7 +5207,7 @@ INT wifi_getApSsidAdvertisementEnable(INT apIndex, BOOL *output_bool)
         else
                 *output_bool = false;
 	}
-	else if(apIndex == 2)
+	else if(apIndex == 1)
         {
         fp = popen("cat /etc/hostapd_5G.conf | grep -w ignore_broadcast_ssid ", "r");
         if (fp == NULL) {
@@ -4794,7 +5234,7 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
 {
 	//store the config, apply instantly
 	//return RETURN_ERR;//LNT_EMU
-	if(apIndex == 1)	
+	if(apIndex == 0)	
 	{
 	if(enable == true)
         {
@@ -4807,7 +5247,7 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
         //KillHostapd();
         }
 	}
-	else if(apIndex == 2)
+	else if(apIndex == 1)
 	{
 	if(enable == true)
         {
@@ -4994,9 +5434,9 @@ INT wifi_getApSecurityModeEnabled(INT apIndex, CHAR *output)
 	char path[256] = {0},securitymode[256] = {0},output_string[50] = {0};
 	int count = 0;
 	char *SecurityMode;
-	if(apIndex == 1)
+	if(apIndex == 0)
 		fp = popen("cat /etc/hostapd_2.4G.conf | grep wpa=","r");
-	else if(apIndex == 2)
+	else if(apIndex == 1)
 		fp = popen("cat /etc/hostapd_5G.conf | grep wpa=","r");
 	if(fp == NULL)
 	{
@@ -5097,7 +5537,7 @@ INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
         }
 
 
-        if(apIndex == 1)//private_wifi with 2.4G
+        if(apIndex == 0)//private_wifi with 2.4G
         {
         if(strcmp(encMode,"None")==0)
         {
@@ -5245,7 +5685,7 @@ INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
         }
         //KillHostapd();
         }
-        else if(apIndex == 2) //private_wifi with 5G
+        else if(apIndex == 1) //private_wifi with 5G
         {
 #if 0
         if(strcmp(encMode,"None")==0)
@@ -5367,7 +5807,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         FILE *fp = NULL;
         char *password;
 	int count = 0;
-	if(apIndex == 1 ) 
+	if(apIndex == 0 ) 
 	{
         fp = popen("cat /etc/hostapd_2.4G.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
@@ -5389,7 +5829,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         }
         pclose(fp);
 	}
-	else if(apIndex == 2 )
+	else if(apIndex == 1 )
         {
         fp = popen("cat /etc/hostapd_5G.conf | grep -w wpa_passphrase ", "r");
         if (fp == NULL) {
@@ -5411,7 +5851,7 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
         }
         pclose(fp);
         }
-	else if((apIndex == 5 ) || (apIndex == 6 ))
+	else if((apIndex == 4 ) || (apIndex == 5 ))
 			strcpy(output_string,"");
 
 	return RETURN_OK;
@@ -5425,7 +5865,7 @@ INT wifi_setApSecurityPreSharedKey(INT apIndex, CHAR *preSharedKey)
 	//save to wifi config and hotapd config. wait for wifi reset or hostapd restet to apply
 	//return RETURN_ERR;//LNT_EMU
 #if 1//LNT_EMU
-	if(apIndex == 1)
+	if(apIndex == 0)
 	{
 		char path[1024];
 		char current_password_value[50],password_value[50];
@@ -5451,7 +5891,7 @@ INT wifi_setApSecurityPreSharedKey(INT apIndex, CHAR *preSharedKey)
 		pclose(fp);
 		//KillHostapd();
 	}
-	else if(apIndex == 2)
+	else if(apIndex == 1)
 	{
 		char path[1024];
 		char current_password_value[50],password_value[50];
@@ -5706,10 +6146,301 @@ INT wifi_cancelApWPS(INT apIndex)
 		return RETURN_ERR;
 }                                 
 
+INT wifihal_AssociatedDevicesstats(INT apIndex,CHAR *interface_name,wifi_associated_dev_t **associated_dev_array, UINT *output_array_size)
+{
+	FILE *fp = NULL;
+        char str[FILE_SIZE];
+        int wificlientindex = 0 ;
+        int count = 0;
+        int arr[MACADDRESS_SIZE];
+        int signalstrength = 0;
+        int arr1[MACADDRESS_SIZE];
+        unsigned char mac[MACADDRESS_SIZE];
+        UINT wifi_count = 0;
+        char virtual_interface_name[512],buf[512];
+	if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("iw dev wlan0 station dump | grep wlan0 | wc -l", "r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep wlan1 | wc -l", "r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep wlan0_0 | wc -l", "r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep wlan1_0 | wc -l", "r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep wlan2_0 | wc -l", "r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("iw dev wlan2 station dump | grep wlan2 | wc -l", "r");
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__ );
+                exit(1);
+        }
+        /* Read the output a line at a time - output it. */
+        fgets(str, sizeof(str)-1, fp);
+        wifi_count = (unsigned int) atoi ( str );
+        *output_array_size = wifi_count;
+        printf(" In rdkbemu hal ,Wifi Client Counts and index %d and  %d\n",*output_array_size,apIndex);
+        pclose(fp);
+	if(wifi_count == 0)
+	{
+        wifi_associated_dev_t* temp = NULL;
+	return RETURN_OK;
+	}
+	else
+	{
+        wifi_associated_dev_t* temp = NULL;
+        temp = (wifi_associated_dev_t*)malloc(sizeof(wifi_associated_dev_t)*wifi_count) ;
+        if(temp == NULL)
+        {
+                printf("Error Statement \n");
+                return -1;
+        }
+	
+
+        if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("iw dev wlan0 station dump | grep Station | cut -d ' ' -f 2","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep Station | cut -d ' ' -f 2","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep Station | cut -d ' ' -f 2","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep Station | cut -d ' ' -f 2","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep Station | cut -d ' ' -f 2","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+                fp = popen("iw dev wlan2 station dump | grep Station | cut -d ' ' -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+		if( MACADDRESS_SIZE == sscanf(str, "%02x:%02x:%02x:%02x:%02x:%02x",&arr1[0],&arr1[1],&arr1[2],&arr1[3],&arr1[4],&arr1[5]) )
+                        {
+                                for( wificlientindex = 0; wificlientindex < MACADDRESS_SIZE; ++wificlientindex )
+                                {
+                                        mac[wificlientindex] = (unsigned char) arr1[wificlientindex];
+
+                                }
+                                memcpy(temp[count].cli_MACAddress,mac,(sizeof(unsigned char))*6);
+                        }
+                }
+         }
+        pclose(fp);
+        if(strcmp(interface_name,"wlan0") == 0)
+                fp = popen("iw dev wlan0 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+	        fp = popen("iw dev wlan2 station dump | grep signal | tr -s ' ' | cut -d ' ' -f 2 > /tmp/wifi_signalstrength.txt","r");
+        pclose(fp);
+        fp = popen("cat /tmp/wifi_signalstrength.txt | tr -s ' ' | cut -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+                        signalstrength= atoi(str);
+                        temp[count].cli_SignalStrength = signalstrength;
+                        temp[count].cli_RSSI = signalstrength;
+                        temp[count].cli_SNR = signalstrength + 95;
+                }
+        }
+        pclose(fp);
+	if((apIndex == 0) || (apIndex == 4))
+	{
+	strcpy(temp->cli_OperatingStandard,"g");
+	strcpy(temp->cli_OperatingChannelBandwidth,"20MHz");
+	if(strcmp(interface_name,"wlan0") == 0)
+		 fp = popen("iw dev wlan0 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+        fp = popen("iw dev wlan2 station dump | grep 'tx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Send.txt","r");
+        pclose(fp);
+        fp = popen("cat /tmp/Ass_Bytes_Send.txt | tr -s ' ' | cut -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+                        temp[count].cli_BytesSent = atol(str);
+                }
+        }
+        pclose(fp);
+	if(strcmp(interface_name,"wlan0") == 0)
+                 fp = popen("iw dev wlan0 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+        fp = popen("iw dev wlan2 station dump | grep 'rx bytes' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bytes_Received.txt","r");
+        pclose(fp);
+        fp = popen("cat /tmp/Ass_Bytes_Received.txt | tr -s ' ' | cut -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+                        temp[count].cli_BytesReceived = atol(str);
+                }
+        }
+        pclose(fp);
+	if(strcmp(interface_name,"wlan0") == 0)
+                 fp = popen("iw dev wlan0 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+	        fp = popen("iw dev wlan2 station dump | grep 'tx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Send.txt","r");
+        pclose(fp);
+        fp = popen("cat /tmp/Ass_Bitrate_Send.txt | tr -s ' ' | cut -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+                        temp[count].cli_LastDataDownlinkRate = atol(str);
+                        temp[count].cli_LastDataDownlinkRate = (temp[count].cli_LastDataDownlinkRate /1024);
+                }
+        }
+        pclose(fp);
+	if(strcmp(interface_name,"wlan0") == 0)
+                 fp = popen("iw dev wlan0 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        else if(strcmp(interface_name,"wlan1") == 0)
+                fp = popen("iw dev wlan1 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        else if(strcmp(interface_name,"wlan0_0") == 0)
+                fp = popen("iw dev wlan0_0 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        else if(strcmp(interface_name,"wlan1_0") == 0)
+                fp = popen("iw dev wlan1_0 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        else if(strcmp(interface_name,"wlan2_0") == 0)
+                fp = popen("iw dev wlan2_0 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        else if(strcmp(interface_name,"wlan2") == 0)
+        fp = popen("iw dev wlan2 station dump | grep 'rx bitrate' | tr -s ' ' | cut -d ' ' -f 2 > /tmp/Ass_Bitrate_Received.txt","r");
+        pclose(fp);
+        fp = popen("cat /tmp/Ass_Bitrate_Received.txt | tr -s ' ' | cut -f 2","r");
+        if(fp)
+        {
+                for(count =0 ; count < wifi_count ;count++)
+                {
+                        wificlientindex = 0;
+                        while(  wificlientindex <= count)
+                        {
+                                fgets(str,FILE_SIZE,fp);
+                                wificlientindex++;
+                        }
+                        temp[count].cli_LastDataUplinkRate = atol(str);
+                        temp[count].cli_LastDataUplinkRate = (temp[count].cli_LastDataUplinkRate /1024);
+                }
+        }
+        pclose(fp);
+
+	}
+	else if((apIndex == 1) || (apIndex == 5))
+	{
+	strcpy(temp->cli_OperatingStandard,"a");
+	strcpy(temp->cli_OperatingChannelBandwidth,"20MHz");
+	temp->cli_BytesSent = 0;
+	temp->cli_BytesReceived = 0;
+	temp->cli_LastDataUplinkRate = 0;
+	temp->cli_LastDataDownlinkRate = 0;
+	}
+	temp->cli_Retransmissions = 0;
+	temp->cli_DataFramesSentAck=0;
+	temp->cli_DataFramesSentNoAck=0;
+	temp->cli_MinRSSI = 0;
+	temp->cli_MaxRSSI = 0;
+	strncpy(temp->cli_InterferenceSources, "", 64);
+	memset(temp->cli_IPAddress, 0, 64);
+        *associated_dev_array = temp;
+	}
+	return RETURN_OK;
+}
+int wifihal_interfacestatus(CHAR *wifi_status,CHAR *interface_name)
+{
+FILE *fp = NULL;
+char path[512] = {0},status[512] = {0};
+int count = 0;
+		 if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig wlan0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig wlan1 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan0_0") == 0)
+                        fp = popen("ifconfig wlan0_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan1_0") == 0)
+                        fp = popen("ifconfig wlan1_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2_0") == 0)
+                        fp = popen("ifconfig wlan2_0 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig wlan2 | grep RUNNING | tr -s ' ' | cut -d ' ' -f4","r");
+                if(fp == NULL)
+                {
+                        printf("Failed to run command in Function %s\n",__FUNCTION__);
+                        return 0;
+                }
+                if(fgets(path, sizeof(path)-1, fp) != NULL)
+                {
+                        for(count=0;path[count]!='\n';count++)
+                                status[count]=path[count];
+                        status[count]='\0';
+                }
+		strcpy(wifi_status,status);
+                pclose(fp);
+		return RETURN_OK;
+}
 //Device.WiFi.AccessPoint.{i}.AssociatedDevice.*
 //HAL funciton should allocate an data structure array, and return to caller with "associated_dev_array"
 INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_t **associated_dev_array, UINT *output_array_size)
-{	
+{
+    if (apIndex < 0) {
+        return RETURN_ERR;
+    }
+#if 0	
 	char cmd[256];    
     char buf[2048];
     wifi_associated_dev_t *dev=NULL;
@@ -5802,7 +6533,48 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
         
     }
     pclose(f);
-
+#endif
+#if 1
+	CHAR interface_name[64] = {0},wifi_status[64] = {0};
+        if(apIndex == 0)
+        {
+        GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	wifihal_interfacestatus(wifi_status,interface_name);
+	if(strcmp(wifi_status,"RUNNING") == 0)
+	{
+		wifihal_AssociatedDevicesstats(apIndex,interface_name,associated_dev_array,output_array_size);
+	}
+	else
+	        *associated_dev_array = NULL;
+	}
+	else if(apIndex == 1)
+	{
+        GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+	wifihal_interfacestatus(wifi_status,interface_name);
+	if(strcmp(wifi_status,"RUNNING") == 0)
+		wifihal_AssociatedDevicesstats(apIndex,interface_name,associated_dev_array,output_array_size);
+	else
+	        *associated_dev_array = NULL;
+	}
+	else if(apIndex == 4)
+	{
+        GetInterfaceName_virtualInterfaceName_2G(interface_name);
+	wifihal_interfacestatus(wifi_status,interface_name);
+	if(strcmp(wifi_status,"RUNNING") == 0)
+		wifihal_AssociatedDevicesstats(apIndex,interface_name,associated_dev_array,output_array_size);
+	else
+	        *associated_dev_array = NULL;
+	}
+	else if(apIndex == 5)
+	{
+        GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+	wifihal_interfacestatus(wifi_status,interface_name);
+	if(strcmp(wifi_status,"RUNNING") == 0)
+		wifihal_AssociatedDevicesstats(apIndex,interface_name,associated_dev_array,output_array_size);
+	else
+	        *associated_dev_array = NULL;
+	}
+#endif
 	return RETURN_OK;
 }
 
