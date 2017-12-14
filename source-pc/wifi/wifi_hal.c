@@ -651,7 +651,7 @@ void EnableWifi(int InstanceNumber,int line_no)
                 sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
         	system(str);
 		
-		if(InstanceNumber == 4)
+		if((InstanceNumber == 4) || (InstanceNumber == 0))
 		{
 		 	wifi_stopHostApd();
 	                wifi_startHostApd();
@@ -702,8 +702,8 @@ void EnableWifi(int InstanceNumber,int line_no)
 		}
                 pclose(fp);
 		system(str);
-		/*if(InstanceNumber == 2)
-		KillHostapd_5g();*/
+		if(InstanceNumber == 1)
+			KillHostapd_5g();
 		if(InstanceNumber == 5)
 			KillHostapd_xfinity_5g();
 	}
@@ -1342,11 +1342,11 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 		system(buf);
 		//system("ifconfig wlan0 down");
 	}
-/*	else if((radioIndex == 0) && (enable == true))
+	else if((radioIndex == 0) && (enable == true))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
-	}*/
+	}
 	//KillHostapd();
 	else if((radioIndex == 1) && (enable == false))
 	{
@@ -1355,8 +1355,8 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
                 system(buf);
 		//system("ifconfig wlan1 down");
 	}
-/*	else if((radioIndex == 1) && (enable == true))
-		KillHostapd_5g();*/
+	else if((radioIndex == 1) && (enable == true))
+		KillHostapd_5g();
 	else if((radioIndex == 4) && (enable == false))
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
@@ -2071,8 +2071,89 @@ INT wifi_setRadioBasicDataTransmitRates(INT radioIndex, CHAR *TransmitRates)
 	return RETURN_ERR;
 }
 
+INT File_Reading(CHAR *file,char *Value)
+{
+	FILE *fp = NULL;
+	char buf[1024] = {0},copy_buf[512] ={0};
+	int count = 0;
+	fp = popen(file,"r");
+	if(fp == NULL)
+		return RETURN_ERR;
+	if(fgets(buf,sizeof(buf) -1,fp) != NULL)
+	{
+		for(count=0;buf[count]!='\n';count++)
+			copy_buf[count]=buf[count];
+		copy_buf[count]='\0';
+	}
+	strcpy(Value,copy_buf);
+	pclose(fp);
+	return RETURN_OK;
+}
+#if 1
+INT wifi_halGetIfStats(char * ifname, wifi_radioTrafficStats2_t *pStats)
+{
+	CHAR buf[512] = {0};
+	CHAR Value[512] = {0};
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'RX packets' | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_PacketsReceived=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'TX packets' | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_PacketsSent=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'RX bytes' | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_BytesReceived=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'TX bytes' | tr -s ' ' | cut -d ':' -f3 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_BytesSent=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'RX packets' | tr -s ' ' | cut -d ':' -f3 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_ErrorsReceived=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'TX packets' | tr -s ' ' | cut -d ':' -f3 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_ErrorsSent=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'RX packets' | tr -s ' ' | cut -d ':' -f4 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_DiscardPacketsReceived=atol(Value);
+	sprintf(buf,"%s%s%s","ifconfig -a ",ifname," | grep 'TX packets' | tr -s ' ' | cut -d ':' -f4 | cut -d ' ' -f1");
+	File_Reading(buf,Value);
+	pStats->radio_DiscardPacketsSent=atol(Value);
+	return RETURN_OK;
+}
+#endif
+INT GetIfacestatus(CHAR *interface_name,CHAR *status)
+{
+        CHAR buf[512] = {0};
+        FILE *fp = NULL;
+        INT count = 0;
+        //sprintf(buf,"%s%s%s%s%s","ifconfig -a ",interface_name," | grep ",interface_name," | wc -l > /tmp/Iface_count.txt");
+        sprintf(buf,"%s%s%s%s%s","ifconfig -a ",interface_name," | grep ",interface_name," | wc -l");
+        system(buf);
+        //fp = popen("cat /tmp/Iface_count.txt","r");
+        fp = popen(buf,"r");
+        if(fp == NULL)
+                return RETURN_ERR;
+        if(fgets(buf,sizeof(buf)-1,fp) != NULL)
+        {
+                for(count = 0;buf[count]!='\n';count++)
+                        status[count] = buf[count];
+                status[count] = '\0';
+        }
+        return RETURN_OK;
+}
 
-
+INT wifi_halGetIfStatsNull(wifi_radioTrafficStats2_t *output_struct)
+{
+	output_struct->radio_BytesSent=0;
+	output_struct->radio_BytesReceived=0;
+	output_struct->radio_PacketsSent=0;
+	output_struct->radio_PacketsReceived=0;
+	output_struct->radio_ErrorsSent=0;
+	output_struct->radio_ErrorsReceived=0;
+	output_struct->radio_DiscardPacketsSent=0;
+	output_struct->radio_DiscardPacketsReceived=0;
+	return RETURN_OK;	
+}
 //Get detail radio traffic static info
 INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output_struct) //Tr181
 {
@@ -2080,6 +2161,7 @@ INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output
 		return RETURN_ERR;
 		
 	//ifconfig radio_x	
+#if 0
 	output_struct->radio_BytesSent=250;	//The total number of bytes transmitted out of the interface, including framing characters.
 	output_struct->radio_BytesReceived=168;	//The total number of bytes received on the interface, including framing characters.
 	output_struct->radio_PacketsSent=25;	//The total number of packets transmitted out of the interface.
@@ -2089,6 +2171,49 @@ INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output
 	output_struct->radio_ErrorsReceived=0;    //The total number of inbound packets that contained errors preventing them from being delivered to a higher-layer protocol.
 	output_struct->radio_DiscardPacketsSent=0; //The total number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up buffer space.
 	output_struct->radio_DiscardPacketsReceived=0; //The total number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being delivered. One possible reason for discarding such a packet could be to free up buffer space.
+#endif
+	CHAR private_interface_name[50] = {0},public_interface_name[50] = {0};
+	CHAR private_interface_status[50] = {0},public_interface_status[50] = {0};
+        wifi_radioTrafficStats2_t               private_radioTrafficStats,public_radioTrafficStats;
+        if(radioIndex == 0) //2.4GHz
+        {
+                GetInterfaceName(private_interface_name,"/etc/hostapd_2.4G.conf");
+                GetIfacestatus(private_interface_name,private_interface_status);
+                GetInterfaceName_virtualInterfaceName_2G(public_interface_name);
+                GetIfacestatus(public_interface_name,public_interface_status);
+                if(strcmp(private_interface_status,"1") == 0)
+                        wifi_halGetIfStats(private_interface_name,&private_radioTrafficStats);
+                else
+                        wifi_halGetIfStatsNull(&private_radioTrafficStats);
+                if(strcmp(public_interface_status,"1") == 0)
+                        wifi_halGetIfStats(public_interface_name,&public_radioTrafficStats);
+                else
+                        wifi_halGetIfStatsNull(&public_radioTrafficStats);
+        }
+        else if(radioIndex == 1) //5GHz
+        {
+                GetInterfaceName(private_interface_name,"/etc/hostapd_5G.conf");
+                GetIfacestatus(private_interface_name,private_interface_status);
+                GetInterfaceName(public_interface_name,"/etc/hostapd_xfinity_5G.conf");
+                GetIfacestatus(public_interface_name,public_interface_status);
+                if(strcmp(private_interface_status,"1") == 0)
+                        wifi_halGetIfStats(private_interface_name,&private_radioTrafficStats);
+                else
+                        wifi_halGetIfStatsNull(&private_radioTrafficStats);
+
+                if(strcmp(public_interface_status,"1") == 0)
+                        wifi_halGetIfStats(public_interface_name,&public_radioTrafficStats);
+                else
+                        wifi_halGetIfStatsNull(&public_radioTrafficStats);
+        }
+		output_struct->radio_BytesSent=private_radioTrafficStats.radio_BytesSent + public_radioTrafficStats.radio_BytesSent;                  output_struct->radio_BytesReceived=private_radioTrafficStats.radio_BytesReceived + public_radioTrafficStats.radio_BytesReceived;
+                output_struct->radio_PacketsSent=private_radioTrafficStats.radio_PacketsSent + public_radioTrafficStats.radio_PacketsSent;
+                output_struct->radio_PacketsReceived=private_radioTrafficStats.radio_PacketsReceived + public_radioTrafficStats.radio_PacketsReceived;
+                output_struct->radio_ErrorsSent=private_radioTrafficStats.radio_ErrorsSent + public_radioTrafficStats.radio_ErrorsSent;
+                output_struct->radio_ErrorsReceived=private_radioTrafficStats.radio_ErrorsReceived + public_radioTrafficStats.radio_ErrorsReceived;
+                output_struct->radio_DiscardPacketsSent=private_radioTrafficStats.radio_DiscardPacketsSent + public_radioTrafficStats.radio_DiscardPacketsSent;
+                output_struct->radio_DiscardPacketsReceived=private_radioTrafficStats.radio_DiscardPacketsReceived + public_radioTrafficStats.radio_DiscardPacketsReceived;
+
 	output_struct->radio_PLCPErrorCount=0;	//The number of packets that were received with a detected Physical Layer Convergence Protocol (PLCP) header error.	
 	output_struct->radio_FCSErrorCount=0;	//The number of packets that were received with a detected FCS error. This parameter is based on dot11FCSErrorCount from [Annex C/802.11-2012].
 	output_struct->radio_InvalidMACCount=0;	//The number of packets that were received with a detected invalid MAC header error.
