@@ -95,8 +95,8 @@
 #endif
 
 #ifndef RADIO_PREFIX
-//#define RADIO_PREFIX	"wifi"
-#define RADIO_PREFIX	"wlan"
+#define RADIO_PREFIX	"wifi"
+//#define RADIO_PREFIX	"wlan"
 #endif
 
 #define RADIO_24GHZ 0
@@ -131,6 +131,25 @@ void wlan_encryption_mode_to_string(char* encryption_mode, char* string)
       strcpy(string, "CCMP");
    }
 
+}
+
+INT File_Reading(CHAR *file,char *Value)
+{
+        FILE *fp = NULL;
+        char buf[1024] = {0},copy_buf[512] ={0};
+        int count = 0;
+        fp = popen(file,"r");
+        if(fp == NULL)
+                return RETURN_ERR;
+        if(fgets(buf,sizeof(buf) -1,fp) != NULL)
+        {
+                for(count=0;buf[count]!='\n';count++)
+                        copy_buf[count]=buf[count];
+                copy_buf[count]='\0';
+        }
+        strcpy(Value,copy_buf);
+        pclose(fp);
+        return RETURN_OK;
 }
 
 
@@ -1409,20 +1428,38 @@ INT wifi_getRadioIfName(INT radioIndex, CHAR *output_string) //Tr181
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioMaxBitRate(INT radioIndex, CHAR *output_string)	//RDKB
 {
-	char cmd[64];
-    char buf[1024];
-	int apIndex;
-	
-    if (NULL == output_string) 
+	char cmd[512] =  {0};
+	char buf[1024] = {0};
+	int count = 0;
+
+	if (NULL == output_string) 
 		return RETURN_ERR;
-	
-    apIndex=(radioIndex==0)?0:1;
 
-    snprintf(cmd, sizeof(cmd), "iwconfig %s%d | grep \"Bit Rate\" | cut -d':' -f2 | cut -d' ' -f1,2", AP_PREFIX, apIndex);
-    _syscmd(cmd,buf, sizeof(buf));
+	/*apIndex=(radioIndex==0)?0:1;
 
-    snprintf(output_string, 64, "%s", buf);
-	
+	  snprintf(cmd, sizeof(cmd), "iwconfig %s%d | grep \"Bit Rate\" | cut -d':' -f2 | cut -d' ' -f1,2", AP_PREFIX, apIndex);
+	  _syscmd(cmd,buf, sizeof(buf));
+
+	  snprintf(output_string, 64, "%s", buf);*/
+	char interface_name[50] = {0};
+	FILE *fp = NULL;
+	if(radioIndex == 0)
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	else if(radioIndex == 1)
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+
+	sprintf(cmd,"%s%s%s%s%s","iwconfig ",interface_name," | grep ",interface_name," | wc -l");
+	File_Reading(cmd,buf);
+	if(strcmp(buf,"1") == 0)
+	{
+		sprintf(cmd,"%s%s%s","iwconfig ",interface_name," | grep 'Bit Rate' | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f1,2");
+		File_Reading(cmd,buf);
+		strcpy(output_string,buf);
+	}
+	else
+		strcpy(output_string,"0");
+
+
 	return RETURN_OK;
 }
 
@@ -1887,29 +1924,136 @@ INT wifi_setRadioDfsRefreshPeriod(INT radioIndex, ULONG seconds) //Tr181
 	return RETURN_ERR;
 }
 
+INT wifi_halgetRadioChannelBW(CHAR *file,CHAR *Value)
+{
+	char buf[256] = {0};
+	FILE *fp = NULL;
+	sprintf(buf,"%s%s%s","cat ",file," | grep -w require_ht");
+	fp = popen(buf,"r");
+	if(fp)
+	{
+		if(fgets(buf,sizeof(buf),fp) != NULL)
+		{
+			if(buf[0] == '#')
+				strcpy(Value,"20MHz");
+			else
+				strcpy(Value,"40MHz");
+		}
+	}
+	pclose(fp);
+	return RETURN_OK;
+}
 //Get the Operating Channel Bandwidth. eg "20MHz", "40MHz", "80MHz", "80+80", "160"
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioOperatingChannelBandwidth(INT radioIndex, CHAR *output_string) //Tr181
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(output_string, 64, (radioIndex==0)?"20MHz":"40MHz");
+	//snprintf(output_string, 64, (radioIndex==0)?"20MHz":"40MHz");
+	CHAR Value[50] = {0};
+	if(radioIndex == 0)
+		wifi_halgetRadioChannelBW("/etc/hostapd_2.4G.conf",Value);
+	else if(radioIndex == 1)
+		wifi_halgetRadioChannelBW("/etc/hostapd_5G.conf",Value);
+	strcpy(output_string,Value);
+	return RETURN_OK;
+}
+
+INT wifi_halsetRadioChannelBW_40(char *file)
+{
+	char buf[256] = {0},Value[256] = {0};
+	int count = 0,ht_count = 0;
+	sprintf(buf,"%s%s%s","cat ",file," | grep require_ht | wc -l");
+	File_Reading(buf,Value);
+	count = atoi(Value);
+	sprintf(buf,"%s%s%s","cat ",file," | grep ht_capab | wc -l");
+	File_Reading(buf,Value);
+	ht_count = atoi(Value);
+	if((count == 1) && (ht_count == 1))
+	{
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/require_ht=1/ s/^#*//",'"',file);
+		system(buf);
+		sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/ht_capab=/ s/^#*//",'"',file);
+		system(buf);
+	}
+	return RETURN_OK;
+}
+
+INT wifi_halsetRadioChannelBW_20(char *file)
+{
+        char buf[256] = {0},Value[256] = {0};
+        int count = 0,ht_count = 0;
+        sprintf(buf,"%s%s%s","cat ",file," | grep require_ht | wc -l");
+        File_Reading(buf,Value);
+        count = atoi(Value);
+        sprintf(buf,"%s%s%s","cat ",file," | grep ht_capab | wc -l");
+        File_Reading(buf,Value);
+        ht_count = atoi(Value);
+        if((count == 1) && (ht_count == 1))
+	{
+		sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/require_ht=1/ s/^/","#/",'"',file);                       
+                system(buf);
+		sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/ht_capab/ s/^/","#/",'"',file);                                      
+	        system(buf);
+	}
 	return RETURN_OK;
 }
 
 //Set the Operating Channel Bandwidth.
 INT wifi_setRadioOperatingChannelBandwidth(INT radioIndex, CHAR *bandwidth) //Tr181	//AP only
 {
-	return RETURN_ERR;
+	if(strcmp(bandwidth,"40MHz") == 0)
+	{
+	if(radioIndex == 0) 
+		wifi_halsetRadioChannelBW_40("/etc/hostapd_2.4G.conf");
+	else if(radioIndex == 1)
+		wifi_halsetRadioChannelBW_40("/etc/hostapd_5G.conf");
+	}
+	else if(strcmp(bandwidth,"20MHz") == 0)
+	{
+	if(radioIndex == 0) 
+                wifi_halsetRadioChannelBW_20("/etc/hostapd_2.4G.conf");
+        else if(radioIndex == 1)
+                wifi_halsetRadioChannelBW_20("/etc/hostapd_5G.conf");
+	}
+	//return RETURN_ERR;
+	return RETURN_OK;
 }
 
+INT wifi_halgetRadioExtChannel(CHAR *file,CHAR *Value)
+{
+	CHAR buf[150] = {0};
+	FILE *fp = NULL;
+	sprintf(buf,"%s%s%s","cat ",file," | grep -w ht_capab= | cut -d '=' -f2 | cut -d ']' -f1 | cut -d '[' -f2");
+	fp = popen(buf,"r");
+	if(fp)
+	{
+		if(fgets(buf,sizeof(buf)-1,fp) != NULL)
+		{
+			if(buf[4] == '+')
+				strcpy(Value,"AboveControlChannel");
+			else if(buf[4] == '-')
+				strcpy(Value,"BelowControlChannel");
+			else
+				strcpy(Value,"Auto");
+		}
+	}
+	pclose(fp);	
+	return RETURN_OK;
+}
 //Get the secondary extension channel position, "AboveControlChannel" or "BelowControlChannel". (this is for 40MHz and 80MHz bandwith only)
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioExtChannel(INT radioIndex, CHAR *output_string) //Tr181
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	snprintf(output_string, 64, (radioIndex==0)?"":"BelowControlChannel");
+	//snprintf(output_string, 64, (radioIndex==0)?"":"BelowControlChannel");
+	CHAR Value[100] = {0};
+	if(radioIndex == 0)
+		wifi_halgetRadioExtChannel("/etc/hostapd_2.4G.conf",Value);
+	else if(radioIndex == 1)
+		wifi_halgetRadioExtChannel("/etc/hostapd_5G.conf",Value);
+	strcpy(output_string,Value);
 	return RETURN_OK;
 }
 
@@ -2071,24 +2215,6 @@ INT wifi_setRadioBasicDataTransmitRates(INT radioIndex, CHAR *TransmitRates)
 	return RETURN_ERR;
 }
 
-INT File_Reading(CHAR *file,char *Value)
-{
-	FILE *fp = NULL;
-	char buf[1024] = {0},copy_buf[512] ={0};
-	int count = 0;
-	fp = popen(file,"r");
-	if(fp == NULL)
-		return RETURN_ERR;
-	if(fgets(buf,sizeof(buf) -1,fp) != NULL)
-	{
-		for(count=0;buf[count]!='\n';count++)
-			copy_buf[count]=buf[count];
-		copy_buf[count]='\0';
-	}
-	strcpy(Value,copy_buf);
-	pclose(fp);
-	return RETURN_OK;
-}
 #if 1
 INT wifi_halGetIfStats(char * ifname, wifi_radioTrafficStats2_t *pStats)
 {
@@ -2687,6 +2813,39 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
 #endif
 }
 
+INT wifihal_getBaseBSSID(CHAR *interface_name,CHAR *mac,INT index)
+{
+        FILE *fp = NULL;
+        char path[1024];
+        if(index == 4)
+        {
+                if(strcmp(interface_name,"wlan0_0") == 0)
+                        fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+                else if(strcmp(interface_name,"wlan1_0") == 0)
+                        fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+                else if(strcmp(interface_name,"wlan2_0") == 0)
+                        fp = popen("ifconfig -a | grep wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        }
+        else
+        {
+                if(strcmp(interface_name,"wlan0") == 0)
+                        fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+                else if(strcmp(interface_name,"wlan1") == 0)
+                        fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+                else if(strcmp(interface_name,"wlan2") == 0)
+                        fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
+        }
+        if (fp == NULL) {
+                printf("Failed to run command inside function %s\n",__FUNCTION__ );
+                strcpy(mac,"00:00:00:00:00:00");
+                return RETURN_OK;
+        }
+        fgets(path, sizeof(path)-1, fp);
+        strcpy(mac,path);
+        pclose(fp);
+        return RETURN_OK;
+}
+
 
 //Get the BSSID 
 INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
@@ -2703,122 +2862,35 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 #if 1//LNT_EMU
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	FILE *fp = NULL;
-        char bssid[20];
-        char path[1024];
-        int bssidindex=0;
-        int arr[MACADDRESS_SIZE];
-        unsigned char mac[6];
-	char interface_name[512];
-        char virtual_interface_name[512],buf[512];
+	char bssid[20] = {0};
+        char interface_name[512] = {0};
+        char virtual_interface_name[512] = {0};
 
         if(ssidIndex == 0) //private_wifi for 2.4G
         {
-        GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-	if(strcmp(interface_name,"wlan0") == 0)
-        	fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-	else if(strcmp(interface_name,"wlan1") == 0)
-        	fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-	else if(strcmp(interface_name,"wlan2") == 0)
-        	fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                exit(1);
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
-        fgets(path, sizeof(path)-1, fp);
-        strcpy(bssid,path);
-        pclose(fp);
-        // Store in One byte
-        if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+        else if(ssidIndex == 1) //private_wifi for 5G
         {
-                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
-                {
-                        mac[bssidindex] = (unsigned char) arr[bssidindex];
-                }
-        }
-        strcpy(output_string,mac);
-        }
-	else if(ssidIndex == 1) //private_wifi for 5G
-        {
-	GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
-	if(strcmp(interface_name,"wlan0") == 0)
-                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan1") == 0)
-                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan2") == 0)
-                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                exit(1);
-        }
-        fgets(path, sizeof(path)-1, fp);
-        strcpy(bssid,path);
-        pclose(fp);
-        // Store in One byte
-        if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-        {
-                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
-                {
-                        mac[bssidindex] = (unsigned char) arr[bssidindex];
-                }
-        }
-        strcpy(output_string,mac);
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
 
         else if(ssidIndex == 4) //public_wifi for 2.4G
         {
-        GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
-	if(strcmp(virtual_interface_name,"wlan0_0") == 0)
-        	fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-	else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
-	        fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-	else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
-        	fp = popen("ifconfig -a | grep wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                exit(1);
+                GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
-        fgets(path, sizeof(path)-1, fp) ;
-        strcpy(bssid,path);
-        pclose(fp);
-        // Store in One byte
-        if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
+        else if(ssidIndex == 5) //public_wifi for 5G
         {
-                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
-                {
-                        mac[bssidindex] = (unsigned char) arr[bssidindex];
-                }
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
-        strcpy(output_string,mac);
-        }
-
-	else if(ssidIndex == 5) //public_wifi for 5G
-        {
-	GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-	if(strcmp(interface_name,"wlan0") == 0)
-                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan1") == 0)
-                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan2") == 0)
-                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        if (fp == NULL) {
-                printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                exit(1);
-        }
-        fgets(path, sizeof(path)-1, fp) ;
-        strcpy(bssid,path);
-        pclose(fp);
-        // Store in One byte
-        if( MACADDRESS_SIZE == sscanf(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-        {
-                for( bssidindex = 0; bssidindex < 6; ++bssidindex )
-                {
-                        mac[bssidindex] = (unsigned char) arr[bssidindex];
-                }
-        }
-        strcpy(output_string,mac);
-        }
-
 
 #endif
 	return RETURN_OK;
@@ -2833,127 +2905,36 @@ INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 		sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
 		_syscmd(cmd, output_string, 64);*/ 
 	//RDKB-EMULATOR
-		if (NULL == output_string) 
+	if (NULL == output_string) 
 		return RETURN_ERR;
-	FILE *fp = NULL;
-	char Mac[20];
-	char path[1024];
-	int Macindex=0;
-	int arr[MACADDRESS_SIZE];
-	unsigned char mac[6];
-	char interface_name[512];
-        char virtual_interface_name[512],buf[512];
-	if(ssidIndex == 0) //private_wifi eith 2.4G
-	{
-		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-        if(strcmp(interface_name,"wlan0") == 0)
-                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan1") == 0)
-                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan2") == 0)
-                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-
-		if (fp == NULL) {
-			printf("Failed to run command inside function %s\n",__FUNCTION__ );
-			exit(1);
-		}
-		fgets(path, sizeof(path)-1, fp);
-		strcpy(Mac,path);
-		pclose(fp);
-		// Store in One byte
-		if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-		{
-			for( Macindex = 0; Macindex < 6; ++Macindex )
-			{
-				mac[Macindex] = (unsigned char) arr[Macindex];
-			}
-		}
-		strcpy(output_string,mac);
-	}
-	else if(ssidIndex == 1) //private_wifi with 5G
+	char bssid[20] = {0};
+        char interface_name[512] = {0};
+        char virtual_interface_name[512] = {0};
+        if(ssidIndex == 0) //private_wifi eith 2.4G
         {
-		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
-        if(strcmp(interface_name,"wlan0") == 0)
-                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan1") == 0)
-                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan2") == 0)
-                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                        exit(1);
-                }
-                fgets(path, sizeof(path)-1, fp);
-                strcpy(Mac,path);
-                pclose(fp);
-                // Store in One byte
-                if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-                {
-                        for( Macindex = 0; Macindex < 6; ++Macindex )
-                        {
-                                mac[Macindex] = (unsigned char) arr[Macindex];
-                        }
-                }
-                strcpy(output_string,mac);
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
+        }
+        else if(ssidIndex == 1) //private_wifi with 5G
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
 
-	else if(ssidIndex == 4)//public_wifi with 2.4G
-	{
-		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
-        if(strcmp(virtual_interface_name,"wlan0_0") == 0)
-                fp = popen("ifconfig -a | grep wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(virtual_interface_name,"wlan1_0") == 0)
-                fp = popen("ifconfig -a | grep wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(virtual_interface_name,"wlan2_0") == 0)
-                fp = popen("ifconfig -a | grep wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-
-		if (fp == NULL) {
-			printf("Failed to run command inside function %s\n",__FUNCTION__ );
-			exit(1);
-		}
-		fgets(path, sizeof(path)-1, fp) ;
-		strcpy(Mac,path);
-		pclose(fp);
-		// Store in One byte
-		if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-		{
-			for( Macindex = 0; Macindex < 6; ++Macindex )
-			{
-				mac[Macindex] = (unsigned char) arr[Macindex];
-			}
-		}
-		strcpy(output_string,mac);
-	}
-	else if(ssidIndex == 5)//public_wifi with 5G
+        else if(ssidIndex == 4)//public_wifi with 2.4G
         {
-		GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-        if(strcmp(interface_name,"wlan0") == 0)
-                fp = popen("ifconfig -a | grep wlan0 | grep -v mon.wlan0 | grep -v wlan0_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan1") == 0)
-                fp = popen("ifconfig -a | grep wlan1 | grep -v mon.wlan1 | grep -v wlan1_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-        else if(strcmp(interface_name,"wlan2") == 0)
-                fp = popen("ifconfig -a | grep wlan2 | grep -v mon.wlan2 | grep -v wlan2_0 | tr -s ' ' | cut -d ' ' -f5  ", "r");
-
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__ );
-                        exit(1);
-                }
-                fgets(path, sizeof(path)-1, fp) ;
-                strcpy(Mac,path);
-                pclose(fp);
-                // Store in One byte
-                if( MACADDRESS_SIZE == sscanf(Mac, "%02x:%02x:%02x:%02x:%02x:%02x",&arr[0],&arr[1],&arr[2],&arr[3],&arr[4],&arr[5]) )
-                {
-                        for( Macindex = 0; Macindex < 6; ++Macindex )
-                        {
-                                mac[Macindex] = (unsigned char) arr[Macindex];
-                        }
-                }
-                strcpy(output_string,mac);
+                GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
         }
-
-
+        else if(ssidIndex == 5)//public_wifi with 5G
+        {
+                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
+                wifihal_getBaseBSSID(interface_name,bssid,ssidIndex);
+                strcpy(output_string,bssid);
+        }
 
 	return RETURN_OK;
 }
