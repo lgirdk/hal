@@ -670,7 +670,7 @@ void EnableWifi(int InstanceNumber,int line_no)
                 sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
         	system(str);
 		
-		if((InstanceNumber == 4) || (InstanceNumber == 0))
+		if(InstanceNumber == 4) 
 		{
 		 	wifi_stopHostApd();
 	                wifi_startHostApd();
@@ -721,8 +721,6 @@ void EnableWifi(int InstanceNumber,int line_no)
 		}
                 pclose(fp);
 		system(str);
-		if(InstanceNumber == 1)
-			KillHostapd_5g();
 		if(InstanceNumber == 5)
 			KillHostapd_xfinity_5g();
 	}
@@ -1351,8 +1349,26 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 {
 	//Set wifi config. Wait for wifi reset to apply
 	//RDKB-EMU
-	char interface_name[512];
-        char virtual_interface_name[512],buf[512];
+	char interface_name[512] = {0};
+        char virtual_interface_name[512] = {0},buf[512] = {0},command[512] = {0};
+	BOOL GetssidEnable;
+	
+	wifi_getSSIDEnable(radioIndex,&GetssidEnable);
+        if(radioIndex == 0)
+        {
+                sprintf(buf,"%s%d%s","echo ",GetssidEnable," > /tmp/Get2gssidEnable.txt");
+                system("rm /tmp/Get2gRadioEnable.txt");
+                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get2gRadioEnable.txt");
+        }
+        else if(radioIndex == 1)
+        {
+                sprintf(buf,"%s%d%s","echo ",GetssidEnable," > /tmp/Get5gssidEnable.txt");
+                system("rm /tmp/Get5gRadioEnable.txt");
+                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get5gRadioEnable.txt");
+        }
+        system(buf);
+        system(command);
+
 
 	if((radioIndex == 0) && (enable == false))
 	{
@@ -1360,11 +1376,6 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
 		sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
 		system(buf);
 		//system("ifconfig wlan0 down");
-	}
-	else if((radioIndex == 0) && (enable == true))
-	{
-		wifi_stopHostApd();
-		wifi_startHostApd();
 	}
 	//KillHostapd();
 	else if((radioIndex == 1) && (enable == false))
@@ -1374,8 +1385,6 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
                 system(buf);
 		//system("ifconfig wlan1 down");
 	}
-	else if((radioIndex == 1) && (enable == true))
-		KillHostapd_5g();
 	else if((radioIndex == 4) && (enable == false))
 	{
 		GetInterfaceName_virtualInterfaceName_2G(virtual_interface_name);
@@ -1398,6 +1407,12 @@ INT wifi_setRadioEnable(INT radioIndex, BOOL enable)		//RDKB
         else if((radioIndex == 5) && (enable == true))
 	{
 		KillHostapd_xfinity_5g();
+        }
+	
+	if((radioIndex == 0) || (radioIndex == 1))  //Both parameter's SSID and Radio are true , Hostapd will be restart else it's won't restart
+        {
+                if((enable == true) && (GetssidEnable == true))
+                        wifi_applyRadioSettings(radioIndex);
         }
 
 	//KillHostapd();
@@ -5102,6 +5117,25 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 	//Store the AP enable settings and wait for wifi up to apply
 #if 1//LNT_EMU
 	int line_no;//ssid line number in /etc/hostapd.conf
+	BOOL GetRadioEnable;
+        char buf[50] = {0},command[50] ={0};
+//For Getting Radio Status
+        wifi_getRadioEnable(apIndex,&GetRadioEnable);
+        if(apIndex == 0)
+        {
+                sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get2gRadioEnable.txt");
+                system("rm /tmp/Get2gssidEnable.txt");
+                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get2gssidEnable.txt");
+        }
+        else if(apIndex == 1)
+        {
+                sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get5gRadioEnable.txt");
+                system("rm /tmp/Get5gssidEnable.txt");
+                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get5gssidEnable.txt");
+        }
+        system(buf);
+        system(command);
+
         if((apIndex == 0) || (apIndex == 4) || (apIndex == 1) || (apIndex == 5))
         {
 	if((apIndex == 0) || (apIndex == 1) || (apIndex == 5)) 
@@ -5113,6 +5147,12 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 		DisableWifi(apIndex);
         else
 		EnableWifi(apIndex,line_no);
+        }
+
+	if((apIndex == 0) || (apIndex == 1))
+        {
+                if((GetRadioEnable == true) && (enable == true))
+                        wifi_applyRadioSettings(apIndex);
         }
 
 #endif
