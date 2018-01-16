@@ -1469,12 +1469,22 @@ INT wifi_getRadioMaxBitRate(INT radioIndex, CHAR *output_string)	//RDKB
 	{
 		sprintf(cmd,"%s%s%s","iwconfig ",interface_name," | grep 'Bit Rate' | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f1,2");
 		File_Reading(cmd,buf);
-		strcpy(output_string,buf);
+		//strcpy(output_string,buf);
 	}
 	else
 		strcpy(output_string,"0");
 
-
+	if (strstr(buf, "Mb/s")) {
+                //216.7 Mb/s
+                MaxBitRate = strtof(buf,0);
+        } else if (strstr(buf, "Gb/s")) {
+                //1.3 Gb/s
+                MaxBitRate = strtof(buf,0) * 1000;
+        } else {
+                //Auto or Kb/s
+                MaxBitRate = 0;
+        }
+        sprintf(output_string,"%lu",MaxBitRate);
 	return RETURN_OK;
 }
 
@@ -2047,10 +2057,8 @@ INT wifi_halgetRadioExtChannel(CHAR *file,CHAR *Value)
 		{
 			if(buf[4] == '+')
 				strcpy(Value,"AboveControlChannel");
-			else if(buf[4] == '-')
+			else 
 				strcpy(Value,"BelowControlChannel");
-			else
-				strcpy(Value,"Auto");
 		}
 	}
 	pclose(fp);	
@@ -2065,9 +2073,16 @@ INT wifi_getRadioExtChannel(INT radioIndex, CHAR *output_string) //Tr181
 	//snprintf(output_string, 64, (radioIndex==0)?"":"BelowControlChannel");
 	CHAR Value[100] = {0};
 	if(radioIndex == 0)
-		wifi_halgetRadioExtChannel("/etc/hostapd_2.4G.conf",Value);
+		//wifi_halgetRadioExtChannel("/etc/hostapd_2.4G.conf",Value);
+		strcpy(Value,"Auto"); //Tenda dongle supports upto 150Mbps 
 	else if(radioIndex == 1)
-		wifi_halgetRadioExtChannel("/etc/hostapd_5G.conf",Value);
+	{
+		wifi_getRadioOperatingChannelBandwidth(radioIndex,Value);
+		if(strcmp(Value,"20MHz") == 0)
+                        strcpy(Value,"Auto");
+                else
+			wifi_halgetRadioExtChannel("/etc/hostapd_5G.conf",Value);
+	}
 	strcpy(output_string,Value);
 	return RETURN_OK;
 }
@@ -3268,7 +3283,7 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
 	        if(strcmp(wifi_status,"RUNNING") == 0)
 		{
                 	sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                	sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+                	sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan ap-force > /tmp/wifiscan.txt");
 		}
 		else
 		{
@@ -3287,7 +3302,7 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
                 if(strcmp(wifi_status,"RUNNING") == 0)
                 {
                         sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
+                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan ap-force > /tmp/wifiscan.txt");
                 }
                 else
                 {
