@@ -1446,6 +1446,7 @@ INT wifi_getRadioMaxBitRate(INT radioIndex, CHAR *output_string)	//RDKB
 	char cmd[512] =  {0};
 	char buf[1024] = {0};
 	int count = 0;
+	ULONG MaxBitRate = 0;
 
 	if (NULL == output_string) 
 		return RETURN_ERR;
