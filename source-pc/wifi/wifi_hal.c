@@ -621,8 +621,9 @@ void EnableWifi(int InstanceNumber,int line_no)
         char param_name[256] = {0};
         char *param_value = NULL;
         char status[50];
+	int inscount = InstanceNumber + 1;
 	        memset(param_name, 0, sizeof(param_name));
-        	sprintf(param_name, BssSsid, InstanceNumber);
+        	sprintf(param_name, BssSsid, inscount);
 	        PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
 
 	if((InstanceNumber == 0) || (InstanceNumber == 4))

@@ -112,6 +112,7 @@ if [ -f "$DEVICE_PROPERTIES_FILE" ]; then
         echo "ATOM_INTERFACE="br0"" >> /etc/device.properties
         echo "ATOM_INTERFACE_IP=192.168.101.3" >> /etc/device.properties
         echo "PARODUS_URL=tcp://127.0.0.1:6666" >> /etc/device.properties
+        echo "WEBPA_CLIENT_URL=tcp://192.168.101.3:6667" >> /etc/device.properties
         fi
 fi
 
