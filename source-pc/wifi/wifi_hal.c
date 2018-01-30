@@ -106,7 +106,7 @@
 //PSM Access-LNT_EMU
 extern ANSC_HANDLE bus_handle;
 extern char g_Subsystem[32];
-static char *BssSsid ="eRT.com.cisco.spvtg.ccsp.Device.WiFi.Radio.SSID.%d.SSID";
+//static char *BssSsid ="eRT.com.cisco.spvtg.ccsp.Device.WiFi.Radio.SSID.%d.SSID";
 
 static int MacFilter = 0 ;
 typedef unsigned char mac_address_t[6];
@@ -576,6 +576,40 @@ BOOL checkLanInterface()
         }
 }
 
+INT GettingHostapdSsid(INT ssidIndex,char *hostapd_conf,char *val)
+{
+	FILE *fp = NULL;
+	int count = 0;
+	char *ssid_val = NULL;
+	char path[256] = {0},fname[256] = {0},output[128] = {0};
+	sprintf(fname,"%s%s%s","cat ",hostapd_conf," | grep -w ssid");
+	fp = popen(fname,"r");
+	if (fp == NULL) {
+		printf("Failed to run command inside function %s\n",__FUNCTION__);
+		return 0;
+	}
+	if(ssidIndex == 4)
+	{
+		while(fgets(path, sizeof(path)-1, fp)!=NULL)
+		{
+			ssid_val = strchr(path,'=');
+			strcpy(output,ssid_val+1);
+		}
+
+	}
+	else
+	{
+		/* Read the output a line at a time - output it. */
+		fgets(path, sizeof(path)-1, fp);
+		ssid_val = strchr(path,'=');
+		strcpy(output,ssid_val+1);
+	}
+	for(count=0;output[count]!='\n';count++)
+		val[count]=output[count];
+	val[count]='\0';
+	pclose(fp);
+}
+
 #if 1
 void DisableWifi(int InstanceNumber)
 {
@@ -610,121 +644,6 @@ void DisableWifi(int InstanceNumber)
                 system(buf);
 		//system("ifconfig wlan2 down");
         }
-}
-void EnableWifi(int InstanceNumber,int line_no)
-{
-	FILE *fp;
-        int count;
-        char path[256];
-        char *ssid_val,output[50];
-        char str[100],str1[100],str2[100],val[100];
-        char param_name[256] = {0};
-        char *param_value = NULL;
-        char status[50];
-	int inscount = InstanceNumber + 1;
-	        memset(param_name, 0, sizeof(param_name));
-        	sprintf(param_name, BssSsid, inscount);
-	        PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
-
-	if((InstanceNumber == 0) || (InstanceNumber == 4))
-	{
-		//PSM Access
-        	if(InstanceNumber == 0)//Getting Private_ssid value in /etc/hostapd.conf
-        	{	
-                fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__);
-                        return;
-                }
-                /* Read the output a line at a time - output it. */
-                fgets(path, sizeof(path)-1, fp);
-                ssid_val = strchr(path,'=');
-                strcpy(output,ssid_val+1);
-                for(count=0;output[count]!='\n';count++)
-                        val[count]=output[count];
-                val[count]='\0';
-        	}
-
-		else if(InstanceNumber == 4)//Getting public_ssid value in /etc/hostapd.conf
-	        {
-                fp = popen("cat /etc/hostapd_2.4G.conf | grep -w ssid ", "r");
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__);
-                        return;
-                }
-                /* Read the output a line at a time - output it. */
-                while(fgets(path, sizeof(path)-1, fp)!=NULL)
-                {
-                        ssid_val = strchr(path,'=');
-                        strcpy(output,ssid_val+1);
-                }
-                for(count=0;output[count]!='\n';count++)
-                        val[count]=output[count];
-                val[count]='\0';
-        	}
-
-        	pclose(fp);
-
-		sprintf(str1,"%s%s","ssid=",val);
-	        sprintf(str2,"%s%s","ssid=",param_value);
-
-                sprintf(str,"%s%d%s%s/%s%s","sed -i '",line_no,"s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
-        	system(str);
-		
-		if(InstanceNumber == 4) 
-		{
-		 	wifi_stopHostApd();
-	                wifi_startHostApd();
-		}
-	}
-	else if((InstanceNumber == 1) || (InstanceNumber == 5))
-	{
-		if(InstanceNumber == 1)//Getting Private_ssid value in /etc/hostapd.conf
-                {
-                fp = popen("cat /etc/hostapd_5G.conf | grep -w ssid ", "r");
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__);
-                        return;
-                }
-                /* Read the output a line at a time - output it. */
-                fgets(path, sizeof(path)-1, fp);
-                ssid_val = strchr(path,'=');
-                strcpy(output,ssid_val+1);
-                for(count=0;output[count]!='\n';count++)
-                        val[count]=output[count];
-                val[count]='\0';
-
-		sprintf(str1,"%s%s","ssid=",val);
-	        sprintf(str2,"%s%s","ssid=",param_value);
-                sprintf(str,"%s%s%s/%s%s","sed -i '","28s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
-                }
-
-		else if(InstanceNumber == 5)//Getting public_ssid value in /etc/hostapd.conf
-                {
-                fp = popen("cat /etc/hostapd_xfinity_5G.conf | grep -w ssid ", "r");
-                if (fp == NULL) {
-                        printf("Failed to run command inside function %s\n",__FUNCTION__);
-                        return;
-                }
-                /* Read the output a line at a time - output it. */
-                while(fgets(path, sizeof(path)-1, fp)!=NULL)
-                {
-                        ssid_val = strchr(path,'=');
-                        strcpy(output,ssid_val+1);
-                }
-                for(count=0;output[count]!='\n';count++)
-                        val[count]=output[count];
-                val[count]='\0';
-                
-		sprintf(str1,"%s%s","ssid=",val);
-	        sprintf(str2,"%s%s","ssid=",param_value);
-                sprintf(str,"%s%s%s/%s%s","sed -i '","28s/",str1,str2,"/' /etc/hostapd_xfinity_5G.conf");//Replace string with line numbers
-		}
-                pclose(fp);
-		system(str);
-		if(InstanceNumber == 5)
-			KillHostapd_xfinity_5g();
-	}
 }
 #endif
 #if 0//LNT_EMU
@@ -2431,7 +2350,7 @@ INT wifi_getRadioStatsReceivedSignalLevel(INT radioIndex, INT signalIndex, INT *
 //Not all implementations may need this function.  If not needed for a particular implementation simply return no-error (0)
 INT wifi_applyRadioSettings(INT radioIndex) 
 {
-	if(radioIndex == 0)
+	if((radioIndex == 0) || (radioIndex == 4))
 	{
 		wifi_stopHostApd();
 		wifi_startHostApd();
@@ -2628,15 +2547,17 @@ INT wifi_getSSIDName(INT apIndex, CHAR *output)
 		else
 		snprintf(output, 64, "OOS");*/
 	//RDKB_EMULATOR
+	char ssid_val[128] = {0};
 	if(apIndex == 0)
-		strcpy(output,"wlan0");
-	else if(apIndex == 1)  //RDKB-EMU
-		strcpy(output,"wlan1");
+		GettingHostapdSsid(apIndex,"/etc/hostapd_2.4G.conf",ssid_val);
+	else if(apIndex == 1)
+		GettingHostapdSsid(apIndex,"/etc/hostapd_5G.conf",ssid_val);
 	else if(apIndex == 4)
-		strcpy(output,"wlan0_0");
+		GettingHostapdSsid(apIndex,"/etc/hostapd_2.4G.conf",ssid_val);
 	else if(apIndex == 5)
-		strcpy(output,"wlan2");
-
+		GettingHostapdSsid(apIndex,"/etc/hostapd_xfinity_5G.conf",ssid_val);
+	strcpy(output,ssid_val);
+	printf("SSID Value is %s \n",output);
 	return RETURN_OK;
 }
         
@@ -5135,42 +5056,43 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 #if 1//LNT_EMU
 	int line_no;//ssid line number in /etc/hostapd.conf
 	BOOL GetRadioEnable;
-        char buf[50] = {0},command[50] ={0};
-//For Getting Radio Status
-        wifi_getRadioEnable(apIndex,&GetRadioEnable);
-        if(apIndex == 0)
-        {
-                sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get2gRadioEnable.txt");
-                system("rm /tmp/Get2gssidEnable.txt");
-                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get2gssidEnable.txt");
-        }
-        else if(apIndex == 1)
-        {
-                sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get5gRadioEnable.txt");
-                system("rm /tmp/Get5gssidEnable.txt");
-                sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get5gssidEnable.txt");
-        }
-        system(buf);
-        system(command);
+	char buf[50] = {0},command[50] ={0};
+	//For Getting Radio Status
+	wifi_getRadioEnable(apIndex,&GetRadioEnable);
+	if(apIndex == 0)
+	{
+		sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get2gRadioEnable.txt");
+		system("rm /tmp/Get2gssidEnable.txt");
+		sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get2gssidEnable.txt");
+	}
+	else if(apIndex == 1)
+	{
+		sprintf(buf,"%s%d%s","echo ",GetRadioEnable," > /tmp/Get5gRadioEnable.txt");
+		system("rm /tmp/Get5gssidEnable.txt");
+		sprintf(command,"%s%d%s","echo ",enable," > /tmp/Get5gssidEnable.txt");
+	}
+	system(buf);
+	system(command);
 
-        if((apIndex == 0) || (apIndex == 4) || (apIndex == 1) || (apIndex == 5))
-        {
-	if((apIndex == 0) || (apIndex == 1) || (apIndex == 5)) 
-		line_no=28;//Private_Wifi
-	else
-		line_no=55;//Xfinity_wifi(Public)
-        if(enable == false) //LNT
-		//DisableWifi(apIndex,line_no);
-		DisableWifi(apIndex);
-        else
-		EnableWifi(apIndex,line_no);
-        }
+	if((apIndex == 0) || (apIndex == 4) || (apIndex == 1) || (apIndex == 5))
+	{
+		if(enable == false) 
+			DisableWifi(apIndex);
+		else
+		{
+			//EnableWifi(apIndex,line_no);
+			if(apIndex == 4)
+				wifi_applyRadioSettings(apIndex);
+			else if(apIndex == 5)
+				KillHostapd_xfinity_5g();
+		}
+	}
 
 	if((apIndex == 0) || (apIndex == 1))
-        {
-                if((GetRadioEnable == true) && (enable == true))
-                        wifi_applyRadioSettings(apIndex);
-        }
+	{
+		if((GetRadioEnable == true) && (enable == true))
+			wifi_applyRadioSettings(apIndex);
+	}
 
 #endif
 	//return RETURN_ERR;
