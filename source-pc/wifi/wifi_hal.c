@@ -453,9 +453,11 @@ void KillHostapd_5g()
 	char interface_name[512],buf[512];
         GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 	system("ps -eaf | grep hostapd_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
+	system("sleep 2");
+	system("ps -eaf | grep hostapd_xfinity_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
 	system("rmmod rtl8812au");
 	system("sleep 3");
-	system("insmod /lib/modules/3.14.4-yocto-standard/kernel/drivers/net/wireless/rtl8812au/rtl8812au.ko");
+	system("insmod /lib/modules/3.14.4-yocto-standard/rtl8812au.ko");
 	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
@@ -474,9 +476,11 @@ void KillHostapd_xfinity_5g()
 	char interface_name[512],buf[512];
         GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
 	system("ps -eaf | grep hostapd_xfinity_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
+	system("sleep 2");
+	system("ps -eaf | grep hostapd_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
 	system("rmmod rtl8812au");
 	system("sleep 3");
-	system("insmod /lib/modules/3.14.4-yocto-standard/kernel/drivers/net/wireless/rtl8812au/rtl8812au.ko");
+	system("insmod /lib/modules/3.14.4-yocto-standard/rtl8812au.ko");
 	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
@@ -1950,9 +1954,9 @@ INT wifi_setRadioOperatingChannelBandwidth(INT radioIndex, CHAR *bandwidth) //Tr
 {
 	if(strcmp(bandwidth,"40MHz") == 0)
 	{
-	if(radioIndex == 0) 
-		wifi_halsetRadioChannelBW_40("/etc/hostapd_2.4G.conf");
-	else if(radioIndex == 1)
+/*	if(radioIndex == 0) 
+		wifi_halsetRadioChannelBW_40("/etc/hostapd_2.4G.conf");*/
+	if(radioIndex == 1)
 		wifi_halsetRadioChannelBW_40("/etc/hostapd_5G.conf");
 	}
 	else if(strcmp(bandwidth,"20MHz") == 0)
