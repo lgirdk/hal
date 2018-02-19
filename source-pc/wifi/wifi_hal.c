@@ -1471,25 +1471,12 @@ INT wifi_setRadioChannelMode(INT radioIndex, CHAR *channelMode, BOOL gOnlyFlag, 
 	return RETURN_ERR;
 }
 
-char* wifi_get_possiblechannels(char PossibleChannels[256])
-{
-		FILE *fp = NULL;
-		char path[256] ={0};
-		int c = 0;
-		system(PossibleChannels);
-		fp = popen("cat /tmp/Possible_Channels.txt","r");
-		if(fp == NULL)
-			return RETURN_ERR;
-		if(fgets(path,sizeof(path),fp) != NULL);
-		pclose(fp);		
-		if(strcmp(path,"") == 0)
-			strcpy(path,"NULL");
-		return path;
-}
 //Get the list of supported channel. eg: "1-11"
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 {
+	char buf[128] = {'\0'};
+	int count = 0;	
 	if (NULL == output_string) 
 		return RETURN_ERR;
 	//snprintf(output_string, 64, (radioIndex==0)?"1-11":"36,40");
@@ -1497,47 +1484,26 @@ INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 	if(radioIndex == 0)
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g'");
 	}
 	else if(radioIndex == 1)
 	{
 		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
+		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g'");
 	}
-	else if(radioIndex == 4)
-        {
-                GetInterfaceName_virtualInterfaceName_2G(interface_name);
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
-	}
-	else if(radioIndex == 5)
-        {
-                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-		sprintf(PossibleChannels,"%s %s %s","iwlist",interface_name ,"freq  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/Possible_Channels.txt");
-	}
-	strcpy(output_string,wifi_get_possiblechannels(PossibleChannels));
-	return RETURN_OK;
-}
+	_syscmd(PossibleChannels, buf, sizeof(buf));
+	strcpy(output_string,buf);
+	printf("_%s____%s__ \n",__FUNCTION__,buf);
 
-char* wifi_gets_ChannelsInUse(char Channels[256])
-{
-                FILE *fp = NULL;
-                char path[256] ={0};
-                int c = 0;
-                system(Channels);
-                fp = popen("cat /tmp/ChannelsInUse.txt","r");
-                if(fp == NULL)
-                        return RETURN_ERR;
-                if(fgets(path,sizeof(path),fp) != NULL);
-                pclose(fp);
-		if(strcmp(path,"") == 0)
-			strcpy(path,"NULL");
-                return path;
+	return RETURN_OK;
 }
 
 //Get the list for used channel. eg: "1,6,9,11"
 //The output_string is a max length 256 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
 {
+	char buf[128] = {'\0'};
+	int count = 0;
 	if (NULL == output_string) 
 		return RETURN_ERR;
 	//snprintf(output_string, 256, (radioIndex==0)?"1,6,11":"36,40");
@@ -1545,25 +1511,16 @@ INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
         if(radioIndex == 0)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g'");
         }
         else if(radioIndex == 1)
         {
                 GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
+                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g'");
         }
-        else if(radioIndex == 4)
-        {
-                GetInterfaceName_virtualInterfaceName_2G(interface_name);
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 2'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 | sed 's/^0//g' | tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
-        }
-        else if(radioIndex == 5)
-        {
-                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-                sprintf(Channels,"%s %s %s","iwlist",interface_name ,"channel  | grep Channel | grep -v 'Current Frequency' | grep 5'\\.' | cut -d ':' -f1 | tr -s ' ' | cut -d ' ' -f3 |tr '\\n' ' ' | sed 's/ /,/g' | sed 's/,$/ /g' > /tmp/ChannelsInUse.txt");
-        }
-        strcpy(output_string,wifi_gets_ChannelsInUse(Channels));
-
+	_syscmd(Channels, buf, sizeof(buf));
+	printf("_%s____%s__ \n",__FUNCTION__,buf);
+	strcpy(output_string,buf);
 	return RETURN_OK;
 }
 
