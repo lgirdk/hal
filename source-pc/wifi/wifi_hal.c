@@ -4413,7 +4413,7 @@ INT wifi_setApRtsThreshold(INT apIndex, UINT threshold)
 }
 
 // ouputs up to a 32 byte string as either "TKIPEncryption", "AESEncryption", or "TKIPandAESEncryption"
-INT wifi_getApWpaEncryptoinMode(INT apIndex, CHAR *output_string)
+INT wifi_getApWpaEncryptionMode(INT apIndex, CHAR *output_string)
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
