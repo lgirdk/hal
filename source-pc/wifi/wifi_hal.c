@@ -2554,7 +2554,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         pclose(fp);
         sprintf(str1,"%s%s","ssid=",val);
         sprintf(str2,"%s%s","ssid=",ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '28s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
+        sprintf(str,"%s%s/%s%s","sed -i '29s/",str1,str2,"/' /etc/hostapd_2.4G.conf");//Replace string with line numbers
         system(str);
         /*KillHostapd();
         Hostapd_PrivateWifi_status(status);
@@ -2583,7 +2583,7 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
         pclose(fp);
         sprintf(str1,"%s%s","ssid=",val);
         sprintf(str2,"%s%s","ssid=",ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '28s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
+        sprintf(str,"%s%s/%s%s","sed -i '29s/",str1,str2,"/' /etc/hostapd_5G.conf");//Replace string with line numbers
         system(str);
         /*KillHostapd();
         Hostapd_PrivateWifi_status(status);
@@ -2624,17 +2624,16 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
 
         sprintf(str1,"%s%c%s",val1,'=',val);
         sprintf(str2,"%s%c%s",val1,'=',ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd_2.4G.conf");
+        sprintf(str,"%s%s/%s%s","sed -i '59s/",str1,str2,"/' /etc/hostapd_2.4G.conf");
         }
         else
         {
         sprintf(str1,"%s%s","ssid=",val);
         sprintf(str2,"%s%s","ssid=",ssid_string);
-        sprintf(str,"%s%s/%s%s","sed -i '55s/",str1,str2,"/' /etc/hostapd_2.4G.conf");
+        sprintf(str,"%s%s/%s%s","sed -i '59s/",str1,str2,"/' /etc/hostapd_2.4G.conf");
         }
         system(str);
         killXfinityWiFi();
-        printf("Before Getting the MAc Address \n");
         get_mac(&mac);
         //display uplink mac address
         printf("%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
