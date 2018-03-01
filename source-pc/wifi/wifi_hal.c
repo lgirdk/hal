@@ -457,7 +457,7 @@ void KillHostapd_5g()
 	system("ps -eaf | grep hostapd_xfinity_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
 	system("rmmod rtl8812au");
 	system("sleep 3");
-	system("insmod /lib/modules/3.14.4-yocto-standard/rtl8812au.ko");
+	system("modprobe rtl8812au");
 	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
@@ -480,7 +480,7 @@ void KillHostapd_xfinity_5g()
 	system("ps -eaf | grep hostapd_5G | grep -v grep | awk '{print $2}' | xargs kill -9");
 	system("rmmod rtl8812au");
 	system("sleep 3");
-	system("insmod /lib/modules/3.14.4-yocto-standard/rtl8812au.ko");
+	system("modprobe rtl8812au");
 	system("sleep 5");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
         system(buf);
