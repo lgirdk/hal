@@ -4342,17 +4342,37 @@ INT wifi_getApName(INT apIndex, CHAR *output_string)
 }     
        
 // Outputs the index number in that corresponds to the SSID string
-INT wifi_getIndexFromName(CHAR *inputSsidString, INT *ouput_int)
+INT wifi_getIndexFromName(CHAR *inputSsidString, INT *output_int)
 {
-    CHAR *pos=NULL;
+#if 0
+	CHAR *pos=NULL;
 
-    *ouput_int = -1;
+	*ouput_int = -1;
 	pos=strstr(inputSsidString, AP_PREFIX);
 	if(pos) {
 		sscanf(pos+sizeof(AP_PREFIX),"%d", ouput_int);
 		return RETURN_OK;
 	} 
 	return RETURN_ERR;
+#endif
+	INT status = RETURN_ERR;
+	INT num_found = 0;
+
+	printf("Invoked: inputSsidString='%s'\n", inputSsidString);
+
+	*output_int = 0;
+	if (inputSsidString != NULL)
+	{
+		num_found = sscanf(inputSsidString, "ath%d", output_int);
+		printf("Return: status = %d, ouput_int=%d\n", status, *output_int);
+	}
+
+	if(num_found == 1)
+	{
+		status = RETURN_OK;
+	}
+
+	return status;
 }
 
 // Outputs a 32 byte or less string indicating the beacon type as "None", "Basic", "WPA", "11i", "WPAand11i"
