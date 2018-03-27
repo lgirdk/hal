@@ -24,13 +24,6 @@
 
     ---------------------------------------------------------------
 
-    copyright:
-
-        Comcast, Corp., 2016
-        All Rights Reserved.
-
-    ---------------------------------------------------------------
-
     description:
 
         This sample implementation file gives the function definitions used for the RDK-Broadband 
