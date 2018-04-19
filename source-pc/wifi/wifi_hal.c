@@ -6051,9 +6051,43 @@ INT wifi_setApSecurityRadiusSettings(INT apIndex, wifi_radius_setting_t *input)
 // outputs the WPS enable state of this ap in output_bool 
 INT wifi_getApWpsEnable(INT apIndex, BOOL *output_bool)
 {
+	char buf[128] = {0};
+	char interface_name[64] = {0};
+        char Hconf[64] = {0};
+        char cmd[128] = {0};
 	if(!output_bool)
 		return RETURN_ERR;
-	*output_bool=TRUE;
+	//*output_bool=TRUE;
+	if((apIndex == 0) || (apIndex == 1))
+	{
+	if(apIndex == 0)
+	{
+	       GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+               strcpy(Hconf,"/etc/hostapd_2.4G.conf");
+	}
+	else if(apIndex == 1)
+	{
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+                strcpy(Hconf,"/etc/hostapd_5G.conf");
+	}
+	else
+	{
+		printf(" Invalid apIndex Value \n");
+	}
+	sprintf(cmd,"%s%s%s","cat ",Hconf," | grep wps_state | cut -d '=' -f1");
+	_syscmd(cmd,buf, sizeof(buf));
+        if(strlen(buf)>0)
+        {
+                if(buf[0] == '#')
+                {
+                        *output_bool=FALSE;
+                }
+                else
+                {
+                        *output_bool=TRUE;
+                }
+        }
+	}
 	return RETURN_OK;
 }        
 
@@ -6061,7 +6095,35 @@ INT wifi_getApWpsEnable(INT apIndex, BOOL *output_bool)
 INT wifi_setApWpsEnable(INT apIndex, BOOL enableValue)
 {
 	//store the paramters, and wait for wifi up to apply
-	return RETURN_ERR;
+	//return RETURN_ERR;
+	char buf[256] = {0};
+	char interface_name[128] = {0};
+	char Hconf[128] = {0};
+	//store the paramters, and wait for wifi up to apply
+	if((apIndex == 0) || (apIndex == 1))
+	{
+		if(apIndex == 0)
+		{
+			GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+			strcpy(Hconf,"/etc/hostapd_2.4G.conf");
+		}
+		else if(apIndex == 1)
+		{
+			GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+			strcpy(Hconf,"/etc/hostapd_5G.conf");
+		}
+		if(enableValue == FALSE)
+		{
+			sprintf(buf,"%s%c%s%s%c %s","sed -i ",'"',"/wps_state=2/ s/^/","#/",'"',Hconf);
+		}
+		else
+		{
+			sprintf(buf,"%s%c%s%c %s","sed -i ",'"',"/wps_state=2/ s/^#*//",'"',Hconf);
+		}
+		system(buf);
+		wifi_applyRadioSettings(apIndex);
+	}
+	return RETURN_OK;
 }        
 
 //Comma-separated list of strings. Indicates WPS configuration methods supported by the device. Each list item is an enumeration of: USBFlashDrive,Ethernet,ExternalNFCToken,IntegratedNFCToken,NFCInterface,PushButton,PIN
@@ -6077,9 +6139,41 @@ INT wifi_getApWpsConfigMethodsSupported(INT apIndex, CHAR *output)
 // Outputs a common separated list of the enabled WPS config methods, 64 bytes max
 INT wifi_getApWpsConfigMethodsEnabled(INT apIndex, CHAR *output)
 {
+	char buf[128] = {0};
+	char cmd[256] = {0};
+	char interface_name[64] ={0};
+	char Hconf[64] ={0};
 	if(!output)
 		return RETURN_ERR;
-	snprintf(output, 128, "PushButton,PIN");
+	//snprintf(output, 128, "PushButton,PIN");
+	if((apIndex == 0) || (apIndex == 1))
+	{
+		if(apIndex == 0)
+		{
+			GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+			strcpy(Hconf,"/etc/hostapd_2.4G.conf");
+		}
+		else if(apIndex == 1)
+		{
+			GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+			strcpy(Hconf,"/etc/hostapd_5G.conf");
+		}
+		sprintf(cmd,"%s%s%s","cat ",Hconf," | grep config_methods | cut -d '=' -f2 | sed 's/ /,/g' | sed 's/,$/ /g'");
+		_syscmd(cmd,buf, sizeof(buf));
+		if(strlen(buf) > 0)
+		{
+			if(strstr(buf, "label")!=NULL)
+				strcat(output, "Label,");
+			if(strstr(buf, "display")!=NULL)
+				strcat(output, "Display,");
+			if(strstr(buf, "push_button")!=NULL)
+				strcat(output, "PushButton,");
+			if(strstr(buf, "keypad")!=NULL)
+				strcat(output, "Keypad,");
+			if(strlen(output))
+				output[strlen(output)-1] = '\0';
+		}
+	}
 	return RETURN_OK;
 }
 
@@ -6087,23 +6181,121 @@ INT wifi_getApWpsConfigMethodsEnabled(INT apIndex, CHAR *output)
 INT wifi_setApWpsConfigMethodsEnabled(INT apIndex, CHAR *methodString)
 {
 	//apply instantly. No setting need to be stored. 
-	return RETURN_ERR;
+	char buf[128] = {0};
+	char cmd[256] = {0};
+	char Hconf[64] = {0};
+	char local_config_methods[128] = {0};
+	if(strstr(methodString, "PushButton"))
+	{
+		if(strlen(local_config_methods) == 0)
+			strcat(local_config_methods, "push_button");
+		else
+			strcat(local_config_methods, " push_button");
+
+	}
+
+	if(strstr(methodString, "Keypad"))
+	{
+		if(strlen(local_config_methods) == 0)
+			strcat(local_config_methods, "keypad");
+		else
+			strcat(local_config_methods, " keypad");
+	}
+
+	if(strstr(methodString, "Label"))
+	{
+		if(strlen(local_config_methods) == 0)
+			strcat(local_config_methods, "label");
+		else
+			strcat(local_config_methods, " label");
+
+	}
+
+	if(strstr(methodString, "Display"))
+	{
+		if(strlen(local_config_methods) == 0)
+			strcat(local_config_methods, "display");
+		else
+			strcat(local_config_methods, " display");
+	}
+
+	if((apIndex == 0) || (apIndex == 1))
+	{
+		if(apIndex == 0)
+		{
+			strcpy(Hconf,"/etc/hostapd_2.4G.conf");
+		}
+		else if(apIndex == 1)
+		{
+			strcpy(Hconf,"/etc/hostapd_5G.conf");
+		}
+		sprintf(buf,"sed -i '/config_methods=/d' %s",Hconf);
+		sleep(2);
+		system(buf);
+		if(strcmp(local_config_methods,"push_button") == 0)
+			sprintf(buf,"echo config_methods=%s >> %s",local_config_methods,Hconf);
+		else if(strcmp(local_config_methods,"keypad label display") == 0)
+			sprintf(buf,"echo config_methods=%s >> %s",local_config_methods,Hconf);
+		else if(strcmp(local_config_methods,"push_button keypad label display") == 0)
+			sprintf(buf,"echo config_methods=%s >> %s",local_config_methods,Hconf);
+		system(buf);
+		wifi_applyRadioSettings(apIndex);
+	}
+	return RETURN_OK;
+	//return RETURN_ERR;
 }
 
 // outputs the pin value, ulong_pin must be allocated by the caller
 INT wifi_getApWpsDevicePIN(INT apIndex, ULONG *output_ulong)
 {
+	char buf[128] = {0};
+	char cmd[256] = {0};
+	char Hconf[64] = {0};
 	if(!output_ulong)
 		return RETURN_ERR;
-	*output_ulong=45276457;
+	if((apIndex == 0) || (apIndex == 1))
+	{
+		if(apIndex == 0)
+		{
+			strcpy(Hconf,"/etc/hostapd_2.4G.conf");
+		}
+		else if(apIndex == 1)
+		{
+			strcpy(Hconf,"/etc/hostapd_5G.conf");
+		}
+		sprintf(cmd,"%s%s%s","cat ",Hconf," | grep ap_pin | cut -d '=' -f2");
+		_syscmd(cmd,buf, sizeof(buf));
+		if(strlen(buf) > 0)
+			*output_ulong=atoi(buf);
+	}
 	return RETURN_OK;
 }
 
 // set an enviornment variable for the WPS pin for the selected AP. Normally, Device PIN should not be changed.
 INT wifi_setApWpsDevicePIN(INT apIndex, ULONG pin)
 {
+	char buf[128] ={0};
+	char Hconf[64] = {0};
+	char ap_pin[128] = {0};
 	//set the pin to wifi config and hostpad config. wait for wifi reset or hostapd reset to apply 
-	return RETURN_ERR;
+	ULONG prev_pin = 0;
+        sprintf(ap_pin, "%ld", pin);
+        wifi_getApWpsDevicePIN(apIndex,&prev_pin);
+	if((apIndex == 0) || (apIndex == 1))
+	{
+	if(apIndex == 0)
+	{
+		strcpy(Hconf,"hostapd_2.4G.conf");
+	}
+	else if(apIndex == 1)
+	{
+		strcpy(Hconf,"hostapd_5G.conf");
+	}
+	sprintf(buf,"%s%ld%s%ld%s%s","sed -i 's/ap_pin=",prev_pin,"/ap_pin=",pin,"/g' /etc/",Hconf);
+	system(buf);
+	wifi_applyRadioSettings(apIndex);
+	}
+	//return RETURN_ERR;
 }    
 
 // Output string is either Not configured or Configured, max 32 characters
@@ -6111,16 +6303,23 @@ INT wifi_getApWpsConfigurationState(INT apIndex, CHAR *output_string)
 {
 	char cmd[64];
 	char buf[512]={0};
+	char interface_name[64] = {0};
 	char *pos=NULL;
 
 	snprintf(output_string, 64, "Not configured");
-
-	sprintf(cmd, "hostapd_cli -i %s%d get_config", AP_PREFIX, apIndex);
+	if((apIndex == 0) || (apIndex == 1))
+	{
+	if(apIndex == 0)
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	else if(apIndex == 1)
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+	sprintf(cmd, "hostapd_cli -i %s get_config",interface_name);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((pos=strstr(buf, "wps_state="))!=NULL) {
 		if (strstr(pos, "configured")!=NULL)
 			snprintf(output_string, 64, "Configured");
+	}
 	}
 	return RETURN_OK;
 }
@@ -6130,23 +6329,33 @@ INT wifi_setApWpsEnrolleePin(INT apIndex, CHAR *pin)
 {
 	char cmd[64];
 	char buf[256]={0};
+	char interface_name[64] = {0};
 	BOOL enable;
-
+	if((apIndex == 0) || (apIndex == 1))
+	{
 	wifi_getApEnable(apIndex, &enable);
 	if (!enable) 
+	{
 		return RETURN_ERR; 
+	}
 
 	wifi_getApWpsEnable(apIndex, &enable);
 	if (!enable) 
+	{
 		return RETURN_ERR; 
-
-	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_pin any %s", AP_PREFIX, apIndex, pin);
+	}
+	if(apIndex == 0)
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	else if(apIndex == 1)
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+	snprintf(cmd, 64, "hostapd_cli -i%s wps_pin any %s", interface_name,pin);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
 		return RETURN_OK;
 	else
 		return RETURN_ERR;
+	}
 }
 
 // This function is called when the WPS push button has been pressed for this AP
@@ -6154,8 +6363,11 @@ INT wifi_setApWpsButtonPush(INT apIndex)
 {
 	char cmd[64];
 	char buf[256]={0};
+	char interface_name[64] = {0};
 	BOOL enable;
 
+	if((apIndex == 0) || (apIndex == 1))
+	{
 	wifi_getApEnable(apIndex, &enable);
 	if (!enable) 
 		return RETURN_ERR; 
@@ -6164,13 +6376,19 @@ INT wifi_setApWpsButtonPush(INT apIndex)
 	if (!enable) 
 		return RETURN_ERR; 
 
-	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_cancel; hostapd_cli -i%s%d wps_pbc", AP_PREFIX, apIndex, AP_PREFIX, apIndex);
+	if(apIndex == 0)
+                GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+        else if(apIndex == 1)
+                GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
+
+	snprintf(cmd, 64, "hostapd_cli -i%s wps_pbc",interface_name);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
 		return RETURN_OK;
 	else
 		return RETURN_ERR;
+	}
 }
 
 // cancels WPS mode for this AP
@@ -6178,14 +6396,22 @@ INT wifi_cancelApWPS(INT apIndex)
 {
 	char cmd[64];
 	char buf[256]={0};
+	char interface_name[64] = {0};
+	if((apIndex == 0) || (apIndex == 1))
+        {
+	if(apIndex == 0)
+		GetInterfaceName(interface_name,"/etc/hostapd_2.4G.conf");
+	else if(apIndex == 1)
+		GetInterfaceName(interface_name,"/etc/hostapd_5G.conf");
 
-	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_cancel", AP_PREFIX, apIndex);
+	snprintf(cmd, 64, "hostapd_cli -i%s wps_cancel",interface_name);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
 		return RETURN_OK;
 	else
 		return RETURN_ERR;
+	}
 }                                 
 
 INT wifihal_AssociatedDevicesstats(INT apIndex,CHAR *interface_name,wifi_associated_dev_t **associated_dev_array, UINT *output_array_size)
