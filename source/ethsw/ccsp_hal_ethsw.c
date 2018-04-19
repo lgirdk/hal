@@ -537,3 +537,13 @@ CcspHalEthSwLocatePortByMacAddress
 
     return  RETURN_OK;
 }
+
+INT
+CcspHalExtSw_getAssociatedDevice
+    (
+        unsigned long * output_array_size,
+        eth_device_t **	output_struct
+    )
+{
+    return  RETURN_OK;
+}
