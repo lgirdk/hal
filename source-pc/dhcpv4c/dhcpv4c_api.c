@@ -1068,17 +1068,54 @@ void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PO
 	}
 }
 /*
- *  Procedure         : CcspHalGetInterfaceEnableDetails
+ *  Procedure         : CcspHalSetInterfaceEnableDetails
  *  Purpose           : To check the LAN and WAN Enable Status in Emulator
  *
  *  Parameters        : 
  *     InstanceNumber : Having Instance Number of Interface
+ *     enable         : Having current interface status
  *  Return_values     : The status of the operation
  *     @retval true , if successful
  *     @retval false , if any error is detected
  */
 
-bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber)
+INT CcspHalSetInterfaceEnableDetails(INT index,bool enable)
+{
+	char interface_name[64] = {0};
+	char buf[128] = {0};
+	if(enable == false)
+	{
+	if(index == 1)
+		strcpy(buf,"ifconfig eth1 down");
+	else if(index == 2)
+		strcpy(buf,"ifconfig eth0 down");
+	else if(index == 3)
+		strcpy(buf,"ifconfig eth2 down");
+	}
+	else
+	{
+	if(index == 1)
+		strcpy(buf,"ifconfig eth1 up");
+	else if(index == 2)
+		strcpy(buf,"ifconfig eth0 up");
+	else if(index == 3)
+		strcpy(buf,"ifconfig eth2 up");
+	}
+	system(buf);
+	return 0;
+}
+/*
+ *  Procedure         : CcspHalGetInterfaceEnableDetails
+ *  Purpose           : To check the LAN and WAN Enable Status in Emulator
+ *
+ *  Parameters        : 
+ *     InstanceNumber : Having Instance Number of Interface
+ *     enable         : Having current status of interface
+ *  Return_values     : The status of the operation
+ *     @retval true , if successful
+ *     @retval false , if any error is detected
+ */
+INT CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber,bool *enable)
 {
         FILE *fp;
         char path[256] = {0},status[100] = {0};
@@ -1099,9 +1136,9 @@ bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber)
                 }
                 pclose(fp);
                 if(strcmp(status,"1") == 0)
-                        return true;
+                        *enable = true;
                 else
-                        return false;
+                        *enable =  false;
         }
         else if (InstanceNumber == 2)
         {
@@ -1119,9 +1156,9 @@ bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber)
                 }
                 pclose(fp);
                 if(strcmp(status,"1") == 0)
-                        return true;
+                        *enable = true;
                 else
-                        return false;
+                        *enable = false;
         }
 	else if (InstanceNumber == 3)
         {
@@ -1139,9 +1176,9 @@ bool CcspHalGetInterfaceEnableDetails(ULONG InstanceNumber)
                 }
                 pclose(fp);
                 if(strcmp(status,"1") == 0)
-                        return true;
+                        *enable = true;
                 else
-                        return false;
+                        *enable = false;
         }
 }
 
