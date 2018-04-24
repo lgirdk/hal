@@ -92,6 +92,14 @@ int _syscmd(char *cmd, char *retBuf, int retBufSize)
     return 0;
 }
 
+wifi_apAuthEvent_callback apAuthEvent_cb = NULL;
+
+void wifi_apAuthEvent_callback_register(wifi_apAuthEvent_callback callback_proc)
+{
+    return;
+}
+
+
 /**********************************************************************************
  *
  *  Wifi Subsystem level function prototypes 
