@@ -6138,7 +6138,7 @@ INT wifi_getApWpsConfigMethodsSupported(INT apIndex, CHAR *output)
 {
 	if(!output)
 		return RETURN_ERR;
-	snprintf(output, 128, "PushButton,PIN");
+	snprintf(output, 128, "PushButton,Label,Display,Keypad");
 	return RETURN_OK;
 }			
 
