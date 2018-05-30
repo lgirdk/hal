@@ -99,7 +99,7 @@ rm -f wifi_clients.txt
 fi
 
 ################### Getting wlan0_0 mac Address(public wifi) #############
-sh /lib/rdk/Getting_wlan0_0_mac.sh wlan0
+#sh /lib/rdk/Getting_wlan0_0_mac.sh wlan0
 
 ############################ iptables-restore ########################
 iptables-restore < /etc/iptables/rules.v4
@@ -141,3 +141,4 @@ Driver_Count=`lsmod | grep rtl8812au | wc -l`
 	if [ $Driver_Count == 0 ]; then
 		modprobe rtl8812au
 	fi
+
