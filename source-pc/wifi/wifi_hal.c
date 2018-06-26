@@ -604,10 +604,6 @@ void xfinitywifi_2g(int ssidIndex)
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	bool ssidEnable = 0;
-	char interface_name[50] = {0},buf[50] = {0};
-        GetInterfaceName(interface_name,"/nvram/hostapd4.conf");
-	sprintf(buf,"%s%s","rm /var/run/hostapd/",interface_name);
-	system(buf);
 	wifi_getSSIDEnable(ssidIndex,&ssidEnable);	
 	if(ssidEnable == TRUE)
 	        system("hostapd -B /nvram/hostapd4.conf");
@@ -619,10 +615,6 @@ void privatewifi_2g(int ssidIndex)
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	bool ssidEnable = 0;
-	char interface_name[50] = {0},buf[50] = {0};
-        GetInterfaceName(interface_name,"/nvram/hostapd0.conf");
-	sprintf(buf,"%s%s","rm /var/run/hostapd/",interface_name);
-	system(buf);
         wifi_getSSIDEnable(ssidIndex,&ssidEnable); 
         if(ssidEnable == TRUE) 
 	        system("hostapd -B /nvram/hostapd0.conf");
@@ -688,10 +680,6 @@ void xfinitywifi_5g(int ssidIndex)
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	bool ssidEnable = 0;
-	char interface_name[50] = {0},buf[50] = {0};
-        GetInterfaceName(interface_name,"/nvram/hostapd5.conf");
-	sprintf(buf,"%s%s","rm /var/run/hostapd/",interface_name);
-	system(buf);
         wifi_getSSIDEnable(ssidIndex,&ssidEnable);
         if(ssidEnable == TRUE) 
 		system("hostapd -B /nvram/hostapd5.conf");
@@ -703,10 +691,6 @@ void privatewifi_5g(int ssidIndex)
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	bool ssidEnable = 0;
-	char interface_name[50] = {0},buf[50] = {0};
-        GetInterfaceName(interface_name,"/nvram/hostapd1.conf");
-	sprintf(buf,"%s%s","rm /var/run/hostapd/",interface_name);
-	system(buf);
         wifi_getSSIDEnable(ssidIndex,&ssidEnable);
         if(ssidEnable == TRUE) 
 		system("hostapd -B /nvram/hostapd1.conf");
@@ -824,11 +808,11 @@ void defaultwifi_restarting_process()
 	else if(wireless_interface_count == 4)
 	{
 		system("killall hostapd");
-		sleep(2);
+		sleep(1);
 		system("rmmod rtl8812au");
 		sleep(1);
 		system("modprobe rtl8812au");
-		sleep(2);
+		sleep(1);
 		privatewifi_5g(1);
 		privatewifi_2g(0);
 		xfinitywifi_2g(4);
@@ -884,11 +868,11 @@ int hostapd_restarting_process(int apIndex)
 		else if(wireless_interface_count == 4)
 		{
 			system("killall hostapd");
-			sleep(2);
+			sleep(1);
 			system("rmmod rtl8812au");
 			sleep(1);
 			system("modprobe rtl8812au");
-			sleep(2);
+			sleep(1);
 			privatewifi_5g(1);
 			privatewifi_2g(0);
 			xfinitywifi_2g(4);

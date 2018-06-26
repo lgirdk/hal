@@ -220,9 +220,9 @@ int do_parentalControl_Addrule_Devices()
         char cmd[1024];
 	if(!ParentalControlDevice)
 	{
-		sprintf(cmd,"iptables -N  ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -N  ParentalControl_Devices  ");
 		system(cmd);
-		sprintf(cmd,"iptables -I INPUT -j ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -I PREROUTING -j ParentalControl_Devices  ");
 		system(cmd);
 		ParentalControlDevice = 1;
 	}
@@ -262,11 +262,11 @@ int do_parentalControl_Delrule_Devices()
         char cmd[1024];
 	if(ParentalControlDevice)
 	{
-		sprintf(cmd,"iptables -F  ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -F  ParentalControl_Devices  ");
 		system(cmd);
-		sprintf(cmd,"iptables -D INPUT -j ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -D PREROUTING -j ParentalControl_Devices  ");
 		system(cmd);
-		sprintf(cmd,"iptables -X  ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -X  ParentalControl_Devices  ");
 		system(cmd);
 		ParentalControlDevice = 0;
 	}
@@ -420,16 +420,16 @@ int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
 {
 	  int i;
           char newvar[1024];
-          char cmd[1024]= {'\0'};
+          char cmd[1024]= {'\0'},exe_cmd[1024]={'\0'};
           char protocol1[10];
           char action[15];
 	  switch(OPERATION)
           {
                   case ADD:
-                        strcpy(newvar,"iptables  -A  ParentalControl_Devices ");
+                        strcpy(newvar,"iptables -t nat  -A  ParentalControl_Devices ");
                           break;
                   case DELETE:
-                        strcpy(newvar,"iptables -D  ParentalControl_Devices ");
+                        strcpy(newvar,"iptables -t nat -D  ParentalControl_Devices ");
                           break;
           }
 
@@ -438,26 +438,30 @@ int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
           {
                 if(i_MDDevs->Type == MD_TYPE_BLOCK)
                 {
-	                sprintf(action,"DROP");
-			snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+	                sprintf(action,"REDIRECT");
+			snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+			snprintf(exe_cmd,sizeof(exe_cmd),"%s -p udp ! --dport 67 -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+			system(exe_cmd);
                 }
                 else if(i_MDDevs->Type == MD_TYPE_ALLOW)
                 {
 		       sprintf(action,"ACCEPT");
-                       snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+                       snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
                 }
 	 }
 	 else
          {
                if(i_MDDevs->Type == MD_TYPE_BLOCK)
                {
-	                sprintf(action,"DROP");
-                        snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+	                sprintf(action,"REDIRECT");
+                        snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+                        snprintf(exe_cmd,sizeof(exe_cmd),"%s -p udp ! --dport 67 -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+			system(exe_cmd);
                }
                else if(i_MDDevs->Type == MD_TYPE_ALLOW)
                {
 		        sprintf(action,"ACCEPT");
-                        snprintf(cmd,sizeof(cmd),"%s  -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+                        snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
                }
           }
           system(cmd);
