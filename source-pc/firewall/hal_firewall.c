@@ -108,6 +108,7 @@ int ParentalControlSite=0; //Disable   ParentalControl
 int ParentalControlService=0; //Disable   ParentalControl
 int ParentalControlDevice=0; //Disable   ParentalControl
 
+
 /*
  *  Procedure     : to_syslog_level
  *  Purpose       : convert syscfg log_level to syslog level
@@ -419,17 +420,20 @@ int do_parentalControl_Services(int OPERATION,COSA_DML_MS_SERV *i_MSServs)
 int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
 {
 	  int i;
-          char newvar[1024];
+          char newvar[1024] = {'\0'};
+	  char exec_cmd[512] = {'\0'};
           char cmd[1024]= {'\0'},exe_cmd[1024]={'\0'};
           char protocol1[10];
-          char action[15];
+          char action[100] = {0};
 	  switch(OPERATION)
           {
                   case ADD:
-                        strcpy(newvar,"iptables -t nat  -A  ParentalControl_Devices ");
+                        strcpy(newvar,"iptables -t nat  -A  ParentalControl_Devices");
+			strcpy(exec_cmd,"iptables -I FORWARD");
                           break;
                   case DELETE:
-                        strcpy(newvar,"iptables -t nat -D  ParentalControl_Devices ");
+                        strcpy(newvar,"iptables -t nat -D  ParentalControl_Devices");
+			strcpy(exec_cmd,"iptables -D FORWARD");
                           break;
           }
 
@@ -438,9 +442,13 @@ int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
           {
                 if(i_MDDevs->Type == MD_TYPE_BLOCK)
                 {
-	                sprintf(action,"REDIRECT");
+	                sprintf(action,"prerouting_redirect");
 			snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
 			snprintf(exe_cmd,sizeof(exe_cmd),"%s -p udp ! --dport 67 -m mac --mac-source %s -m time --timestart %s --timestop %s --weekdays %s -j %s",newvar,i_MDDevs->MACAddress,i_MDDevs->StartTime,i_MDDevs->EndTime,i_MDDevs->BlockDays,action);
+			system(exe_cmd);
+			sprintf(exe_cmd,"iptables -D FORWARD -p icmp -m mac --mac-source %s -j DROP",i_MDDevs->MACAddress);
+			system(exe_cmd);
+			snprintf(exe_cmd,sizeof(exe_cmd),"%s -p icmp -m mac --mac-source %s -j DROP",exec_cmd,i_MDDevs->MACAddress);
 			system(exe_cmd);
                 }
                 else if(i_MDDevs->Type == MD_TYPE_ALLOW)
@@ -453,9 +461,13 @@ int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
          {
                if(i_MDDevs->Type == MD_TYPE_BLOCK)
                {
-	                sprintf(action,"REDIRECT");
+	                sprintf(action,"prerouting_redirect");
                         snprintf(cmd,sizeof(cmd),"%s -p tcp -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
                         snprintf(exe_cmd,sizeof(exe_cmd),"%s -p udp ! --dport 67 -m mac --mac-source %s -j %s",newvar,i_MDDevs->MACAddress,action);
+			system(exe_cmd);
+			sprintf(exe_cmd,"iptables -D FORWARD -p icmp -m mac --mac-source %s -j DROP",i_MDDevs->MACAddress);
+			system(exe_cmd);
+			snprintf(exe_cmd,sizeof(exe_cmd),"%s -p icmp -m mac --mac-source %s -j DROP",exec_cmd,i_MDDevs->MACAddress);
 			system(exe_cmd);
                }
                else if(i_MDDevs->Type == MD_TYPE_ALLOW)
@@ -1798,6 +1810,11 @@ int BasicRouting_Wan2Lan_SetupConnection()
         system("iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE");
         system("iptables -A FORWARD -i eth0 -o brlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT");
         system("iptables -A FORWARD -i brlan0 -o eth0 -j ACCEPT");
+	system("iptables -t nat -N prerouting_redirect");
+	system("iptables -t nat -A prerouting_redirect -p tcp --dport 80 -j DNAT --to-destination 0.0.0.0:21515");
+	system("iptables -t nat -A prerouting_redirect -p tcp --dport 443 -j DNAT --to-destination 0.0.0.0:21515");
+	system("iptables -t nat -A prerouting_redirect -p tcp  -j DNAT --to-destination 0.0.0.0:21515");
+	system("iptables -t nat -A prerouting_redirect -p udp ! --dport 53 -j DNAT --to-destination 0.0.0.0:21515");
         return 0;
 }
 

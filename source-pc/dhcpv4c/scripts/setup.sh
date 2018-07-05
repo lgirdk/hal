@@ -18,6 +18,16 @@
 # limitations under the License.
 #######################################################################################
 
+#### ParentalControl(ManagedDevice)
+
+if [ -f "/etc/partners_defaults.json" ]
+then
+	CheckingFileLocation=`cat /etc/partners_defaults.json | grep PauseScreenFileLocation | head -n1 | grep usr | wc -l`
+	if [ "$CheckingFileLocation" == 1 ]; then
+		sed -i '31s/usr\/www/opt\/www\/xb3\/code/g' /etc/partners_defaults.json
+	fi
+fi
+
 ########## Creating Interface and Waiting for interface to be up ####################
 brctl addbr brlan0
 
@@ -142,3 +152,11 @@ Driver_Count=`lsmod | grep rtl8812au | wc -l`
 		modprobe rtl8812au
 	fi
 
+############################################# ParentalControl(Managed Device) ############################
+
+if [ ! -d "/tmp/pcontrol" ]                                                                                       
+then                                                                                
+     mkdir /tmp/pcontrol                                               
+     cp -rf /usr/www/cmn/ /tmp/pcontrol                                                            
+     cp /usr/www/index_pcontrol.php /tmp/pcontrol/index.php
+fi 
