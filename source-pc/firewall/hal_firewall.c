@@ -166,6 +166,7 @@ int get_syslog_level()
 	fclose(fp);
 	return level;
 }
+
 int prepare_globals_from_configuration(struct custom_option *option)
 {
       isPingBlocked = option->isPingBlocked;
@@ -223,7 +224,7 @@ int do_parentalControl_Addrule_Devices()
 	{
 		sprintf(cmd,"iptables -t nat -N  ParentalControl_Devices  ");
 		system(cmd);
-		sprintf(cmd,"iptables -t nat -I PREROUTING -j ParentalControl_Devices  ");
+		sprintf(cmd,"iptables -t nat -A PREROUTING  -j ParentalControl_Devices  ");
 		system(cmd);
 		ParentalControlDevice = 1;
 	}
@@ -1806,6 +1807,27 @@ sprintf(buf,"%s %lu,%lu %s %s%s%s %s","iptables -A  RemoteManagement -p tcp -m m
 /********************** ROUTING CONNECTION WAN2LAN SET UP *****************/
 int BasicRouting_Wan2Lan_SetupConnection()
 {
+	char str[1024] = {0};
+	char lan_netmask[16]="";
+        char lan_ipaddr[16]="";
+	struct NetworkDetails netDetails;
+        uint32_t wanip;
+        uint32_t  lanip;
+        uint32_t  netmask;
+        wanip = CosaUtilGetIfAddr(UPLINK_IF_NAME);
+        *(uint32_t *)(netDetails.WanIPAddress).Dot =wanip;
+        lanip = CosaUtilGetIfAddr(UPLINKBR_IF_NAME);
+        netmask=CosaUtilIoctlXXX(UPLINKBR_IF_NAME,"netmask",NULL);
+        *(uint32_t *)(netDetails.LanIPAddress).Dot = lanip;
+        *(uint32_t *)(netDetails.LanSubnetMask).Dot = netmask;
+
+	sprintf(lan_ipaddr, "%d.%d.%d.%d\0", (netDetails.LanIPAddress).Dot[0],\
+              (netDetails.LanIPAddress).Dot[1], (netDetails.LanIPAddress).Dot[2],\
+              (netDetails.LanIPAddress).Dot[3] );
+        sprintf(lan_netmask, "%d.%d.%d.%d\0", (netDetails.LanSubnetMask).Dot[0],\
+              (netDetails.LanSubnetMask).Dot[1],(netDetails.LanSubnetMask).Dot[2],\
+              (netDetails.LanSubnetMask).Dot[3]);
+
         system("echo 1 > /proc/sys/net/ipv4/ip_forward");
         system("iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE");
         system("iptables -A FORWARD -i eth0 -o brlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT");
@@ -1815,6 +1837,11 @@ int BasicRouting_Wan2Lan_SetupConnection()
 	system("iptables -t nat -A prerouting_redirect -p tcp --dport 443 -j DNAT --to-destination 0.0.0.0:21515");
 	system("iptables -t nat -A prerouting_redirect -p tcp  -j DNAT --to-destination 0.0.0.0:21515");
 	system("iptables -t nat -A prerouting_redirect -p udp ! --dport 53 -j DNAT --to-destination 0.0.0.0:21515");
+	system("iptables -t nat -N prerouting_mgmt_override");
+	system("iptables -t nat -I PREROUTING 1 -j prerouting_mgmt_override");
+	system("iptables -t nat -F prerouting_mgmt_override");
+	sprintf(str,"%s%s%s%s%s%s%s","iptables -t nat -I prerouting_mgmt_override -s ",lan_ipaddr,"/",lan_netmask," -d ",lan_ipaddr," -p tcp --dport 80 -j ACCEPT");
+	system(str);
         return 0;
 }
 
