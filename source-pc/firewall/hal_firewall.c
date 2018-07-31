@@ -429,7 +429,7 @@ int do_parentalControl_Devices(int OPERATION,COSA_DML_MD_DEV *i_MDDevs)
 	  switch(OPERATION)
           {
                   case ADD:
-                        strcpy(newvar,"iptables -t nat  -A  ParentalControl_Devices");
+                        strcpy(newvar,"iptables -t nat  -I  ParentalControl_Devices");
 			strcpy(exec_cmd,"iptables -I FORWARD");
                           break;
                   case DELETE:
@@ -1810,23 +1810,33 @@ int BasicRouting_Wan2Lan_SetupConnection()
 	char str[1024] = {0};
 	char lan_netmask[16]="";
         char lan_ipaddr[16]="";
+	char wan_netmask[16]="";
+        char wan_ipaddr[16]="";
 	struct NetworkDetails netDetails;
         uint32_t wanip;
         uint32_t  lanip;
-        uint32_t  netmask;
-        wanip = CosaUtilGetIfAddr(UPLINK_IF_NAME);
-        *(uint32_t *)(netDetails.WanIPAddress).Dot =wanip;
+        uint32_t  netmask,w_netmask;
         lanip = CosaUtilGetIfAddr(UPLINKBR_IF_NAME);
         netmask=CosaUtilIoctlXXX(UPLINKBR_IF_NAME,"netmask",NULL);
         *(uint32_t *)(netDetails.LanIPAddress).Dot = lanip;
         *(uint32_t *)(netDetails.LanSubnetMask).Dot = netmask;
-
 	sprintf(lan_ipaddr, "%d.%d.%d.%d\0", (netDetails.LanIPAddress).Dot[0],\
               (netDetails.LanIPAddress).Dot[1], (netDetails.LanIPAddress).Dot[2],\
               (netDetails.LanIPAddress).Dot[3] );
         sprintf(lan_netmask, "%d.%d.%d.%d\0", (netDetails.LanSubnetMask).Dot[0],\
               (netDetails.LanSubnetMask).Dot[1],(netDetails.LanSubnetMask).Dot[2],\
               (netDetails.LanSubnetMask).Dot[3]);
+
+        wanip = CosaUtilGetIfAddr(UPLINK_IF_NAME);
+        w_netmask = CosaUtilIoctlXXX(UPLINK_IF_NAME,"netmask",NULL);
+	*(uint32_t *)(netDetails.WanIPAddress).Dot = wanip;
+        *(uint32_t *)(netDetails.WanSubnetMask).Dot = w_netmask;
+	sprintf(wan_ipaddr, "%d.%d.%d.%d\0", (netDetails.WanIPAddress).Dot[0],\
+              (netDetails.WanIPAddress).Dot[1], (netDetails.WanIPAddress).Dot[2],\
+              (netDetails.WanIPAddress).Dot[3] );
+        sprintf(wan_netmask, "%d.%d.%d.%d\0", (netDetails.WanSubnetMask).Dot[0],\
+              (netDetails.WanSubnetMask).Dot[1], (netDetails.WanSubnetMask).Dot[2],\
+              (netDetails.WanSubnetMask).Dot[3] );
 
         system("echo 1 > /proc/sys/net/ipv4/ip_forward");
         system("iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE");
@@ -1841,6 +1851,8 @@ int BasicRouting_Wan2Lan_SetupConnection()
 	system("iptables -t nat -I PREROUTING 1 -j prerouting_mgmt_override");
 	system("iptables -t nat -F prerouting_mgmt_override");
 	sprintf(str,"%s%s%s%s%s%s%s","iptables -t nat -I prerouting_mgmt_override -s ",lan_ipaddr,"/",lan_netmask," -d ",lan_ipaddr," -p tcp --dport 80 -j ACCEPT");
+	system(str);
+	sprintf(str,"%s%s%s%s%s%s%s","iptables -t nat -A prerouting_mgmt_override -s ",wan_ipaddr,"/",wan_netmask," -d ",wan_ipaddr," -j ACCEPT");
 	system(str);
         return 0;
 }
