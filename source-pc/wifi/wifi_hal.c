@@ -3158,7 +3158,8 @@ INT wifi_applyRadioSettings(INT radioIndex)
 			wifi_startHostApd();
 		}
 	}
-	hostapd_restarting_process(radioIndex);
+	else
+		hostapd_restarting_process(radioIndex);
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
 	return RETURN_OK;
 }
@@ -4772,7 +4773,7 @@ INT wifi_getIndexFromName(CHAR *inputSsidString, INT *output_int)
 	*output_int = 0;
 	if (inputSsidString != NULL)
 	{
-		num_found = sscanf(inputSsidString, "wlan%d", output_int);
+		num_found = sscanf(inputSsidString, "ath%d", output_int);
 		printf("Return: status = %d, ouput_int=%d\n", status, *output_int);
 	}
 
