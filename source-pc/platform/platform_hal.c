@@ -61,30 +61,42 @@ INT platform_hal_DocsisParamsDBInit(void) { return RETURN_OK; }
 INT platform_hal_GetModelName(CHAR* pValue) { strcpy(pValue, "Model Name"); return RETURN_OK; }
 INT platform_hal_GetHardwareVersion(CHAR* pValue) { strcpy(pValue, "Hardware Version"); return RETURN_OK; }
 INT platform_hal_GetBootloaderVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Bootloader Version"); return RETURN_OK; }
-INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Firmware Name"); return RETURN_OK; }
 INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
 
+//open a file and read that line
+INT File_Reading(CHAR *file,char *Value)
+{
+        FILE *fp = NULL;
+        char buf[1024] = {0},copy_buf[512] ={0};
+        int count = 0;
+        fp = popen(file,"r");
+        if(fp == NULL)
+                return RETURN_ERR;
+        if(fgets(buf,sizeof(buf) -1,fp) != NULL)
+        {
+                for(count=0;buf[count]!='\n';count++)
+                        copy_buf[count]=buf[count];
+                copy_buf[count]='\0';
+        }
+        strcpy(Value,copy_buf);
+        pclose(fp);
+        return RETURN_OK;
+}
+
+
+INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) 
+{ 
+        char status[256] = {0};
+	File_Reading("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2",status);
+        strcpy(pValue, status);
+        return RETURN_OK;
+}
 
 INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) { 
-	//strcpy(pValue, "Software Version");//RDKB-EMU 
-	FILE *fp;
-	char path[256] = {0},status[256] = {0};
-	int count;
-	fp = popen("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2", "r");
-	if(fp == NULL)
-	{
-		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
-	}
-	if(fgets(path, sizeof(path)-1, fp) != NULL)
-	{
-		for(count=0;path[count]!='\n';count++)
-			status[count]=path[count];
-		status[count]='\0';
-	}
-	pclose(fp);
+	char status[256] = {0};
+	File_Reading("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2",status);
 	strcpy(pValue, status);
 	return RETURN_OK;
 }
@@ -92,24 +104,11 @@ INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) {
 INT platform_hal_GetSerialNumber(CHAR* pValue)
 {
 	//	strcpy(pValue, "Serial Number"); 
-	char status[100] ={0},path[256] = {0},serial_no[256] ={0};
+	char status[100] ={0},serial_no[256] ={0};
 	strcpy(serial_no,"RDKBEMULATOR-");
-	FILE *fp;
-	int count = 0;
 	system("ifconfig eth0 | grep HWaddr | tr -s ' ' | cut -d ' ' -f5 > /tmp/WAN_MAC.txt");
         system("sed -i '/:/s///g' /tmp/WAN_MAC.txt");
-        fp = popen("cat /tmp/WAN_MAC.txt","r");
-        if(fp == NULL)
-        {
-                printf("Failed to run command in Function %s\n",__FUNCTION__);
-                return 0;
-        }
-        if(fgets(path, sizeof(path)-1, fp) != NULL)
-        {
-                for(count=0;path[count]!='\n';count++)
-                        status[count]=path[count];
-                status[count]='\0';
-        }
+	File_Reading("cat /tmp/WAN_MAC.txt",status);
         strcat(serial_no,status);
         strcpy(pValue,serial_no);
 	return RETURN_OK;
