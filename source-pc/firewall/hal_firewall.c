@@ -1109,6 +1109,50 @@ void xfinitywifi_InitialBootuprules_setup()
         system("iptables -t mangle -A POSTROUTING -o eth0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400");
         system("iptables -t mangle -A POSTROUTING -o eth0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400");
 }
+
+/*
+==========================================================================
+		CaptivePortal Redirection Rules
+=========================================================================
+*/
+/*
+ *  Procedure     : captiveportal_redirectionrules
+ *  Purpose       : On fresh boot-up,captiveportal page should be bring up while browsing a any url in connected clients
+ *
+ *  Parameters    : None
+ *  Return_values : None
+ */
+
+void captiveportal_redirectionrules()
+{
+        char *wifi = NULL, *captiveportal = NULL;
+        PSM_Get_Record_Value2(bus_handle,g_Subsystem,"Device.DeviceInfo.X_RDKCENTRAL-COM_ConfigureWiFi", NULL, &wifi);
+        PSM_Get_Record_Value2(bus_handle,g_Subsystem,"Device.DeviceInfo.X_RDKCENTRAL-COM_CaptivePortalEnable", NULL, &captiveportal);
+        if((strcmp(wifi,"true") == 0 ) && (strcmp(captiveportal,"true") == 0))
+        {
+                if( access("/nvram/captivemode_enabled", F_OK ) != -1 )
+                {
+                        printf("CaptivePortal Mode was enabled \n");
+                        if ( access("/nvram/updated_captiveportal_redirectionrules", F_OK ) != -1 )
+                        {
+                                printf(" Already updated the required rules for CaptivePortal Redirection \n");
+                        }
+                        else
+                        {
+                                system("iptables -t nat -I PREROUTING -i brlan0 -p udp --dport 53 -j DNAT --to 10.0.0.1");
+                                system("iptables -t nat -I PREROUTING -i brlan0 -p tcp --dport 53 -j DNAT --to 10.0.0.1");
+                                system("touch /nvram/updated_captiveportal_redirectionrules");
+                        }
+                }
+                else
+                {
+                        printf("CaptivePortal Mode was disabled \n");
+                        system("iptables -t nat -D PREROUTING -i brlan0 -p udp --dport 53 -j DNAT --to 10.0.0.1");
+                        system("iptables -t nat -D PREROUTING -i brlan0 -p tcp --dport 53 -j DNAT --to 10.0.0.1");
+                }
+        }
+}
+
 /*
  ==========================================================================
               IPv4 Firewall 
@@ -1847,6 +1891,7 @@ int BasicRouting_Wan2Lan_SetupConnection()
 	system("iptables -t nat -A prerouting_redirect -p tcp --dport 443 -j DNAT --to-destination 0.0.0.0:21515");
 	system("iptables -t nat -A prerouting_redirect -p tcp  -j DNAT --to-destination 0.0.0.0:21515");
 	system("iptables -t nat -A prerouting_redirect -p udp ! --dport 53 -j DNAT --to-destination 0.0.0.0:21515");
+	captiveportal_redirectionrules();
 	system("iptables -t nat -N prerouting_mgmt_override");
 	system("iptables -t nat -I PREROUTING 1 -j prerouting_mgmt_override");
 	system("iptables -t nat -F prerouting_mgmt_override");
