@@ -175,6 +175,10 @@ if [ ! -d /opt/www/xb3/code/cmn/syndication ] ; then
 	cp -rf /usr/www/cmn/syndication /opt/www/xb3/code/cmn/
 fi
 
+if [ ! -d /opt/www/xb3/code/CSRF-Protector-PHP ] ; then                              
+        cp -r /usr/www/CSRF-Protector-PHP /opt/www/xb3/code                                                                       
+fi
+
 if [[ -f /nvram/captivemode_enabled  && -f /nvram/updated_captiveportal_redirectionrules ]] ; then
 
 dmcli simu psmsetv Device.DeviceInfo.X_RDKCENTRAL-COM_ConfigureWiFi string false
