@@ -343,7 +343,7 @@ void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
 		}
 
 		pclose(fp);
-		close(fp); //end of dnsamsq file path
+		fclose(fp); //end of dnsamsq file path
 		result_found = 0;
 	}
 	else
@@ -925,7 +925,7 @@ void CcspHalGetInterfaceDetails(ULONG ulIndex,struct ethernet_port_details *inte
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -949,7 +949,7 @@ void CcspHalGetInterfaceDetails(ULONG ulIndex,struct ethernet_port_details *inte
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -973,7 +973,7 @@ void CcspHalGetInterfaceDetails(ULONG ulIndex,struct ethernet_port_details *inte
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -1012,7 +1012,7 @@ void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PO
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -1032,7 +1032,7 @@ void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PO
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -1052,7 +1052,7 @@ void CcspHalGetInterfaceStatusDetails(ULONG ulInstanceNumber,HALPCOSA_DML_ETH_PO
 		if(fp == NULL)
 		{
 			printf("Failed to run command in Function %s\n",__FUNCTION__);
-			return 0;
+			return;
 		}
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{
@@ -1396,7 +1396,7 @@ void CcspHaldhcpv4cGetGw(char Gateway_Address[120])
         if(fp == NULL)
         {
                 printf("Failed to run command in Function %s\n",__FUNCTION__);
-                return 0;
+                return;
         }
         if(fgets(path, sizeof(path)-1, fp) != NULL)
         {
@@ -1427,7 +1427,7 @@ void CcspHalGetDNSServerValue(ULONG InstanceNum, char DNSServer[64])
 	if(fp == NULL)
 	{
 		printf("Failed to run command in Function %s\n",__FUNCTION__);
-		return 0;
+		return;
 	}
 	if(InstanceNum == 1)
 	{
