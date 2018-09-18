@@ -282,13 +282,13 @@ void RestartDnsmasq()
 
 void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
 {
-	FILE *fp;
+	FILE *fp = NULL,*fd = NULL;
 	CHAR path[512],lease_val[50],min_val[50],max_val[50];
 	char *dhcp_range,output[50];
 	int count = 0,min_result_found,max_result_found,lease_result_found,result_found;
 
-	fp =fopen(DNSMASQ_CONF_FILE_PATH ,"r+");
-	if(fp)
+	fd =fopen(DNSMASQ_CONF_FILE_PATH ,"r+");
+	if(fd)
 	{
 		//Get Mininum Address
 		fp = popen("cat /etc/dnsmasq.conf | grep -w dhcp-range | cut -d ',' -f1 ", "r");
@@ -306,6 +306,7 @@ void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
 				min_val[count]=output[count];
 			min_val[count]='\0';
 			min_result_found = 0;
+			pclose(fp);
 		}
 
 		//Get Maximum Address
@@ -323,6 +324,7 @@ void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
 				max_val[count]=path[count];
 			max_val[count]='\0';
 			max_result_found = 0;
+			pclose(fp);
 		}
 
 		//Get Lease Time
@@ -340,10 +342,10 @@ void CcspHalGetConfigValues(INT value_flag,CHAR *value, INT size)
 				lease_val[count]=path[count];
 			lease_val[count]='\0';
 			lease_result_found = 0;
+			pclose(fp);
 		}
 
-		pclose(fp);
-		fclose(fp); //end of dnsamsq file path
+		fclose(fd); //end of dnsamsq file path
 		result_found = 0;
 	}
 	else
