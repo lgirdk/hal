@@ -5215,29 +5215,6 @@ INT wifi_createHostApdConfig(INT apIndex, BOOL createWpsCfg)
 // starts hostapd, uses the variables in the hostapd config with format compatible with the specific hostapd implementation
 INT wifi_startHostApd()
 {
-/*	char cmd[128] = {0};
-	char buf[128] = {0};
-	
-	sprintf(cmd,"hostapd  -B `cat /tmp/conf_filename` -e /nvram/etc/wpa2/entropy -P /tmp/hostapd.pid 1>&2");
-	_syscmd(cmd, buf, sizeof(buf));*/
-/*	char status[256];
-	system("ifconfig wlan0 up");
-        system("hostapd -B /etc/hostapd_2.4G.conf");
-        system("ifconfig mon.wlan0 up");
-        system("ifconfig wlan0_0 up");
-        system("ifconfig wlan0 up");
-        system("ps -eaf | grep hostapd_2.4G | grep -v grep | awk '{print $2}' | xargs kill -9");
-        system("hostapd -B /etc/hostapd_2.4G.conf");
-        system("ifconfig mon.wlan0 up");
-        system("ifconfig wlan0_0 up");
-        Hostapd_PrivateWifi_status(status);
-	system("sleep 3");
-        while(strcmp(status,"RUNNING") != 0)
-        {
-        RestartHostapd();//check the hostapd status
-        Hostapd_PrivateWifi_status(status);
-	system("sleep 3");
-        }*/
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	system("sh /lib/rdk/start_hostapd.sh");
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
@@ -5247,17 +5224,11 @@ INT wifi_startHostApd()
  // stops hostapd	
 INT wifi_stopHostApd()                                        
 {
-/*	char cmd[128] = {0};
-	char buf[128] = {0};
-	
-	sprintf(cmd,"killall hostapd");
-	_syscmd(cmd, buf, sizeof(buf));*/
-//	system("ifconfig mon.wlan0 down");
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	char interface_name[512];
         char virtual_interface_name[512],buf[512];
         GetInterfaceName(interface_name,"/nvram/hostapd0.conf");
-        system("ps -eaf | grep hostapd0 | grep -v grep | awk '{print $2}' | xargs kill -9");
+        system("killall hostapd");
 	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
 	system(buf);
 	system("sleep 3");
