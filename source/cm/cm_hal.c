@@ -382,3 +382,9 @@ INT cm_hal_HTTP_LED_Flash( BOOLEAN LedFlash )
 {
     return RETURN_OK;
 }
+
+INT docsis_GetMaxMTU(UINT *output_MaxMTU)
+{
+    *output_MaxMTU = DOCSIS_DEFAULT_MTU;
+    return RETURN_OK;
+}

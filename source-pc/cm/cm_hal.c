@@ -372,3 +372,9 @@ INT cm_hal_Get_ErouterResetCount(ULONG *resetcnt)
         return RETURN_OK;
     }
 }
+
+INT docsis_GetMaxMTU(UINT *output_MaxMTU)
+{
+    *output_MaxMTU = DOCSIS_DEFAULT_MTU;
+    return RETURN_OK;
+}
