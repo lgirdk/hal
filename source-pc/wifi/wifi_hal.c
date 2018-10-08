@@ -821,14 +821,12 @@ void defaultwifi_restarting_process()
 	/* **************** Tenda ************** */
 	else if(wireless_interface_count == 3)
 	{
-		wifi_stopHostApd();
-		wifi_startHostApd();
+		system("sh /lib/rdk/start_hostapd.sh");
 		KillHostapd_5g(1);
 	}
 	else if(wireless_interface_count == 1)
 	{
-		wifi_stopHostApd();
-		wifi_startHostApd();
+		system("sh /lib/rdk/start_hostapd.sh");
 	}
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
 }
@@ -885,8 +883,7 @@ int hostapd_restarting_process(int apIndex)
 		/* ***************** Tenda **************** */
 		if((apIndex == 0) || (apIndex == 4))
 		{
-			wifi_stopHostApd();
-			wifi_startHostApd();
+			system("sh /lib/rdk/start_hostapd.sh");
 		}
 		else if(apIndex == 1)
 		{
@@ -3154,8 +3151,7 @@ INT wifi_applyRadioSettings(INT radioIndex)
 		}
 		else //Tenda
 		{
-			wifi_stopHostApd();
-			wifi_startHostApd();
+			system("sh /lib/rdk/start_hostapd.sh");
 		}
 	}
 	else
@@ -5216,7 +5212,7 @@ INT wifi_createHostApdConfig(INT apIndex, BOOL createWpsCfg)
 INT wifi_startHostApd()
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
-	system("sh /lib/rdk/start_hostapd.sh");
+	defaultwifi_restarting_process();
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
 	return RETURN_OK;
 }
@@ -5225,15 +5221,7 @@ INT wifi_startHostApd()
 INT wifi_stopHostApd()                                        
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
-	char interface_name[512];
-        char virtual_interface_name[512],buf[512];
-        GetInterfaceName(interface_name,"/nvram/hostapd0.conf");
         system("killall hostapd");
-	sprintf(buf,"%s %s %s","ifconfig",interface_name,"down");
-	system(buf);
-	system("sleep 3");
-	sprintf(buf,"%s %s %s","ifconfig",virtual_interface_name,"down");
-	system(buf);
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
 	return RETURN_OK;	
 }
