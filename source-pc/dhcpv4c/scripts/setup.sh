@@ -162,7 +162,8 @@ if [ ! -d "/tmp/pcontrol" ]
 then                                                                                
      mkdir /tmp/pcontrol                                               
      cp -rf /usr/www/cmn/ /tmp/pcontrol                                                            
-     cp /usr/www/index_pcontrol.php /tmp/pcontrol/index.php
+  ## RDKB-22344:Develop HTML page for blocked devices, has removed index_pcontrol.php and needs to be replaced by html ##
+     #cp /usr/www/index_pcontrol.php /tmp/pcontrol/index.php
 fi
 
 ########################################### CaptivePortal Mode ###################################
