@@ -61,7 +61,6 @@ INT platform_hal_DocsisParamsDBInit(void) { return RETURN_OK; }
 INT platform_hal_GetModelName(CHAR* pValue) { strcpy(pValue, "Model Name"); return RETURN_OK; }
 INT platform_hal_GetHardwareVersion(CHAR* pValue) { strcpy(pValue, "Hardware Version"); return RETURN_OK; }
 INT platform_hal_GetBootloaderVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Bootloader Version"); return RETURN_OK; }
-INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
 
@@ -85,6 +84,11 @@ INT File_Reading(CHAR *file,char *Value)
         return RETURN_OK;
 }
 
+INT platform_hal_GetBaseMacAddress(CHAR *pValue) 
+{ 
+	File_Reading("ifconfig eth0 | grep HWaddr | cut -d ' ' -f11",pValue);
+	return RETURN_OK; 
+}
 
 INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) 
 { 
