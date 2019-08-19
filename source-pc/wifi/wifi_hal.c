@@ -5405,6 +5405,7 @@ INT wifi_getApEnable(INT apIndex, BOOL *output_bool)
                         if(strlen(buf)>0)
                         {
                                 *output_bool=1;
+				 return RETURN_OK;
                         }
                         else
                         {
