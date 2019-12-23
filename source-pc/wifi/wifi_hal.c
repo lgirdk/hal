@@ -537,7 +537,7 @@ void Stop_Start_Broadcasting_SSID_Names_Hostapd_Process(bool *Public_ssid,char *
 {
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	char cmd[MAX_CMD_SIZE] = {0};
-	if(Public_ssid == 0)
+	if(*Public_ssid == 0)
 		sprintf(cmd,"hostapd_cli -i %s SET ignoe_broadcast_ssid 1",Alias_Interface_name);
 	else
 		sprintf(cmd,"hostapd_cli -i %s SET ignoe_broadcast_ssid 0",Alias_Interface_name);
@@ -5694,7 +5694,7 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	int line_no;//ssid line number in /etc/hostapd.conf
 	BOOL GetRadioEnable,ssidenable;
-	char buf[50] = {0},command[50] ={0},IfName[10] = {0},interface_name[10] = {0};
+	char buf[50] = {0},command[MAX_CMD_SIZE] ={0},IfName[10] = {0},interface_name[10] = {0};
 
 	//For Getting Radio Status
 	if( (apIndex == 0) || (apIndex == 4))
@@ -6553,11 +6553,6 @@ INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
 // PSK Key of 8 to 63 characters is considered an ASCII string, and 64 characters are considered as HEX value
 INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 {	
-#if 0//LNT_EMU
-	snprintf(output_string, 64, "E4A7A43C99DFFA57");
-	return RETURN_OK;
-#endif
-#if 1//RDKB_EMU
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	if(!output_string)
 		return RETURN_ERR;
@@ -6613,7 +6608,6 @@ INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 			strcpy(output_string,"");
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
 	return RETURN_OK;
-#endif
 }
 
 // sets an enviornment variable for the psk. Input string preSharedKey must be a maximum of 64 characters
@@ -6647,7 +6641,7 @@ INT wifi_setApSecurityPreSharedKey(INT apIndex, CHAR *preSharedKey)
                 }
                 ret=wifi_hostapdWrite(apIndex,&list);
                 list_free_param(&list);
-		Dynamically_Updated_Password_hostapd_process(apIndex,&preSharedKey);
+		Dynamically_Updated_Password_hostapd_process(apIndex,preSharedKey);
                 return ret;
         }
 	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
