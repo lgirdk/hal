@@ -5694,7 +5694,7 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
 	int line_no;//ssid line number in /etc/hostapd.conf
 	BOOL GetRadioEnable,ssidenable;
-	char buf[50] = {0},command[MAX_CMD_SIZE] ={0},IfName[10] = {0},interface_name[10] = {0};
+	char buf[50] = {0},command[MAX_CMD_SIZE] ={0},IfName[10] = {0},if_name[10] = {0};
 
 	//For Getting Radio Status
 	if( (apIndex == 0) || (apIndex == 4))
@@ -5731,33 +5731,29 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 	_syscmd(command,buf,sizeof(buf));
 	memset(command,0,sizeof(command));
 
+	// Getting the interface name from hostapd configuration with corresponding index
+	sprintf(command,"/nvram/hostapd%d.conf",apIndex);
+	GetInterfaceName(if_name,command);                
+	memset(command,0,sizeof(command));
+
 	if((apIndex == 0) || (apIndex == 4) || (apIndex == 1) || (apIndex == 5))
 	{
 		if(enable == false) 
 		{
-		        if((apIndex == 4) || (apIndex == 5))
-			{
-				if(apIndex == 4)
-					GetInterfaceName(interface_name,"/nvram/hostapd4.conf");                
-				else if(apIndex == 5)
-					GetInterfaceName(interface_name,"/nvram/hostapd5.conf");                
-				else
-					printf("Invalid Index value \n");
-			sprintf(command,"hostapd_cli -i %s SET ignore_broadcast_ssid 1",interface_name);
+			sprintf(command,"hostapd_cli -i %s SET ignore_broadcast_ssid 1",if_name);
+			printf("command is %s \n",command);
 			system(command);
 			Dynamically_Disabling_hostapd_process(apIndex);
 			Dynamically_Enabling_hostapd_process(apIndex);
-			}
 			DisableWifi(apIndex);
 		}
 		else
 		{
+			sprintf(command,"hostapd_cli -i %s SET ignore_broadcast_ssid 0",if_name);
+			system(command);
 			if(apIndex == 4) 
 			{
 				wifi_getApEnable(0,&ssidenable);
-				GetInterfaceName(interface_name,"/nvram/hostapd4.conf");                
-				sprintf(command,"hostapd_cli -i %s SET ignore_broadcast_ssid 0",interface_name);
-				system(command);
 				if(buf[0] == '#') //tp-link
 				{	
 					GetInterfaceName(IfName,"/nvram/hostapd0.conf");                
@@ -5776,9 +5772,6 @@ INT wifi_setApEnable(INT apIndex, BOOL enable)
 			else if(apIndex == 5)
 			{
 				GetInterfaceName(IfName,"/nvram/hostapd1.conf");		
-				GetInterfaceName(interface_name,"/nvram/hostapd5.conf");                
-				sprintf(command,"hostapd_cli -i %s SET ignore_broadcast_ssid 0",interface_name);
-				system(command);
 				wifi_getApEnable(1,&ssidenable);
 				Dynamically_Disabling_hostapd_process(5); 
 				Dynamically_Enabling_hostapd_process(5); 
