@@ -6019,6 +6019,8 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
 	//store the config, apply instantly
 	//store the config, apply instantly
         WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
+	if ((apIndex == 0) || (apIndex == 1) || (apIndex == 4) || (apIndex == 5))
+	{
         char str[MAX_BUF_SIZE]={'\0'};
         char string[MAX_BUF_SIZE]={'\0'};
         char cmd[MAX_CMD_SIZE]={'\0'};
@@ -6042,6 +6044,7 @@ INT wifi_setApSsidAdvertisementEnable(INT apIndex, BOOL enable)
         wifi_hostapdWrite(apIndex,&list);
         list_free_param(&list);
 	Dynamically_Updated_SSIDAdvertisement_Hostapd_Process(apIndex,enable);
+	}
         WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
         return RETURN_OK;
 }
