@@ -4110,14 +4110,16 @@ INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap
 
     *neighbor_ap_array = NULL;
     *output_array_size = 0;
-
+		
+		
     memset(buf, 0, sizeof(buf));
     memset(&request, 0, sizeof(request));
     request.u.data.pointer = buf;
     request.u.data.length = sizeof(buf);
     rc = _wifi_ioctl_iwreq_data(ifName, SIOCGIWSCAN, buf, sizeof(buf));
     if (rc < 0) return RETURN_ERR;
-
+		
+		
     int size = rc;
     struct iw_event *iw_event;
     char *ptr = buf;
@@ -4127,7 +4129,8 @@ INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap
     int status;
     wifi_neighbor_ap2_t *scan_array = NULL;
     wifi_neighbor_ap2_t *scan_record = NULL;
-
+		
+		
     while (len > IW_EV_LCP_LEN) {
         // next event
         iw_event = (struct iw_event *)ptr;
@@ -4143,15 +4146,19 @@ INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap
                 free(scan_array);
                 return RETURN_ERR;
             }
+		
             scan_array = scan_record;
             scan_record = &scan_array[scan_count];
             memset(scan_record, 0, sizeof(*scan_record));
             scan_count++;
         }
-
+		
+		
         // Skip entry events in case of parser error
+		
         if (TRUE == parse_error) continue;
-
+		
+		
         status = _wifi_scan_results_parse_event(iw_event, scan_record);
 	if (RETURN_OK != status)
         {
@@ -4162,10 +4169,12 @@ INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap
             // Reset count
             scan_count--;
         }
-
+		
+		
         ptr += iw_event->len;
         len -= iw_event->len;
     }
+		
     *neighbor_ap_array = scan_array;
     *output_array_size = scan_count;
 #endif
@@ -4188,278 +4197,181 @@ INT wifi_getNeighboringWiFiStatus(INT apIndex, wifi_neighbor_ap2_t **neighbor_ap
     //UINT  ap_ChannelUtilization;
     return RETURN_OK;
 }
+		
 
 //Sacn to get the nearby wifi devices
 int GetScanningValues(char *file,char *value)
 {
-	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
+        WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
         FILE *fp = NULL;
         char path[256] = {0};
         fp = popen(file,"r");
         int count = 0;
-        if(fp == NULL)
+        if(fp)
         {
-                printf("=== %s == \n",__FUNCTION__);
-                return 0;
+                while(fgets(path,sizeof(path),fp) != NULL)
+                {
+                        for(count = 0;path[count]!='\n';count++)
+                                value[count] = path[count];
+                        value[count]='\0';
+                }
+                pclose(fp);
         }
-        while(fgets(path,sizeof(path),fp) != NULL)
-        {
-                for(count = 0;path[count]!='\n';count++)
-                        value[count] = path[count];
-                value[count]='\0';
-        }
-        pclose(fp);
-	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
-	return RETURN_OK;
+        WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
+        return RETURN_OK;
 }
-void converting_lowercase_to_uppercase(char *Value)
+void updated_string_value(char *buf,char *buf1)
 {
-	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
-	int i = 0;
-	for(i=0;i<=strlen(Value);i++) //Converting lowercase to uppercase
-	{
-		if(Value[i]>=97 && Value[i]<=122)
-		{
-			Value[i]=Value[i]-32;
-		}
-	}
-	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
-}
-// scan to get the nearby wifi device lists
-void wifihal_GettingNeighbouringAPScanningDetails(char *interface_name,wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size)
-{
-	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
-	FILE *fp = NULL;
-	wifi_neighbor_ap2_t *pt=NULL;
-	CHAR cmd[128]={0},Value[256] = {0},security_mode[256] = {0};
-	CHAR buf[8192]={0},str[256] = {0};
-	UINT count = 0,i = 0,index = 0;
-	fp = fopen("/tmp/wifiscan.txt","r");
-	if(fp == NULL)
-	{
-		printf("wifiscan.txt is not there,please check the wireless command \n");
-		*output_array_size=0;
-		return ;
-	}
-
-	//For Total Number of AP's
-	sprintf(buf,"%s%s%s","cat /tmp/wifiscan.txt | grep ",interface_name," | wc -l");
-	GetScanningValues(buf,Value);
-	*output_array_size=atoi(Value);
-
-	//zqiu: HAL alloc the array and return to caller. Caller response to free it.
-	*neighbor_ap_array=(wifi_neighbor_ap2_t *)calloc(sizeof(wifi_neighbor_ap2_t), *output_array_size);
-	for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++) 
-	{
-		sprintf(buf,"%s%s%s%d","cat /tmp/wifiscan.txt | grep ",interface_name," | cut -d ' ' -f2 | cut -d '(' -f1 | head -",index+1);
-		GetScanningValues(buf,pt->ap_BSSID);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep SSID | cut -d ':' -f2 | sed 's/^ //g' | head -",index+1);
-		GetScanningValues(buf,pt->ap_SSID);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep freq | cut -d ':' -f2 | cut -d ' ' -f2 | head -",index+1);
-		GetScanningValues(buf,Value);
-		if(Value[0] == '2')
-			strcpy(pt->ap_OperatingFrequencyBand,"2.4GHz");
-		else
-			strcpy(pt->ap_OperatingFrequencyBand,"5GHz");
-
-		fp = popen("cat /tmp/wifiscanning.txt | sed -n '1!p' | cut -d ' ' -f1 | tr '[:upper:]' '[:lower:]'","r");
-		if(fp == NULL)
-		{
-			printf("Failed Function %s \n",__FUNCTION__);
-			return ;
-		}
-		while(fgets(buf,sizeof(buf)-1,fp) != NULL)
-		{
-			for(count=0;buf[count]!='\n';count++)
-				Value[count] = buf[count];
-			Value[count] = '\0';
-			if(strcmp(pt->ap_BSSID,Value) == 0)
-			{
-				converting_lowercase_to_uppercase(Value);
-				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f4,5");
-				GetScanningValues(buf,pt->ap_SecurityModeEnabled);
-				if(strcmp(pt->ap_SecurityModeEnabled,"WPA WPA2") == 0)
-					strcpy(pt->ap_SecurityModeEnabled,"WPA-WPA2");
-				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f13-16");
-				if(strcmp(pt->ap_SecurityModeEnabled,"WPA ") == 0)
-					sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f17-19");
-				GetScanningValues(buf,str);
-				wlan_encryption_mode_to_string(str,pt->ap_EncryptionMode);
-				sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | cut -d ' ' -f8");
-				if((strcmp(pt->ap_SecurityModeEnabled,"WPA ") == 0) || (strcmp(pt->ap_SecurityModeEnabled,"WPA2 ") == 0))
-					sprintf(buf,"%s%s%s","cat /tmp/wifiscanning.txt | grep ",Value," | awk '{print $3}'");
-				GetScanningValues(buf,str);
-				wlan_bitrate_to_operated_standards_string(str,pt->ap_OperatingStandards,pt->ap_OperatingFrequencyBand);
-				wlan_operated_standards_to_channel_bandwidth_string(pt->ap_OperatingStandards,pt->ap_OperatingChannelBandwidth);
-				break;
-			}
-		}
-		pclose(fp);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'primary channel' | cut -d ':' -f2 | cut -d ' ' -f2 | head -",index+1);
-		GetScanningValues(buf,Value);
-		pt->ap_Channel=atoi(Value);
-
-		fp = popen("cat /tmp/wifi-scan.txt | grep Address | cut -d '-' -f2 | cut -d ' ' -f3 | tr '[:upper:]' '[:lower:]'","r");
-		if(fp == NULL)
-		{
-			printf("Failed Function %s \n",__FUNCTION__);
-			return ;
-		}
-		while(fgets(buf,sizeof(buf)-1,fp) != NULL)
-		{
-			for(count=0;buf[count]!='\n';count++)
-				Value[count] = buf[count];
-			Value[count] = '\0';
-			if(strcmp(pt->ap_BSSID,Value) == 0)
-			{
-				sprintf(buf,"%s%s%s","cat /tmp/iwlist-scan.txt | grep ",Value," | awk '{print $2}'");
-				GetScanningValues(buf,pt->ap_Mode);
-			}
-			if(strcmp(pt->ap_BSSID,Value) == 0)
-			{
-				sprintf(buf,"%s%s%s","cat /tmp/iwlist-scan.txt | grep ",Value," | awk '{print $3}'");
-				GetScanningValues(buf,str);
-				wlan_wireless_mode_to_supported_standards_string(str,pt->ap_SupportedStandards,pt->ap_OperatingFrequencyBand);
-			}
-		}
-
-		pclose(fp);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep signal | cut -d ':' -f2 | sed 's/^ //g' | head -",index+1);
-		GetScanningValues(buf,Value);
-		pt->ap_SignalStrength=atoi(Value);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'Supported rates' | cut -d ':' -f2 | sed 's/^ //g' | sed 's/ /,/g' | sed 's/,$//g' | head -",index+1);
-		GetScanningValues(buf,pt->ap_SupportedDataTransferRates);
-		sprintf(buf,"%s%d","cat /tmp/wifiscan.txt | grep 'beacon interval' | cut -d ':' -f2 | sed 's/^ //g' | cut -d ' ' -f1 | head -",index+1);
-		GetScanningValues(buf,Value);
-		pt->ap_BeaconPeriod=atoi(Value);
-		strcpy(pt->ap_BasicDataTransferRates,"1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54");
-	}
-	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
+        int count = 0;
+        memset(buf1,0,sizeof(buf1));
+        for(count=0;buf[count]!='\n';count++)
+                buf1[count] = buf[count];
+        buf1[count] = '\0';
 }
 //Start the wifi scan and get the result into output buffer for RDKB to parser. The result will be used to manage endpoint list
 //HAL funciton should allocate an data structure array, and return to caller with "neighbor_ap_array"
-INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size) //Tr181	
+INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size) //Tr181  
 {
-#if 1
-	WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
-	INT status = RETURN_ERR;
-	UINT index;
-	wifi_neighbor_ap2_t *pt=NULL;
-	char cmd[512]={0},Value[256] = {0},security_mode[256] = {0};
-	char buf[8192]={0},str[256] = {0},interface_name[50] = {0},wifi_status[50] = {0};
-	int count = 0,i=0;
-	//sprintf(cmd, "iwlist %s%d scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
-	/*	sprintf(cmd, "iwlist wlan0 scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
-		_syscmd(cmd, buf, sizeof(buf));
-		strcpy(pt->ap_SSID,"");
-		strcpy(pt->ap_BSSID,"");
-		strcpy(pt->ap_Mode,"");
-		pt->ap_Channel=1;
-		pt->ap_SignalStrength=0;
-		strcpy(pt->ap_SecurityModeEnabled,"");
-		strcpy(pt->ap_EncryptionMode,"");
-		strcpy(pt->ap_OperatingFrequencyBand,"");
-		strcpy(pt->ap_SupportedStandards,"");
-		strcpy(pt->ap_OperatingStandards,"");
-		strcpy(pt->ap_OperatingChannelBandwidth,"");
-		pt->ap_BeaconPeriod=1;
-		pt->ap_Noise=0;
-		strcpy(pt->ap_BasicDataTransferRates,"");
-		strcpy(pt->ap_SupportedDataTransferRates,"");
-		pt->ap_DTIMPeriod=1;
-		pt->ap_ChannelUtilization=0;*/
-	system("nmcli -f BSSID,SECURITY,RATE,WPA-FLAGS dev wifi > /tmp/wifiscanning.txt");
+        WIFI_ENTRY_EXIT_DEBUG("Inside %s:%d\n",__func__, __LINE__);
+        wifi_neighbor_ap2_t *pt=NULL;
+        char buf[MAX_CMD_SIZE]={0};
+        char cmd[MAX_CMD_SIZE]={0};
+        char buf1[MAX_BUF_SIZE] = {0},Value[100] = {0};
+        int index = 0, flag = 0;
+        float SignalPower;
 
-        if(radioIndex == 0)
+        if( (radioIndex == 0 ) || (radioIndex == 1 ))
         {
-                GetInterfaceName(interface_name,"/nvram/hostapd0.conf");
-		printf("NeighbouringAp Index is %d \n",radioIndex);
-		wifihal_interfacestatus(wifi_status,interface_name);
-	        if(strcmp(wifi_status,"RUNNING") == 0)
-		{
-                	sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                	sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan ap-force > /tmp/wifiscan.txt");
-		}
-		else
-		{
-			printf("2.4G Private Wifi Driver status is down \n");
-			*output_array_size = 0;
-			*neighbor_ap_array = NULL;
-			return RETURN_OK;
-		}
-			
-        }
-        else if(radioIndex == 1)
-        {
-                GetInterfaceName(interface_name,"/nvram/hostapd1.conf");
-		wifihal_interfacestatus(wifi_status,interface_name);
-		printf("NeighbouringAp Index is %d \n",radioIndex);
-                if(strcmp(wifi_status,"RUNNING") == 0)
+                GetInterfaceName(Value,"/nvram/hostapd1.conf");
+                sprintf(buf,"ifconfig | grep %s | wc -l",Value);
+                GetScanningValues(buf,buf1);
+                memset(buf,0,sizeof(buf));
+                if ( atoi(buf1) == 1 )
                 {
-                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan ap-force > /tmp/wifiscan.txt");
+                        sprintf(buf,"iwlist %s scanning > /tmp/scanning.txt",Value);
+                        flag = 1; //To avoid the duplication data's
                 }
                 else
                 {
-                        printf("5G Private Wifi Driver status is down \n");
-                        *output_array_size = 0;
-                        *neighbor_ap_array = NULL;
-                        return RETURN_OK;
+                        GetInterfaceName(Value,"/nvram/hostapd0.conf");
+                        sprintf(buf,"iwlist %s scanning > /tmp/scanning.txt",Value);
+                        flag = 1; //To avoid the duplication data's
                 }
-
         }
-#if 0
-        else if(radioIndex == 4)
+        if ( radioIndex == 1 )
         {
-                GetInterfaceName_virtualInterfaceName_2G(interface_name);
-		wifihal_interfacestatus(wifi_status,interface_name);
-		printf("NeighbouringAp Index is %d \n",radioIndex);
-                if(strcmp(wifi_status,"RUNNING") == 0)
-                {
-                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
-                }
-                else
-                {
-                        printf("2.4G Public Wifi Driver status is down \n");
-                        *output_array_size = 0;
-                        *neighbor_ap_array = NULL;
-                        return RETURN_OK;
-                }
-
+                if(flag == 1)
+                        return RETURN_OK; //Already 2g and 5g data's are successfully scanned 
         }
-        else if(radioIndex == 5)
-        {
-                GetInterfaceName(interface_name,"/etc/hostapd_xfinity_5G.conf");
-		wifihal_interfacestatus(wifi_status,interface_name);
-		printf("NeighbouringAp Index is %d \n",radioIndex);
-                if(strcmp(wifi_status,"RUNNING") == 0)
-                {
-                        sprintf(buf,"%s%s%s","iwlist ",interface_name," scan > /tmp/wifi-scan.txt");
-                        sprintf(cmd,"%s%s%s","iw dev ",interface_name," scan > /tmp/wifiscan.txt");
-                }
-                else
-                {
-                        printf("5G Public Wifi Driver status is down \n");
-                        *output_array_size = 0;
-                        *neighbor_ap_array = NULL;
-                        return RETURN_OK;
-                }
-
-        }
-#endif
         system(buf);
-        system(cmd);
-        sleep(2);
-        system("cat /tmp/wifi-scan.txt | grep Address | cut -d '-' -f2 | cut -d ' ' -f3 | tr '[:upper:]' '[:lower:]' > /tmp/f.t");
-        system("cat /tmp/wifi-scan.txt | grep Mode | tr -s ' ' | sed 's/ //g' | cut -d ':' -f2 > /tmp/s.t");
-        system("cat /tmp/wifi-scan.txt | grep Protocol | cut -d ':' -f2 | cut -d '.' -f2 | sed 's/11//g' > /tmp/t.t");
-        system("paste /tmp/f.t /tmp/s.t /tmp/t.t  > /tmp/iwlist-scan.txt");
-        sleep(2);
-	wifihal_GettingNeighbouringAPScanningDetails(interface_name,neighbor_ap_array,output_array_size);
-	WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
-	return RETURN_OK;
-#endif
+        _syscmd("grep Cell /tmp/scanning.txt | wc -l", buf, sizeof(buf));
+        *output_array_size=atoi(buf); // to get the count of neighbouring ap's
+
+        *neighbor_ap_array=(wifi_neighbor_ap2_t *)calloc(sizeof(wifi_neighbor_ap2_t), *output_array_size);
+        for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++)
+        {
+                memset(buf,0,sizeof(buf));
+                sprintf(cmd,"grep ESSID /tmp/scanning.txt | tr -s ' ' | cut -d ':' -f2 | cut -d '\"' -f2 | head -n%d",index+1);
+                GetScanningValues(cmd,pt->ap_SSID);
+		memset(cmd,0,sizeof(cmd));
+                sprintf(cmd,"grep  Address /tmp/scanning.txt | tr -s ' ' | cut -d '-' -f2 | cut -d ' ' -f3 | head -n%d",index+1);
+                GetScanningValues(cmd,pt->ap_BSSID);
+                memset(cmd,0,sizeof(cmd));
+                sprintf(cmd,"grep Mode /tmp/scanning.txt | tr -s ' '  | cut -d ':' -f2 | head -n%d",index+1);
+                GetScanningValues(cmd,pt->ap_Mode);
+                memset(cmd,0,sizeof(cmd));
+                sprintf(cmd,"grep  Freq /tmp/scanning.txt | tr -s ' ' | cut -d ':' -f2  | cut -d '(' -f2 | cut -d ')' -f1 | cut -d ' ' -f2 | head -n%d", index+1);
+                GetScanningValues(cmd,Value);
+                pt->ap_Channel=atoi(Value);
+                memset(cmd,0,sizeof(cmd));
+                sprintf(cmd,"grep Freq /tmp/scanning.txt | tr -s ' ' | cut -d ':' -f2 | cut -d '(' -f1 | head -n%d",index+1);
+                GetScanningValues(cmd,Value);
+                memset(cmd,0,sizeof(cmd));
+                sprintf(cmd,"grep Protocol /tmp/scanning.txt | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f2 | sed 's/11//' | head -n%d",index+1);
+                memset(buf1,0,sizeof(buf1));
+                GetScanningValues(cmd,buf1);
+                if(Value[0] == '2')
+                {
+                        strcpy(pt->ap_OperatingFrequencyBand,"2.4GHz");
+                        strcpy(pt->ap_OperatingStandards,"g");
+                        if(strlen(buf1) > 0)
+                                strcpy(pt->ap_SupportedStandards,buf1);
+                        else
+                                strcpy(pt->ap_SupportedStandards,"b,g,n");
+                        strcpy(pt->ap_OperatingChannelBandwidth,"20MHz");
+                }
+                else
+                {
+                        strcpy(pt->ap_OperatingFrequencyBand,"5GHz");
+                        strcpy(pt->ap_OperatingStandards,"a");
+                        if(strlen(buf1) > 0)
+                                strcpy(pt->ap_SupportedStandards,buf1);
+                        else
+                                strcpy(pt->ap_SupportedStandards,"a,ac,n");
+                        strcpy(pt->ap_OperatingChannelBandwidth,"20/40/80MHz");
+                }
+                memset(buf,0,sizeof(buf));
+                sprintf(cmd,"grep \"Signal level\" /tmp/scanning.txt | tr -s ' ' | cut -d '=' -f3 | head -n%d", index+1);
+                GetScanningValues(cmd,Value);
+                SignalPower = (((atoi(Value)/100) + 1 ) -95);
+                pt->ap_SignalStrength=(int)(SignalPower);
+		if (index < 9)
+                        sprintf(buf,"awk 'last~/Cell 0%d/ {print last; f=1} f{print} /Cell 0%d/{f=0} {last=$0}' /tmp/scanning.txt > /tmp/wifi-scan.txt",index+1,index+2);
+                else
+                        sprintf(buf,"awk 'last~/Cell %d/ {print last; f=1} f{print} /Cell %d/{f=0} {last=$0}' /tmp/scanning.txt > /tmp/wifi-scan.txt",index+1,index+2);
+                system(buf);
+                memset(buf,0,sizeof(buf));
+                _syscmd("grep \"Encryption key:\" /tmp/wifi-scan.txt  | tr -s ' ' | cut -d ':' -f2",buf,sizeof(buf));
+                updated_string_value(buf,buf1);
+                if(strcmp(buf1,"off") == 0) //Encryption  off
+                {
+                        strcpy(pt->ap_SecurityModeEnabled,"None");
+                        strcpy(pt->ap_EncryptionMode,"None");
+                }
+                else
+                {
+                        _syscmd("grep \"Authentication Suites\" /tmp/wifi-scan.txt | tr -s ' ' | cut -d ':' -f2 | cut -d ' ' -f2",buf,sizeof(buf));
+                        updated_string_value(buf,buf1);
+                        memset(buf,0,sizeof(buf));
+                        _syscmd("grep \"IEEE\" /tmp/wifi-scan.txt | tr -s ' ' | cut -d '/' -f2 | cut -d ' ' -f1 | tail -n1",buf,sizeof(buf));
+                         updated_string_value(buf,cmd);
+                        if(strlen(cmd) > 0)
+                        {
+                                if(strcmp(buf1,"PSK") == 0)
+                                {
+                                        updated_string_value(buf,buf1);
+                                        sprintf(buf,"%s-Personal",buf1);
+                                }
+                                else
+                                {
+                                        updated_string_value(buf,buf1);
+                                        sprintf(buf,"%s-Enterprise",buf1);
+                                }
+                        strcpy(pt->ap_SecurityModeEnabled,buf);
+                        memset(buf,0,sizeof(buf));
+                        _syscmd("grep \"Pairwise Ciphers\" /tmp/wifi-scan.txt | tr -s ' ' | cut -d ':' -f2 | sed 's/^ //' | head -n1",buf,sizeof(buf));
+                        updated_string_value(buf,buf1);
+                        strcpy(pt->ap_EncryptionMode,buf1);
+                        }
+                        else
+                        {
+                                strcpy(pt->ap_SecurityModeEnabled,"None");
+                                strcpy(pt->ap_EncryptionMode,"None");
+                        }
+		}
+                memset(buf,0,sizeof(buf));
+                _syscmd("grep \"Bit Rates\"  /tmp/wifi-scan.txt  | tr -s ' '  | cut -d ':' -f2 | head -n1",buf,sizeof(buf));
+                updated_string_value(buf,buf1);
+                strcpy(pt->ap_SupportedDataTransferRates,buf1);
+                strcpy(pt->ap_BasicDataTransferRates,"1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54");
+                pt->ap_BeaconPeriod=100;
+                pt->ap_Noise=0;
+                pt->ap_DTIMPeriod=1;
+                pt->ap_ChannelUtilization=0;
+        }
+
+        WIFI_ENTRY_EXIT_DEBUG("Exiting %s:%d\n",__func__, __LINE__);
+        return RETURN_OK;
 }
 
 //>> Deprecated: used for old RDKB code. 
