@@ -537,3 +537,60 @@ CcspHalEthSwLocatePortByMacAddress
 
     return  RETURN_OK;
 }
+
+int CcspHalExtSw_getAssociatedDevice (ULONG *output_array_size, eth_device_t **output_struct)
+{
+    int number_of_entries;
+    eth_device_t *temp;
+    int i;
+
+    /* Hardcoded dummy value for stub */
+    number_of_entries = 3;
+
+    *output_array_size = number_of_entries;
+
+    if (number_of_entries == 0)
+    {
+        *output_struct = NULL;
+        return RETURN_OK;
+    }
+
+    temp = calloc(number_of_entries, sizeof(eth_device_t));
+    if (temp == NULL)
+    {
+        return RETURN_ERR;
+    }
+
+    for (i = 0; i < number_of_entries; i++)
+    {
+        unsigned char mac[6];
+        int eth_port;
+        BOOLEAN eth_active;
+
+        /* Hardcoded dummy values for stub */
+        mac[0] = 0x00;
+        mac[1] = 0x11;
+        mac[2] = 0x22;
+        mac[3] = 0x33;
+        mac[4] = 0x44;
+        mac[5] = 0x55 + i;
+        eth_port = 1;
+        eth_active = TRUE;
+
+        memcpy(temp[i].eth_devMacAddress, mac, 6);
+        temp[i].eth_port = eth_port;
+        temp[i].eth_Active = eth_active;
+
+        /* debug */
+        char macstring[18];
+        sprintf (macstring, "%02x:%02x:%02x:%02x:%02x:%02x",
+                 temp[i].eth_devMacAddress[0], temp[i].eth_devMacAddress[1], temp[i].eth_devMacAddress[2],
+                 temp[i].eth_devMacAddress[3], temp[i].eth_devMacAddress[4], temp[i].eth_devMacAddress[5]);
+        CcspHalEthSwTrace(("port %d: mac address is %s link %s\n", temp[i].eth_port, macstring, (temp[i].eth_Active == FALSE) ? "down" : "up"));
+    }
+
+    *output_struct = temp;
+
+    return  RETURN_OK;
+}
+
