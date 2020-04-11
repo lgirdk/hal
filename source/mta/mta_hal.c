@@ -442,5 +442,10 @@ INT mta_hal_Get_LineResetCount(ULONG *resetcnt)
     }
 }
 
+INT mta_hal_ClearCalls(ULONG InstanceNumber)
+{
+	return RETURN_OK;
+}
+
 INT mta_hal_BatteryGetPowerSavingModeStatus(ULONG *pValue) { *pValue = 2; return RETURN_OK; }
 
