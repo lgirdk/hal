@@ -60,6 +60,124 @@
 #define RADIO_PREFIX	"wifi"
 #endif
 
+INT wifi_setRadioStatsEnable(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecurityMFPConfig(INT apIndex, CHAR *output_string)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioSupportedDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApBeaconRate(INT radioIndex,CHAR *beaconRate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setLED(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_factoryResetAP(int apIndex)
+{
+    return RETURN_OK;
+}
+
+INT wifi_restartHostApd()
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityMFPConfig(INT apIndex, CHAR *MfpConfig)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApInactiveAssociatedDeviceDiagnosticResult(char *filename,wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApAssociatedClientDiagnosticResult(INT apIndex, char *mac_addr, wifi_associated_dev3_t *dev_conn)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApWpaEncryptionMode(INT apIndex, CHAR *output_string)
+{
+    return RETURN_OK;
+}
+
+void GetInterfaceName(char *interface_name, char *conf_file)
+{
+}
+
+INT wifi_setApDTIMInterval(INT apIndex, INT dtimInterval)
+{
+    return RETURN_OK;
+}
+
+void wifi_newApAssociatedDevice_callback_register(wifi_newApAssociatedDevice_callback callback_proc)
+{
+}
+
+INT wifi_getApBasicAuthenticationMode(INT apIndex, CHAR *authMode)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioBandUtilization (INT radioIndex, INT *output_percentage)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioTransmitPowerSupported(INT radioIndex, CHAR *output_list)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioAutoChannelEnable(INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setPreferPrivateConnection(BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBSSTransitionActivation(UINT apIndex, BOOL activate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApAssociatedDeviceDiagnosticResult3(INT apIndex, wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
+{
+    return RETURN_OK;
+}
+
+INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
+{
+    return RETURN_OK;
+}
+
 int _syscmd(char *cmd, char *retBuf, int retBufSize)
 {
     FILE *f;
