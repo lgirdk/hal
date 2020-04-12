@@ -60,6 +60,124 @@
 #define RADIO_PREFIX	"wifi"
 #endif
 
+INT wifi_setRadioStatsEnable(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecurityMFPConfig(INT apIndex, CHAR *output_string)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioSupportedDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApBeaconRate(INT radioIndex,CHAR *beaconRate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setLED(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_factoryResetAP(int apIndex)
+{
+    return RETURN_OK;
+}
+
+INT wifi_restartHostApd()
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityMFPConfig(INT apIndex, CHAR *MfpConfig)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApInactiveAssociatedDeviceDiagnosticResult(char *filename,wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApAssociatedClientDiagnosticResult(INT apIndex, char *mac_addr, wifi_associated_dev3_t *dev_conn)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApWpaEncryptionMode(INT apIndex, CHAR *output_string)
+{
+    return RETURN_OK;
+}
+
+void GetInterfaceName(char *interface_name, char *conf_file)
+{
+}
+
+INT wifi_setApDTIMInterval(INT apIndex, INT dtimInterval)
+{
+    return RETURN_OK;
+}
+
+void wifi_newApAssociatedDevice_callback_register(wifi_newApAssociatedDevice_callback callback_proc)
+{
+}
+
+INT wifi_getApBasicAuthenticationMode(INT apIndex, CHAR *authMode)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioBandUtilization (INT radioIndex, INT *output_percentage)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioTransmitPowerSupported(INT radioIndex, CHAR *output_list)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioAutoChannelEnable(INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setPreferPrivateConnection(BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBSSTransitionActivation(UINT apIndex, BOOL activate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApAssociatedDeviceDiagnosticResult3(INT apIndex, wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
+{
+    return RETURN_OK;
+}
+
+INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
+{
+    return RETURN_OK;
+}
+
 int _syscmd(char *cmd, char *retBuf, int retBufSize)
 {
     FILE *f;
@@ -112,20 +230,20 @@ INT wifi_getHalVersion(CHAR *output_string)   //RDKB
 
 /* wifi_factoryReset() function */
 /**
-* Description: 
+* Description:Â 
 *  Resets Implementation specifics may dictate some functionality since 
 *  different hardware implementations may have different requirements.
-*  Parameters : None
-* 
+* Â Parameters :Â None
+*Â 
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
-* @retval RETURN_ERR if any error is detected 
-* 
+* @retval RETURN_ERR if any error is detectedÂ 
+*Â 
 * @execution Synchronous.
 * @sideeffect None.
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking systemÂ 
+* calls. It should probably just send a message to a driver event handler task.Â 
 *
 */
 INT wifi_factoryReset()
@@ -273,23 +391,23 @@ INT wifi_down()
 
 /* wifi_createInitialConfigFiles() function */
 /**
-* Description: 
+* Description:Â 
 *  This function creates wifi configuration files.  The format
 *  and content of these files are implementation dependent.  This function call is 
 *  used to trigger this task if necessary. Some implementations may not need this 
 *  function. If an implementation does not need to create config files the function call can 
 *  do nothing and return RETURN_OK. 
-*  Parameters : None
-* 
+* Â Parameters :Â None
+*Â 
 * @return The status of the operation.
 * @retval RETURN_OK if successful.
-* @retval RETURN_ERR if any error is detected 
-* 
+* @retval RETURN_ERR if any error is detectedÂ 
+*Â 
 * @execution Synchronous.
 * @sideeffect None.
 *
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
+* @note This function must not suspend and must not invoke any blocking systemÂ 
+* calls. It should probably just send a message to a driver event handler task.Â 
 *
 */
 INT wifi_createInitialConfigFiles()
@@ -746,6 +864,11 @@ INT wifi_setRadioTransmitPower(INT radioIndex, ULONG TransmitPower)	//RDKB
 	return RETURN_OK;
 }
 
+INT wifi_getRadioPercentageTransmitPower(INT radioIndex, ULONG *output_ulong)
+{
+	return wifi_getRadioTransmitPower(radioIndex, output_ulong);
+}
+
 //get 80211h Supported.  80211h solves interference with satellites and radar using the same 5 GHz frequency band
 INT wifi_getRadioIEEE80211hSupported(INT radioIndex, BOOL *Supported)  //Tr181
 {
@@ -845,7 +968,7 @@ INT wifi_getRadioTrafficStats2(INT radioIndex, wifi_radioTrafficStats2_t *output
 	output_struct->radio_InvalidMACCount=0;	//The number of packets that were received with a detected invalid MAC header error.
 	output_struct->radio_PacketsOtherReceived=0;	//The number of packets that were received, but which were destined for a MAC address that is not associated with this interface.
 	output_struct->radio_NoiseFloor=-99; 	//The noise floor for this radio channel where a recoverable signal can be obtained. Expressed as a signed integer in the range (-110:0).  Measurement should capture all energy (in dBm) from sources other than Wi-Fi devices as well as interference from Wi-Fi devices too weak to be decoded. Measured in dBm
-	output_struct->radio_ChannelUtilization=35; //Percentage of time the channel was occupied by the radio’s own activity (Activity Factor) or the activity of other radios.  Channel utilization MUST cover all user traffic, management traffic, and time the radio was unavailable for CSMA activities, including DIFS intervals, etc.  The metric is calculated and updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1.  Units in Percentage
+	output_struct->radio_ChannelUtilization=35; //Percentage of time the channel was occupied by the radioÂ’s own activity (Activity Factor) or the activity of other radios.  Channel utilization MUST cover all user traffic, management traffic, and time the radio was unavailable for CSMA activities, including DIFS intervals, etc.  The metric is calculated and updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1.  Units in Percentage
 	output_struct->radio_ActivityFactor=2; //Percentage of time that the radio was transmitting or receiving Wi-Fi packets to/from associated clients. Activity factor MUST include all traffic that deals with communication between the radio and clients associated to the radio as well as management overhead for the radio, including NAV timers, beacons, probe responses,time for receiving devices to send an ACK, SIFC intervals, etc.  The metric is calculated and updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected from the just completed interval.   If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units in Percentage
 	output_struct->radio_CarrierSenseThreshold_Exceeded=20; //Percentage of time that the radio was unable to transmit or receive Wi-Fi packets to/from associated clients due to energy detection (ED) on the channel or clear channel assessment (CCA). The metric is calculated and updated in this Parameter at the end of the interval defined by "Radio Statistics Measuring Interval".  The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units in Percentage
 	output_struct->radio_RetransmissionMetirc=0; //Percentage of packets that had to be re-transmitted. Multiple re-transmissions of the same packet count as one.  The metric is calculated and updated in this parameter at the end of the interval defined by "Radio Statistics Measuring Interval".   The calculation of this metric MUST only use the data collected from the just completed interval.  If this metric is queried before it has been updated with an initial calculation, it MUST return -1. Units  in percentage
@@ -2599,6 +2722,349 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 	*output = 0;
 	return RETURN_ERR;
 }
+
+/****************************************************************************/
+/****************************************************************************/
+
+INT wifi_getRadioExcludeDfs (INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioExcludeDfs (INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecurityWpaRekeyInterval (INT apIndex, INT *output_int)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityWpaRekeyInterval (INT apIndex, INT rekeyInterval)
+{
+    return RETURN_OK;
+}
+
+/* for 2.4GHz, output_weights are for channels: 1, 6, 11
+    for 5GHz, output_weights are for channels: 36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140 */
+INT wifi_getRadioChannelWeights (INT radioIndex, ULONG *output_weights)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioChannelWeights (INT radioIndex, const ULONG *output_weights)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApRadiusTransportInterface (UINT RadiusInterface)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRADIUSAcctEnable(INT band, BOOL *enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRADIUSAcctEnable(INT band, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecurityAcctServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *AcctSecret_output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityAcctServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR *AcctSecret)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecuritySecondaryAcctServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *AcctSecret_output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecuritySecondaryAcctServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR *AcctSecret)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandMWWWeight(INT band, CHAR *mwwWeight)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandMWWWeight(INT band, CHAR *mwwWeight)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getSupportRatesBitmapControlFeature(BOOL *enable)
+{
+    return RETURN_OK;
+}
+
+/****************************************************************************/
+/****************************************************************************/
+
+BOOL wifi_api_is_device_associated(int ap_index, char *mac)
+{
+    return TRUE;
+}
+
+INT wifi_setClientDetailedStatisticsEnable(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getVAPTelemetry(UINT apIndex, wifi_VAPTelemetry_t *telemetry)
+{
+    return RETURN_OK;
+}
+
+void wifi_apDeAuthEvent_callback_register(wifi_apDeAuthEvent_callback callback_proc)
+{
+}
+
+INT wifi_dppInitiate(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppReconfigInitiate(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCancel(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCreateReconfigContext(INT dppVapIndex, CHAR *PrivateReconfigAccessKey, void **reconf_ctx, char *reconf_pub_key)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCreateCSignIntance(INT dppVapIndex, CHAR *PrivateSigningKey, void **csign_inst, unsigned char *sign_key_hash)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendAuthCnf(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendConfigResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendReconfigAuthCnf(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dpp_frame_received_callbacks_register(wifi_dppAuthResponse_callback_t dppAuthCallback,
+                                               wifi_dppConfigRequest_callback_t dppConfigCallback,
+                                               wifi_dppConfigResult_callback_t dppConfigResultCallback,
+                                               wifi_dppReconfigAnnounce_callback_t dppReconfigAnnounceCallback,
+                                               wifi_dppReconfigAuthResponse_callback_t dppReconfigAuthRspCallback)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppStartReceivingTestFrame(unsigned char *sign_key_hash1, unsigned char *sign_key_hash2)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessAuthResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessConfigRequest(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessConfigResult(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessReconfigAnnouncement(UCHAR *frame, UINT len, unsigned char *sign_key_hash)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessReconfigAuthResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+/****************************************************************************/
+/****************************************************************************/
+
+/**
+ OPENSYNC WIFI HAL EXTENSIONS START
+*/
+
+INT wifi_getRadioChannels(INT radioIndex, wifi_channelMap_t *outputMap, INT outputMapSize)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_chan_eventRegister(wifi_chan_eventCB_t eventCb)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setNeighborReportActivation(UINT apIndex, BOOL activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getNeighborReportActivation(UINT apIndex, BOOL *activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setBTMRequest(UINT apIndex, CHAR *peerMac, wifi_BTMRequest_t *request)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setRMBeaconRequest(UINT apIndex, CHAR *peer, wifi_BeaconRequest_t *in_request, UCHAR *out_DialogToken)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_startNeighborScan(INT apIndex, wifi_neighborScanMode_t scan_mode, INT dwell_time, UINT chan_num, UINT *chan_list)
+{
+    return RETURN_OK;
+}
+
+INT wifi_steering_setGroup(UINT steeringgroupIndex, wifi_steering_apConfig_t *cfg_2, wifi_steering_apConfig_t *cfg_5)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientSet(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac, wifi_steering_clientConfig_t *config)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientRemove(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientMeasure(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientDisconnect(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac, wifi_disconnectType_t type, UINT reason)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_eventRegister(wifi_steering_eventCB_t event_cb)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_eventUnregister(void)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceRxStatsResult(INT radioIndex, mac_address_t *clientMacAddress, wifi_associated_dev_rate_info_rx_stats_t **stats_array, UINT *output_array_size, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceTxStatsResult(INT radioIndex, mac_address_t *clientMacAddress, wifi_associated_dev_rate_info_tx_stats_t **stats_array, UINT *output_array_size, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_delApAclDevices(INT apIndex)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getRadioChannelStats(INT radioIndex,wifi_channelStats_t *input_output_channelStats_array,INT array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceDiagnosticResult2(INT apIndex,wifi_associated_dev2_t **associated_dev_array,UINT *output_array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_pushRadioChannel2(INT radioIndex, UINT channel, UINT channel_width_MHz, UINT csa_beacon_count)
+{
+    return RETURN_ERR;
+}
+
+void wifi_apDisassociatedDevice_callback_register(wifi_apDisassociatedDevice_callback callback_proc)
+{
+    return;
+}
+
+INT wifi_getApMacAddressControlMode(INT apIndex, INT *output_filterMode)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setApCsaDeauth(INT apIndex, INT mode)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setApScanFilter(INT apIndex, INT mode, CHAR *essid)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getNeighboringWiFiStatus(INT radio_index, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getSSIDNameStatus(INT apIndex, CHAR *output_string)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceStats(INT apIndex, mac_address_t *clientMacAddress, wifi_associated_dev_stats_t *associated_dev_stats, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getBSSTransitionActivation(UINT apIndex, BOOL *activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApIndexFromName(CHAR *inputSsidString, INT *output_int)
+{
+    return RETURN_ERR;
+}
+
+/**
+ OPENSYNC WIFI HAL EXTENSIONS END
+*/
+
 
 #ifdef _WIFI_HAL_TEST_
 int main(int argc,char **argv)
