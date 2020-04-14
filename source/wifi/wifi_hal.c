@@ -481,6 +481,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 {
 	char cmd[128]={0};
 	char buf[256]={0};
+	ULONG result;
 	INT apIndex;
 	
 	if (NULL == output_ulong) 
@@ -492,14 +493,22 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 	snprintf(cmd, sizeof(cmd), "iwlist %s%d channel | grep Current | | cut -d'(' -f2 | cut -d')' -f1 | cut -d' ' -f2", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 
-	*output_ulong=0;
+	result = 0;
 	if(strlen(buf)>=1)
-		*output_ulong = atol(buf);
+		result = atol(buf);
 	
-	if(*output_ulong<=0)  {
+	if(result <= 0) {
 		//TODO: SSID is inactive, get channel from wifi config
-		//*output_ulong = 0;		
+		//result = 0;		
 	}	
+
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into output_ulong,
+	   which is always safe to do.
+	*/
+	memcpy (output_ulong, &result, sizeof(*output_ulong));
+
 	return RETURN_OK;
 }
 
@@ -672,12 +681,22 @@ INT wifi_setRadioGuardInterval(INT radioIndex, CHAR *string)	//Tr181
 //Get the Modulation Coding Scheme index, eg: "-1", "1", "15"
 INT wifi_getRadioMCS(INT radioIndex, INT *output_int) //Tr181
 {
+	INT result;
+
 	if (NULL == output_int) 
 		return RETURN_ERR;
 	if (radioIndex==0)	
-		*output_int=1;
+		result = 1;
 	else
-		*output_int=3;
+		result = 3;
+
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into output_int,
+	   which is always safe to do.
+	*/
+	memcpy (output_int, &result, sizeof(*output_int));
+
 	return RETURN_OK;
 }
 
@@ -2045,10 +2064,17 @@ INT wifi_setApSecurityReset(INT apIndex)
 //The IP Address and port number of the RADIUS server used for WLAN security. RadiusServerIPAddr is only applicable when ModeEnabled is an Enterprise type (i.e. WPA-Enterprise, WPA2-Enterprise or WPA-WPA2-Enterprise).
 INT wifi_getApSecurityRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
 {
+	UINT port = 123;
+
 	if(!IP_output || !Port_output || !RadiusSecret_output)
 		return RETURN_ERR;
 	snprintf(IP_output, 64, "75.56.77.78");
-	*Port_output=123;
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into Port_output,
+	   which is always safe to do.
+	*/
+	memcpy (Port_output, &port, sizeof(*Port_output));
 	snprintf(RadiusSecret_output, 64, "12345678");
 	return RETURN_OK;
 }
@@ -2061,10 +2087,17 @@ INT wifi_setApSecurityRadiusServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR
 
 INT wifi_getApSecuritySecondaryRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
 {
+	UINT port = 123;
+
 	if(!IP_output || !Port_output || !RadiusSecret_output)
 		return RETURN_ERR;
 	snprintf(IP_output, 64, "75.56.77.78");
-	*Port_output=123;
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into Port_output,
+	   which is always safe to do.
+	*/
+	memcpy (Port_output, &port, sizeof(*Port_output));
 	snprintf(RadiusSecret_output, 64, "12345678");
 	return RETURN_OK;
 }
