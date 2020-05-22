@@ -178,6 +178,7 @@ fi
 
 if [ ! -d /opt/www/xb3/code/cmn/syndication ] ; then
 	cp -rf /usr/www/cmn/syndication /opt/www/xb3/code/cmn/
+	cp /opt/www/xb3/code/cmn/img/logo_rdk.png /opt/www/xb3/code/cmn/syndication/img/
 fi
 
 if [ ! -d /opt/www/xb3/code/CSRF-Protector-PHP ] ; then                              
