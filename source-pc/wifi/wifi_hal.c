@@ -4240,29 +4240,22 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
         int index = 0, flag = 0;
         float SignalPower;
 
-        if( (radioIndex == 0 ) || (radioIndex == 1 ))
+	if( (radioIndex == 0 ) || (radioIndex == 1 ))
         {
-                GetInterfaceName(Value,"/nvram/hostapd1.conf");
-                sprintf(buf,"ifconfig | grep %s | wc -l",Value);
-                GetScanningValues(buf,buf1);
-                memset(buf,0,sizeof(buf));
-                if ( atoi(buf1) == 1 )
-                {
-                        sprintf(buf,"iwlist %s scanning > /tmp/scanning.txt",Value);
-                        flag = 1; //To avoid the duplication data's
-                }
+                if(radioIndex == 1)
+                        GetInterfaceName(Value,"/nvram/hostapd1.conf");
                 else
-                {
                         GetInterfaceName(Value,"/nvram/hostapd0.conf");
-                        sprintf(buf,"iwlist %s scanning > /tmp/scanning.txt",Value);
-                        flag = 1; //To avoid the duplication data's
-                }
+                sprintf(buf,"iwlist %s scanning > /tmp/scanning.txt",Value);
         }
-        if ( radioIndex == 1 )
-        {
-                if(flag == 1)
-                        return RETURN_OK; //Already 2g and 5g data's are successfully scanned 
-        }
+
+	sprintf(cmd,"syscfg get NeighboringWifiScan");
+        _syscmd(cmd,buf1,sizeof(buf1));
+        flag=atoi(buf1);
+
+        if(flag == 1)
+        	return RETURN_OK; //Already 2g and 5g data's are successfully scanned 
+
         system(buf);
         _syscmd("grep Cell /tmp/scanning.txt | wc -l", buf, sizeof(buf));
         *output_array_size=atoi(buf); // to get the count of neighbouring ap's
