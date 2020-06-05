@@ -120,7 +120,6 @@ iptables-restore < /etc/iptables/rules.v4
 
 ###############################CcspTR069pa#########################
 touch /var/tmp/tr069paready         
-cp /version.txt /fss/gw/version.txt
 
 ############################## Webpa Component ################################
 
