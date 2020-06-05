@@ -93,14 +93,14 @@ INT platform_hal_GetBaseMacAddress(CHAR *pValue)
 INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) 
 { 
         char status[256] = {0};
-	File_Reading("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2",status);
+	File_Reading("cat /version.txt | grep imagename | cut -d ':' -f2",status);
         strcpy(pValue, status);
         return RETURN_OK;
 }
 
 INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) { 
 	char status[256] = {0};
-	File_Reading("cat /fss/gw/version.txt | grep imagename | cut -d ':' -f2",status);
+	File_Reading("cat /version.txt | grep imagename | cut -d ':' -f2",status);
 	strcpy(pValue, status);
 	return RETURN_OK;
 }
