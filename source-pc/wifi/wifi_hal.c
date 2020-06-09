@@ -5106,7 +5106,7 @@ INT wifi_getIndexFromName(CHAR *inputSsidString, INT *output_int)
 	*ouput_int = -1;
 	pos=strstr(inputSsidString, AP_PREFIX);
 	if(pos) {
-		sscanf(pos+sizeof(AP_PREFIX),"%d", ouput_int);
+		sscanf(pos+sizeof(AP_PREFIX)-1,"%d", ouput_int);
 		return RETURN_OK;
 	} 
 	return RETURN_ERR;
