@@ -368,6 +368,8 @@ INT wifi_getRadioStatus(INT radioIndex, BOOL *output_bool)	//RDKB
 //Get the Radio Interface name from platform, eg "wifi0"
 INT wifi_getRadioIfName(INT radioIndex, CHAR *output_string) //Tr181
 {
+	if(radioIndex < 0 || radioIndex > 1)
+		return RETURN_ERR;
 	if (NULL == output_string) 
 		return RETURN_ERR;
 	snprintf(output_string, 64, "%s%d", RADIO_PREFIX, radioIndex);
