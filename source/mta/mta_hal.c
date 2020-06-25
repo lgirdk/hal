@@ -108,6 +108,13 @@ INT   mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo) {
     return RETURN_OK;
 }
 
+INT mta_hal_GetDHCPV6Info(PMTAMGMT_MTA_DHCPv6_INFO pInfo)
+{
+    /* Initial empty stub just to satisfy linking */
+
+    return RETURN_ERR;
+}
+
 /*
 COSA_MTA_PKTC g_mta_pktc = {FALSE,6,6,6,6,6,6,6,6,6,6};
 
@@ -433,6 +440,11 @@ INT mta_hal_Get_LineResetCount(ULONG *resetcnt)
 		*resetcnt = 5;
         return RETURN_OK;
     }
+}
+
+INT mta_hal_ClearCalls(ULONG InstanceNumber)
+{
+	return RETURN_OK;
 }
 
 INT mta_hal_BatteryGetPowerSavingModeStatus(ULONG *pValue) { *pValue = 2; return RETURN_OK; }
