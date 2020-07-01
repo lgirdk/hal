@@ -1130,19 +1130,16 @@ void defaultwifi_restarting_process()
 	wireless_interface_count = atoi(wireless_count);
 	/* **************** TP-Link ************** */
 	if(wireless_interface_count == 2)
-		KillHostapd_5g(1);
+	{
+		Dynamically_Enabling_hostapd_process(1);
+		Dynamically_Enabling_hostapd_process(5);
+	}
 	else if(wireless_interface_count == 4)
 	{
-		system("killall hostapd");
-		sleep(1);
-		system("rmmod rtl8812au && rmmod 88x2bu");
-		sleep(1);
-		system("modprobe rtl8812au && modprobe 88x2bu");
-		sleep(1);
-		privatewifi_5g(1);
-		privatewifi_2g(0);
-		xfinitywifi_2g(4);
-		xfinitywifi_5g(5);
+		Dynamically_Enabling_hostapd_process(0);
+		Dynamically_Enabling_hostapd_process(1);
+		Dynamically_Enabling_hostapd_process(4);
+		Dynamically_Enabling_hostapd_process(5);
 	}
 	/* **************** Tenda ************** */
 	else if(wireless_interface_count == 3)
