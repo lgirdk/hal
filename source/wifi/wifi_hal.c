@@ -3053,11 +3053,6 @@ INT wifi_getBSSTransitionActivation(UINT apIndex, BOOL *activate)
     return RETURN_ERR;
 }
 
-INT wifi_getApIndexFromName(CHAR *inputSsidString, INT *output_int)
-{
-    return RETURN_ERR;
-}
-
 /**
  OPENSYNC WIFI HAL EXTENSIONS END
 */
