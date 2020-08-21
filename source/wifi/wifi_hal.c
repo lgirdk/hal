@@ -2789,6 +2789,163 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 	return RETURN_ERR;
 }
 
+
+/**
+ OPENSYNC WIFI HAL EXTENSIONS START
+*/
+
+INT wifi_getRadioChannels(INT radioIndex, wifi_channelMap_t *outputMap, INT outputMapSize)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_chan_eventRegister(wifi_chan_eventCB_t eventCb)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setNeighborReportActivation(UINT apIndex, BOOL activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getNeighborReportActivation(UINT apIndex, BOOL *activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setBTMRequest(UINT apIndex, CHAR *peerMac, wifi_BTMRequest_t *request)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setRMBeaconRequest(UINT apIndex, CHAR *peer, wifi_BeaconRequest_t *in_request, UCHAR *out_DialogToken)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_startNeighborScan(INT apIndex, wifi_neighborScanMode_t scan_mode, INT dwell_time, UINT chan_num, UINT *chan_list)
+{
+    return RETURN_OK;
+}
+
+INT wifi_steering_setGroup(UINT steeringgroupIndex, wifi_steering_apConfig_t *cfg_2, wifi_steering_apConfig_t *cfg_5)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientSet(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac, wifi_steering_clientConfig_t *config)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientRemove(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientMeasure(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_clientDisconnect(UINT steeringgroupIndex, INT apIndex, mac_address_t client_mac, wifi_disconnectType_t type, UINT reason)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_eventRegister(wifi_steering_eventCB_t event_cb)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_steering_eventUnregister(void)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceRxStatsResult(INT radioIndex, mac_address_t *clientMacAddress, wifi_associated_dev_rate_info_rx_stats_t **stats_array, UINT *output_array_size, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceTxStatsResult(INT radioIndex, mac_address_t *clientMacAddress, wifi_associated_dev_rate_info_tx_stats_t **stats_array, UINT *output_array_size, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_delApAclDevices(INT apIndex)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getRadioChannelStats(INT radioIndex,wifi_channelStats_t *input_output_channelStats_array,INT array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceDiagnosticResult2(INT apIndex,wifi_associated_dev2_t **associated_dev_array,UINT *output_array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_pushRadioChannel2(INT radioIndex, UINT channel, UINT channel_width_MHz, UINT csa_beacon_count)
+{
+    return RETURN_ERR;
+}
+
+void wifi_apDisassociatedDevice_callback_register(wifi_apDisassociatedDevice_callback callback_proc)
+{
+    return;
+}
+
+INT wifi_getApMacAddressControlMode(INT apIndex, INT *output_filterMode)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setApCsaDeauth(INT apIndex, INT mode)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setApScanFilter(INT apIndex, INT mode, CHAR *essid)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getNeighboringWiFiStatus(INT radio_index, wifi_neighbor_ap2_t **neighbor_ap_array, UINT *output_array_size)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getSSIDNameStatus(INT apIndex, CHAR *output_string)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApAssociatedDeviceStats(INT apIndex, mac_address_t *clientMacAddress, wifi_associated_dev_stats_t *associated_dev_stats, ULLONG *handle)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getBSSTransitionActivation(UINT apIndex, BOOL *activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getIndexFromName(CHAR *inputSsidString, INT *ouput_int);
+
+INT wifi_getApIndexFromName(CHAR *inputSsidString, INT *output_int)
+{
+    return wifi_getIndexFromName(inputSsidString, output_int);
+}
+
+/**
+ OPENSYNC WIFI HAL EXTENSIONS END
+*/
+
+
 #ifdef _WIFI_HAL_TEST_
 int main(int argc,char **argv)
 {
