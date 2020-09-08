@@ -401,7 +401,7 @@ INT mta_hal_BatteryGetRemainingCharge(ULONG* Val) { *Val = 1300; return RETURN_O
 INT mta_hal_BatteryGetRemainingTime(ULONG* Val)   { *Val = 1;    return RETURN_OK; }
 INT mta_hal_BatteryGetNumberofCycles(ULONG* Val)  { *Val = 4321; return RETURN_OK; }
 
-INT mta_hal_BatteryGetPowerStatus(CHAR *Val, ULONG *len) { strcpy(Val, "Battery");          *len=strlen(Val)+1; return RETURN_OK; }
+INT mta_hal_BatteryGetPowerStatus(CHAR *Val, ULONG *len) { strcpy(Val, "AC");               *len=strlen(Val)+1; return RETURN_OK; }
 INT mta_hal_BatteryGetCondition(CHAR *Val, ULONG *len)   { strcpy(Val, "Good");             *len=strlen(Val)+1; return RETURN_OK; }
 INT mta_hal_BatteryGetStatus(CHAR* Val, ULONG *len)      { strcpy(Val, "Discharging");      *len=strlen(Val)+1; return RETURN_OK; }
 INT mta_hal_BatteryGetLife(CHAR* Val, ULONG *len)        { strcpy(Val, "Need Replacement"); *len=strlen(Val)+1; return RETURN_OK; }
