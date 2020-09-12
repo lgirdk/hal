@@ -183,3 +183,8 @@ INT platform_hal_getTimeOffSet(CHAR *pValue)
 { 
 	return RETURN_OK; 
 } 
+
+INT platform_hal_GetMemoryPaths(RDK_CPUS index, PPLAT_PROC_MEM_INFO *ppinfo)
+{
+        return RETURN_OK;
+}
