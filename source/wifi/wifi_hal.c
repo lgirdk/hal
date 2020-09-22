@@ -924,6 +924,11 @@ INT wifi_setRadioTransmitPower(INT radioIndex, ULONG TransmitPower)	//RDKB
 	return RETURN_OK;
 }
 
+INT wifi_getRadioPercentageTransmitPower(INT radioIndex, ULONG *output_ulong)
+{
+	return wifi_getRadioTransmitPower(radioIndex, output_ulong);
+}
+
 //get 80211h Supported.  80211h solves interference with satellites and radar using the same 5 GHz frequency band
 INT wifi_getRadioIEEE80211hSupported(INT radioIndex, BOOL *Supported)  //Tr181
 {
