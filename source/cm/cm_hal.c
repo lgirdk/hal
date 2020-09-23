@@ -308,7 +308,7 @@ INT cm_hal_HTTP_Download_Reboot_Now()
     return RETURN_OK;
 }
 
-INT cm_hal_FWupdateAndFactoryReset()
+INT cm_hal_FWupdateAndFactoryReset(char* pUrl, char* pImagename)
 {
     return RETURN_OK;
 }
