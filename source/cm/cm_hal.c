@@ -607,3 +607,112 @@ int docsis_IsEnergyDetected (BOOLEAN *pEnergyDetected)
     return RETURN_ERR;
 }
 
+
+/****************************************************************************/
+
+int docsis_getCmDoc30SwRegistrationState (int *registration_state)
+{
+    CmRegState_t swRegState = CM_REGSTATE_REGISTERED;
+
+    *registration_state = (int) swRegState;
+
+    return RETURN_OK;
+}
+
+int docsis_getCmT1Timeouts (unsigned int *t1_timeout)
+{
+    *t1_timeout = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getCmT2Timeouts (unsigned int *t2_timeout)
+{
+    *t2_timeout = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getCMOperationStatus (int *cm_status)
+{
+    cmOperationState_t status;
+
+    status = CM_STAT_ONLINE;
+
+    *cm_status = status;
+
+    return RETURN_OK;
+}
+
+int docsis_getEnergyMode (int *energy_mode)
+{
+    *energy_mode = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getHorizOvertempProtModeState (int *temp_mode)
+{
+    *temp_mode = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getPartServiceFallback20 (int *enable)
+{
+    int usnum, dsnum;
+
+    dsnum = 2;
+    usnum = 2;
+
+    /*
+       Partial service is enabled if only one upstream and one downstream channel ?
+    */
+    if (usnum == 1 && dsnum == 1)
+    {
+        *enable = 1;
+    }
+    else
+    {
+        *enable = 0;
+    }
+
+    return RETURN_OK;
+}
+
+int docsis_getDownstreamPrimaryChannelID (int *dsPrimChannelId)
+{
+    return RETURN_ERR;
+}
+
+int cm_getSoftwareOperStatus (int *swOperStatus)
+{
+    cmDownloadState_t status;
+
+    status = CM_DL_STAT_OTHER;
+
+    *swOperStatus = status;
+
+    return RETURN_OK;
+}
+
+int qos_getServiceFlowCount (unsigned int *count)
+{
+    return RETURN_ERR;
+}
+
+int qos_getServiceFlowParamCount (unsigned int *count)
+{
+    return RETURN_ERR;
+}
+
+int qos_getServiceFlowParam (int sf_index, int *flow_id, int *direction)
+{
+    return RETURN_ERR;
+}
+
+int qos_getServiceFlowParamsetDetails (int sf_id, int *MaxTrafficRate, int *MaxTrafficBurst, int *MinReservedRate, int *MaxConcatBurst, int *SchedulingType)
+{
+    return RETURN_ERR;
+}
+
