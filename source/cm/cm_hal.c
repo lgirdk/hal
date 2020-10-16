@@ -201,6 +201,8 @@ int docsis_GetUsStatus (unsigned short i, PCMMGMT_CM_US_CHANNEL pinfo)
     sprintf(pinfo->SymbolRate, "%u", 115200);
     sprintf(pinfo->Modulation, "%s", "QAM256");
     sprintf(pinfo->LockStatus, "%s", "Locked");
+    pinfo->T3Timeouts = 0;
+    pinfo->T4Timeouts = 0;
 
     return RETURN_OK;
 }
