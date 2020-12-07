@@ -188,3 +188,19 @@ INT platform_hal_GetMemoryPaths(RDK_CPUS index, PPLAT_PROC_MEM_INFO *ppinfo)
 {
         return RETURN_OK;
 }
+
+INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
+{
+#if defined(_PSM_TRANS_RDK_TRIGG_)
+	if(NULL != pState)
+	{
+		return RETURN_OK;
+	}
+	else
+	{
+		return RETURN_ERR;
+	}	
+#else
+	return RETURN_OK;
+#endif
+}
