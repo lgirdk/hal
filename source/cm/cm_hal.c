@@ -714,3 +714,36 @@ int qos_getServiceFlowParamsetDetails (int sf_id, int *MaxTrafficRate, int *MaxT
     return RETURN_ERR;
 }
 
+int cm_hal_Get_ErouterModeControl (unsigned int *initMode)
+{
+    *initMode = CM_INIT_MODE_CONTROL_HONOR;
+
+    return RETURN_OK;
+}
+
+int cm_hal_Set_ErouterModeControl (int initMode)
+{
+    int initMode_current;
+
+    if ((cm_hal_Get_ErouterModeControl (&initMode_current) == RETURN_OK) &&
+        (initMode == initMode_current))
+    {
+        return RETURN_OK;
+    }
+
+    switch (initMode)
+    {
+        case CM_INIT_MODE_CONTROL_DISABLED:
+        case CM_INIT_MODE_CONTROL_IPV4:
+        case CM_INIT_MODE_CONTROL_IPV6:
+        case CM_INIT_MODE_CONTROL_IPV4_IPV6:
+        case CM_INIT_MODE_CONTROL_HONOR:
+            break;
+
+        default:
+            return RETURN_ERR;
+    }
+
+    return RETURN_OK;
+}
+
