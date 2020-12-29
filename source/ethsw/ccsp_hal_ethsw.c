@@ -549,3 +549,12 @@ CcspHalExtSw_getAssociatedDevice
         return  RETURN_OK;
 }
 
+CCSP_HAL_ETHSW_LINK_STATUS CcspHalExtSw_GetLinkStatus (char *pMacAddr)
+{
+    char *connectedmac = "00:11:22:33:44:55";
+
+    if (strcasecmp(pMacAddr, connectedmac) == 0)
+        return CCSP_HAL_ETHSW_LINK_Up;
+
+    return CCSP_HAL_ETHSW_LINK_Disconnected;
+}
