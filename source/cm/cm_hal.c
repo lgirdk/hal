@@ -612,9 +612,13 @@ int docsis_IsEnergyDetected (BOOLEAN *pEnergyDetected)
 
 /****************************************************************************/
 
-int docsis_getCmDoc30SwRegistrationState (int *mac_status)
+int docsis_getCmDoc30SwRegistrationState (int *registration_state)
 {
-    return RETURN_ERR;
+    CmRegState_t swRegState = CM_REGSTATE_REGISTERED;
+
+    *registration_state = (int) swRegState;
+
+    return RETURN_OK;
 }
 
 int docsis_getCmT1Timeouts (unsigned int *t1_timeout)
