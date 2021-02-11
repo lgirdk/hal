@@ -335,3 +335,28 @@ int platform_hal_getCMTSMac (char *pValue)
 
     return RETURN_OK;
 }
+
+/*
+   If the platform supports a factory provisioned default password for
+   the UI then return it here. If not return an error.
+*/
+int platform_hal_getUIDefaultPassword (char *pValue, unsigned int len)
+{
+    char *passwd;
+    size_t passwd_length;
+
+    passwd = "password";
+    passwd_length = strlen(passwd);
+
+    /*
+       If output buffer is too small then return an error, don't truncate.
+    */
+    if (len <= passwd_length)
+    {
+        return RETURN_ERR;
+    }
+
+    memcpy (pValue, passwd, passwd_length + 1);
+
+    return RETURN_OK;
+}
