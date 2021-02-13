@@ -176,6 +176,26 @@ INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
     return RETURN_OK;
 }
 
+INT wifi_getRadiusOperatorName(INT index, CHAR *op_name)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getRadiusLocationData(INT index, CHAR *loc_data)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_setRadiusOperatorName(INT band, CHAR *op_name)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadiusLocationData(INT band, CHAR *loc_data)
+{
+    return RETURN_OK;
+}
+
 static int _syscmd(char *cmd, char *retBuf, int retBufSize)
 {
     FILE *f;
@@ -636,12 +656,37 @@ INT wifi_setRadioChannel(INT radioIndex, ULONG channel)	//RDKB	//AP only
 	return RETURN_ERR;
 }
 
+//Get the Operating channel number, or the configured one while ApplySetting is in progress
+INT wifi_getRadioRunningChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
+{
+	ULONG channel = 0;
+
+//	if (!output_ulong || !is_valid_radio(radioIndex))
+//		return RETURN_ERR;
+
+	*output_ulong = channel;
+
+	return RETURN_OK;
+}
+
 //Enables or disables a driver level variable to indicate if auto channel selection is enabled on this radio
 //This "auto channel" means the auto channel selection when radio is up. (which is different from the dynamic channel/frequency selection (DFC/DCS))
 INT wifi_setRadioAutoChannelEnable(INT radioIndex, BOOL enable) //RDKB
 {
 	//Set to wifi config only. Wait for wifi reset to apply.
 	return RETURN_ERR;
+}
+
+INT wifi_getRadioConfiguredChannel(INT radioIndex, ULONG *cfgdChannel)
+{
+    ULONG result = 9;
+
+//  if (!cfgdChannel || !is_valid_radio(radioIndex))
+//          return RETURN_ERR;
+
+    *cfgdChannel = result;
+
+    return RETURN_OK;
 }
 
 INT wifi_getRadioDCSSupported(INT radioIndex, BOOL *output_bool) 	//RDKB
