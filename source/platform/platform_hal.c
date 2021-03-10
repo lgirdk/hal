@@ -198,3 +198,32 @@ int platform_hal_setFanMaxOverride (BOOLEAN bOverrideFlag, unsigned int fanIndex
 {
     return RETURN_OK;
 }
+
+int platform_hal_GetCmMacAddress (char *pValue, unsigned int len)
+{
+    unsigned char mac[6];
+
+    if (len == 0)
+        return RETURN_ERR;
+
+    pValue[0] = 0;
+
+    mac[0] = 0x11;
+    mac[1] = 0x22;
+    mac[2] = 0x33;
+    mac[3] = 0x44;
+    mac[4] = 0x55;
+    mac[5] = 0xAA;
+
+    /*
+       MAC address with hex chars in upper case.
+       If output buffer is too small then return an error, don't truncate.
+    */
+
+    if (snprintf (pValue, len, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]) >= len)
+    {
+        return RETURN_ERR;
+    }
+
+    return RETURN_OK;
+}
