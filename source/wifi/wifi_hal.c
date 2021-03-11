@@ -2303,6 +2303,20 @@ INT wifi_setApSecurityRadiusSettings(INT apIndex, wifi_radius_setting_t *input)
 	return RETURN_ERR;
 }
 
+/* Set the reauthentication interval for radius authenticated clients*/
+INT wifi_setApRadiusReAuthInterval(INT apIndex, UINT number)
+{
+	return RETURN_OK;
+}
+
+/*Get the reauthentication interval for radius authenticated clients*/
+INT wifi_getApRadiusReAuthInterval(INT apIndex, UINT *output_uint)
+{
+	*output_uint = 3600;
+
+	return RETURN_OK;
+}
+
 //Enables or disables WPS functionality for this access point.
 // outputs the WPS enable state of this ap in output_bool 
 INT wifi_getApWpsEnable(INT apIndex, BOOL *output_bool)
