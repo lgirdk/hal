@@ -2315,17 +2315,17 @@ INT wifi_setApSecurityRadiusSettings(INT apIndex, wifi_radius_setting_t *input)
 	return RETURN_ERR;
 }
 
-/* Set the reauthentication interval for radius authenticated clients*/
-INT wifi_setApRadiusReAuthInterval(INT apIndex, UINT number)
+/*Get the reauthentication interval for radius authenticated clients*/
+INT wifi_getApRadiusReAuthInterval(INT apIndex, UINT *interval)
 {
+	*interval = 3600;
+
 	return RETURN_OK;
 }
 
-/*Get the reauthentication interval for radius authenticated clients*/
-INT wifi_getApRadiusReAuthInterval(INT apIndex, UINT *output_uint)
+/* Set the reauthentication interval for radius authenticated clients*/
+INT wifi_setApRadiusReAuthInterval(INT apIndex, UINT interval)
 {
-	*output_uint = 3600;
-
 	return RETURN_OK;
 }
 
