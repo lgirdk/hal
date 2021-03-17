@@ -198,6 +198,20 @@ INT wifi_setRadiusLocationData(INT band, CHAR *loc_data)
     return RETURN_OK;
 }
 
+INT wifi_getApPMKCacheInterval(INT apIndex, UINT *output_uint)
+{
+    int interval = 300;
+
+    *output_uint = interval;
+
+    return RETURN_OK;
+}
+
+INT wifi_setApPMKCacheInterval(INT apIndex, UINT number)
+{
+    return RETURN_OK;
+}
+
 int _syscmd(char *cmd, char *retBuf, int retBufSize)
 {
     FILE *f;
@@ -2280,8 +2294,6 @@ INT wifi_getApSecurityRadiusSettings(INT apIndex, wifi_radius_setting_t *output)
 	output->RadiusServerRetries=3; 				//Number of retries for Radius requests.
 	output->RadiusServerRequestTimeout=5; 		//Radius request timeout in seconds after which the request must be retransmitted for the # of retries available.	
 	output->PMKLifetime=28800; 					//Default time in seconds after which a Wi-Fi client is forced to ReAuthenticate (def 8 hrs).	
-	output->PMKCaching=FALSE; 					//Enable or disable caching of PMK.	
-	output->PMKCacheInterval=300; 				//Time interval in seconds after which the PMKSA (Pairwise Master Key Security Association) cache is purged (def 5 minutes).	
 	output->MaxAuthenticationAttempts=3; 		//Indicates the # of time, a client can attempt to login with incorrect credentials. When this limit is reached, the client is blacklisted and not allowed to attempt loging into the network. Settings this parameter to 0 (zero) disables the blacklisting feature.
 	output->BlacklistTableTimeout=600; 			//Time interval in seconds for which a client will continue to be blacklisted once it is marked so.	
 	output->IdentityRequestRetryInterval=5; 	//Time Interval in seconds between identity requests retries. A value of 0 (zero) disables it.	
