@@ -2789,6 +2789,90 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 	return RETURN_ERR;
 }
 
+/****************************************************************************/
+/****************************************************************************/
+
+INT wifi_dppInitiate(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppReconfigInitiate(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCancel(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCreateReconfigContext(INT dppVapIndex, CHAR *PrivateReconfigAccessKey, void **reconf_ctx, char *reconf_pub_key)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppCreateCSignIntance(INT dppVapIndex, CHAR *PrivateSigningKey, void **csign_inst, unsigned char *sign_key_hash)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendAuthCnf(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendConfigResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppSendReconfigAuthCnf(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dpp_frame_received_callbacks_register(wifi_dppAuthResponse_callback_t dppAuthCallback,
+                                               wifi_dppConfigRequest_callback_t dppConfigCallback,
+                                               wifi_dppConfigResult_callback_t dppConfigResultCallback,
+                                               wifi_dppReconfigAnnounce_callback_t dppReconfigAnnounceCallback,
+                                               wifi_dppReconfigAuthResponse_callback_t dppReconfigAuthRspCallback)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppStartReceivingTestFrame(unsigned char *sign_key_hash1, unsigned char *sign_key_hash2)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessAuthResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessConfigRequest(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessConfigResult(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessReconfigAnnouncement(UCHAR *frame, UINT len, unsigned char *sign_key_hash)
+{
+    return RETURN_OK;
+}
+
+INT wifi_dppProcessReconfigAuthResponse(wifi_device_dpp_context_t *ctx)
+{
+    return RETURN_OK;
+}
+
+/****************************************************************************/
+/****************************************************************************/
 
 /**
  OPENSYNC WIFI HAL EXTENSIONS START
