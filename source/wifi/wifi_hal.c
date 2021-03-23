@@ -2798,6 +2798,25 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 /****************************************************************************/
 /****************************************************************************/
 
+BOOL wifi_api_is_device_associated(int ap_index, char *mac)
+{
+    return TRUE;
+}
+
+INT wifi_setClientDetailedStatisticsEnable(INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getVAPTelemetry(UINT apIndex, wifi_VAPTelemetry_t *telemetry)
+{
+    return RETURN_OK;
+}
+
+void wifi_apDeAuthEvent_callback_register(wifi_apDeAuthEvent_callback callback_proc)
+{
+}
+
 INT wifi_dppInitiate(wifi_device_dpp_context_t *ctx)
 {
     return RETURN_OK;
