@@ -806,13 +806,21 @@ INT wifi_setRadioDfsRefreshPeriod(INT radioIndex, ULONG seconds) //Tr181
 	return RETURN_ERR;
 }
 
-//Get the Operating Channel Bandwidth. eg "20MHz", "40MHz", "80MHz", "80+80", "160"
+//Get the Operating Channel Bandwidth. eg "20MHz", "40MHz", "80MHz", "80+80MHz", "160MHz"
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioOperatingChannelBandwidth(INT radioIndex, CHAR *output_string) //Tr181
 {
 	if (NULL == output_string) 
 		return RETURN_ERR;
 	snprintf(output_string, 64, (radioIndex==0)?"20MHz":"40MHz");
+	return RETURN_OK;
+}
+
+//Get the current Operating Channel Bandwidth. eg "20MHz", "40MHz", "80MHz", "80+80MHz", "160MHz"
+//The output_string max length is given by the len argument. Implementations may assuse at least 64 bytes.
+int wifi_getCurrentRadioOperatingChannelBandwidth(int radioIndex, char *output_string, unsigned int len)
+{
+	snprintf(output_string, len, (radioIndex==0)?"20MHz":"40MHz");
 	return RETURN_OK;
 }
 
@@ -2094,6 +2102,11 @@ INT wifi_setApWmmUapsdEnable(INT apIndex, BOOL enable)
 	return RETURN_ERR;
 }   
 
+INT wifi_getApWmmOgAckPolicy(INT apIndex, BOOL *output)
+{
+    return RETURN_OK;
+}
+
 // Sets the WMM ACK polity on the hardware. AckPolicy false means do not acknowledge, true means acknowledge
 INT wifi_setApWmmOgAckPolicy(INT apIndex, INT class, BOOL ackPolicy)  //RDKB
 {
@@ -2798,6 +2811,16 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 /****************************************************************************/
 /****************************************************************************/
 
+INT wifi_getRadioDfsMoveBackEnable (INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioDfsMoveBackEnable (INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
 INT wifi_getRadioExcludeDfs (INT radioIndex, BOOL *output_bool)
 {
     return RETURN_OK;
@@ -2865,6 +2888,195 @@ INT wifi_setApSecuritySecondaryAcctServer(INT apIndex, CHAR *IPAddress, UINT por
     return RETURN_OK;
 }
 
+/****************************************************************************/
+/****************************************************************************/
+
+INT wifi_getApSecurityAcctInterimInterval(INT apIndex, UINT *Interval_output)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityAcctInterimInterval(INT apIndex, UINT NewInterval)
+{
+    return RETURN_OK;
+}
+
+/* Get current value of softblock enable */
+INT wifi_getSoftBlockEnable(BOOL *enable)
+{
+    return RETURN_OK;
+}
+
+/* Enable Softblock feature in Community WiFi*/
+INT wifi_setSoftBlockEnable(BOOL enable)
+{
+    return RETURN_OK;
+}
+
+/* Clear softblock blacklist table */
+INT wifi_clearSoftBlockBlacklist()
+{
+    return RETURN_OK;
+}
+
+/* Get Softblock blackisted entries */
+INT wifi_getSoftBlockBlacklistEntries(INT band, ULONG *num, wifi_softblock_mac_table_t ** blackList)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getWpsStatus(INT apIndex, CHAR *output_string)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteeringEnable_perSSID(INT ifIndex, BOOL *enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBandSteeringEnable_perSSID(INT ifIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+/*Get RSSI threshold for 5 GHz (dBm)*/
+INT wifi_getBandSteeringRSSIThreshold_perSSID(INT ifIndex, INT *RSSIThr)
+{
+    return RETURN_OK;
+}
+
+/*Set RSSI threshold for 5 GHz (dBm)*/
+INT wifi_setBandSteeringRSSIThreshold_perSSID(INT ifIndex, INT RSSIThr)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteeringDeltaThreshold_perSSID(INT ifIndex, UINT *deltaThreshold)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBandSteeringDeltaThreshold_perSSID(INT ifIndex, UINT deltaThreshold)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteeringBlacklistTimeout_perSSID(INT ifIndex, UINT *blacklistTimeout)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBandSteeringBlacklistTimeout_perSSID(INT ifIndex, UINT blacklistTimeout)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteeringActive_perSSID(INT ifIndex, BOOL *active)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteering5GCapableEntries_perSSID(INT ifIndex, ULONG *num, wifi_5gcapable_table_t ** table)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getBandSteering24GBlacklistEntries_perSSID(INT ifIndex, ULONG *num, wifi_24gblacklist_table_t ** table)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBandSteeringClear5GCapableTable(BOOL clear)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setBandSteeringClear24GTempBlacklistTable(BOOL clear)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandEnable(INT band, BOOL * enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandEnable(INT band, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandMode(INT band, CHAR *mode)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandMode(INT band, ULONG mode)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandWeights(INT band, CHAR *weights, INT size)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandWeights(INT band, CHAR *weights)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandDistributionType(INT band, CHAR *distribType)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandDistributionType(INT band, CHAR *distribType)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandWaitThreshold(INT band, ULONG *thresholdTime)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandWaitThreshold(INT band, ULONG thresholdTime)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandDirection(INT band, CHAR *direction)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandDirection(INT band, ULONG direction)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandStaWeight(INT band, CHAR *staWeight)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandStaWeight(INT band, CHAR *staWeight)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getAtmBandMWWEnable(INT band, BOOL * enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setAtmBandMWWEnable(INT band, BOOL enable)
+{
+    return RETURN_OK;
+}
+
 INT wifi_getAtmBandMWWWeight(INT band, CHAR *mwwWeight)
 {
     return RETURN_OK;
@@ -2875,7 +3087,37 @@ INT wifi_setAtmBandMWWWeight(INT band, CHAR *mwwWeight)
     return RETURN_OK;
 }
 
+INT wifi_getAtmStationAirtime(wlan_ATM_report_t **pStationReport, INT *stationNumber)
+{
+    return RETURN_OK;
+}
+
 INT wifi_getSupportRatesBitmapControlFeature(BOOL *enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setSupportRatesBitmapControlFeature(BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getSupportRatesDisableBasicRates(INT ssidIndex, CHAR *rate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setSupportRatesDisableBasicRates(INT ssidIndex, CHAR *rate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getSupportRatesDisableSupportedRates(INT ssidIndex, CHAR *rate)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setSupportRatesDisableSupportedRates(INT ssidIndex, CHAR *rate)
 {
     return RETURN_OK;
 }
