@@ -367,10 +367,11 @@ INT wifi_initRadio(INT radioIndex)
 }
 
 // Initializes the wifi subsystem (all radios)
-INT wifi_init()                            //RDKB
+INT wifi_init (void)
 {
-	//TODO: Initializes the wifi subsystem
+    //TODO: Initializes the wifi subsystem
 
+    return RETURN_OK;
 }
 
 /* wifi_reset() function */
@@ -900,7 +901,7 @@ INT wifi_getRadioTransmitPower(INT radioIndex, ULONG *output_ulong)	//RDKB
 	//zqiu:TODO:save config
 	apIndex=(radioIndex==0)?0:1;
 	
-	snprintf(cmd, sizeof(cmd),  "iwlist %s%d txpower | grep Tx-Power | cut -d'=' -f2", AP_PREFIX, index);
+	snprintf(cmd, sizeof(cmd),  "iwlist %s%d txpower | grep Tx-Power | cut -d'=' -f2", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 	*output_ulong = atol(buf);
 	
@@ -1903,7 +1904,7 @@ INT wifi_setApVlanEnable(INT apIndex, BOOL VlanEnabled)
 // gets the vlan ID for this ap from an internal enviornment variable
 INT wifi_getApVlanID(INT apIndex, INT *output_int)
 {
-	if(apIndex=0) {
+	if(apIndex==0) {
 		*output_int=100;
 		return RETURN_OK;
 	}
@@ -2691,9 +2692,9 @@ INT wifi_setBandSteeringIdleInactiveTime (INT radioIndex, INT prThreshold) {
 INT wifi_getBandSteeringLog(INT record_index, ULONG *pSteeringTime, CHAR *pClientMAC, INT *pSourceSSIDIndex, INT *pDestSSIDIndex, INT *pSteeringReason) { //if no steering or redord_index is out of boundary, return -1. pSteeringTime returns the UTC time in seconds. pClientMAC is pre allocated as 64bytes. pSteeringReason returns the predefined steering trigger reason 
 	*pSteeringTime=1454685924;
 	strcpy(pClientMAC, "14:CF:E2:13:CD:AE");
-	strcpy(pSourceSSIDIndex, "ath0");
-	strcpy(pSourceSSIDIndex, "ath1");
-	snprintf(pSteeringReason, 256, "RSSIThreshold=%d; RSSI=%d", 30, 35);
+	*pSourceSSIDIndex = 0;
+	*pDestSSIDIndex = 1;
+	*pSteeringReason = 2;
 	return RETURN_OK;
 }
 
