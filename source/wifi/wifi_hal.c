@@ -2520,8 +2520,10 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
     while (!feof(f)) {
         pos = buf;
         *pos = 0;
-        fgets(pos,200,f);
 
+        if (fgets(pos,200,f) == NULL) {
+            break;
+        }
         if (strlen(pos) == 0) {
             break;
         }
