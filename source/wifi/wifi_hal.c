@@ -2531,12 +2531,12 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
             break;
         }
          
-		char *mac=strtok(pos," ");
-		char *aid = strtok('\0'," ");
-		char *chan = strtok('\0'," ");
-		char *txrate = strtok('\0'," ");
-		char *rxrate = strtok('\0'," ");
-		char *rssi = strtok('\0'," ");
+		char *mac = strtok(pos," ");
+		char *aid = strtok(NULL," ");
+		char *chan = strtok(NULL," ");
+		char *txrate = strtok(NULL," ");
+		char *rxrate = strtok(NULL," ");
+		char *rssi = strtok(NULL," ");
 
 		// Should be Mac Address line
 		if (mac) { 
