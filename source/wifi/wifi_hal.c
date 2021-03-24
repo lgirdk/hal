@@ -79,9 +79,12 @@ int _syscmd(char *cmd, char *retBuf, int retBufSize)
 		} else {
 			bufbytes=bufSize-1;
 		}
-		
-        fgets(ptr,bufbytes,f); 
-		readbytes=strlen(ptr);		
+
+		if (fgets(ptr,bufbytes,f) == NULL)
+			readbytes = 0;
+		else
+			readbytes = strlen(ptr);
+
         if( readbytes== 0)        
             break;
         bufSize-=readbytes;
@@ -2293,8 +2296,10 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
     while (!feof(f)) {
         pos = buf;
         *pos = 0;
-        fgets(pos,200,f);
 
+        if (fgets(pos,200,f) == NULL) {
+            break;
+        }
         if (strlen(pos) == 0) {
             break;
         }
