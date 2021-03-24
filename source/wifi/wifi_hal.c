@@ -231,9 +231,12 @@ int _syscmd(char *cmd, char *retBuf, int retBufSize)
 		} else {
 			bufbytes=bufSize-1;
 		}
-		
-        fgets(ptr,bufbytes,f); 
-		readbytes=strlen(ptr);		
+
+		if (fgets(ptr,bufbytes,f) == NULL)
+			readbytes = 0;
+		else
+			readbytes = strlen(ptr);
+
         if( readbytes== 0)        
             break;
         bufSize-=readbytes;
