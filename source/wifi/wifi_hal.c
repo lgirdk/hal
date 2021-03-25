@@ -2803,6 +2803,16 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 /****************************************************************************/
 /****************************************************************************/
 
+INT wifi_getRadioDfsMoveBackEnable (INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioDfsMoveBackEnable (INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
 INT wifi_getRadioExcludeDfs (INT radioIndex, BOOL *output_bool)
 {
     return RETURN_OK;
