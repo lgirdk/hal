@@ -2803,6 +2803,53 @@ INT wifi_getRadioUpTime(INT radioIndex, ULONG *output)
 /****************************************************************************/
 /****************************************************************************/
 
+INT wifi_getRadioDfsMoveBackEnable (INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioDfsMoveBackEnable (INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioExcludeDfs (INT radioIndex, BOOL *output_bool)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioExcludeDfs (INT radioIndex, BOOL enable)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getApSecurityWpaRekeyInterval (INT apIndex, INT *output_int)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApSecurityWpaRekeyInterval (INT apIndex, INT rekeyInterval)
+{
+    return RETURN_OK;
+}
+
+/* for 2.4GHz, output_weights are for channels: 1, 6, 11
+    for 5GHz, output_weights are for channels: 36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140 */
+INT wifi_getRadioChannelWeights (INT radioIndex, ULONG *output_weights)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setRadioChannelWeights (INT radioIndex, const ULONG *output_weights)
+{
+    return RETURN_OK;
+}
+
+INT wifi_setApRadiusTransportInterface (UINT RadiusInterface)
+{
+    return RETURN_OK;
+}
+
 INT wifi_getRADIUSAcctEnable(INT band, BOOL *enable)
 {
     return RETURN_OK;
