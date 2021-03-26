@@ -186,3 +186,8 @@ int platform_hal_getUIDefaultPassword (char *pValue, unsigned int len)
 
     return RETURN_OK;
 }
+
+int platform_hal_GetCustomerIndex (void)
+{
+    return 0;
+}
