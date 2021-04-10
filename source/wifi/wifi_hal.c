@@ -1417,6 +1417,13 @@ INT wifi_kickAssociatedDevice(INT apIndex, wifi_device_t *device)
 		return RETURN_OK;
 	}
 }
+
+// Kick all the associated device from all AP.
+INT wifi_kickAllAssociatedDevice(INT apIndex)
+{
+	return RETURN_OK;
+}
+
 //<<
 
 
