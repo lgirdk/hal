@@ -603,3 +603,68 @@ CCSP_HAL_ETHSW_LINK_STATUS CcspHalExtSw_GetLinkStatus (char *pMacAddr)
 
     return CCSP_HAL_ETHSW_LINK_Disconnected;
 }
+
+/* CcspHalEthSwGetPortStats :  */
+/**
+* Description: Retrieve the current port statistics -- Bytes sent, Bytes received, etc.
+
+* Parameters :
+    PortId        -- Port ID as defined in CCSP_HAL_ETHSW_PORT
+    pStats(out)   -- Receives the external switch stats, as in CCSP_HAL_ETHSW_STATS
+
+*
+* @return The status of the operation.
+* @retval RETURN_OK if successful.
+* @retval RETURN_ERR if any error is detected
+*
+* @execution Synchronous.
+* @sideeffect None.
+
+*
+* @note This function must not suspend and must not invoke any blocking system 
+* calls. It should probably just send a message to a driver event handler task. 
+
+*/
+INT
+CcspHalEthSwGetPortStats
+    (
+        CCSP_HAL_ETHSW_PORT         PortId,
+        PCCSP_HAL_ETHSW_STATS       pStats
+    )
+{
+    int status = RETURN_ERR;
+
+    if ((PortId >= CCSP_HAL_ETHSW_EthPort1) && (PortId <= CCSP_HAL_ETHSW_EthPort8))
+    {
+        if (1)
+        {
+            pStats->BroadcastPacketsReceived    = 0;
+            pStats->BroadcastPacketsSent        = 0;
+            pStats->BytesReceived               = 0;
+            pStats->BytesSent                   = 0;
+            pStats->DiscardPacketsReceived      = 0;
+            pStats->DiscardPacketsSent          = 0;
+            pStats->ErrorsReceived              = 0;
+            pStats->ErrorsSent                  = 0;
+            pStats->MulticastPacketsReceived    = 0;
+            pStats->MulticastPacketsSent        = 0;
+            pStats->PacketsReceived             = 0;
+            pStats->PacketsSent                 = 0;
+            pStats->UnicastPacketsReceived      = 0;
+            pStats->UnicastPacketsSent          = 0;
+            pStats->UnknownProtoPacketsReceived = 0;
+
+            status = RETURN_OK;
+        }
+        else
+        {
+            CcspHalEthSwTrace(("Error: Reading port stats (port id %d)", PortId));
+        }
+    }
+    else
+    {
+        CcspHalEthSwTrace(("Error: Unsupported port id %d", PortId));
+    }
+
+    return status;
+}
