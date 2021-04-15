@@ -75,7 +75,7 @@ INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
         return RETURN_ERR;
     }
 
-    *pValue = '0';
+    strcpy (pValue, "0");
 
     return RETURN_OK;
 }
@@ -87,7 +87,7 @@ INT platform_hal_GetHardware_MemFree(CHAR *pValue)
         return RETURN_ERR;
     }
 
-    *pValue = '0';
+    strcpy (pValue, "0");
 
     return RETURN_OK;
 }
@@ -140,7 +140,7 @@ INT platform_hal_getTimeOffSet(CHAR *pValue)
         return RETURN_ERR;
     }
 
-    *pValue='0';
+    strcpy (pValue, "0");
 
     return RETURN_OK;
 }
@@ -181,7 +181,5 @@ INT platform_hal_GetRouterRegion(CHAR* pValue)
         return RETURN_ERR;
     }
 
-    *pValue = '0';
-
-    return RETURN_OK;
+    return RETURN_ERR;
 }
