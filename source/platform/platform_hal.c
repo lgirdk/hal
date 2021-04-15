@@ -19,13 +19,13 @@
 
 /**********************************************************************
    Copyright [2014] [Cisco Systems, Inc.]
- 
+
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
- 
+
        http://www.apache.org/licenses/LICENSE-2.0
- 
+
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "platform_hal.h" 
+#include "platform_hal.h"
 
 /* Note that 0 == RETURN_OK == STATUS_OK    */
 /* Note that -1 == RETURN_ERR == STATUS_NOK */
@@ -70,98 +70,66 @@ INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; retur
 
 INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
-    if (pValue == NULL)
-    {
-        return RETURN_ERR;
-    }
-    else
-    {
-	*pValue='0';
-        return RETURN_OK;
-    }
+    *pValue = '0';
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetHardware_MemFree(CHAR *pValue)
 {
-    if (pValue == NULL)
-    {   
-        return RETURN_ERR;
-    }
-    else
-    {
-	*pValue='0';
-        return RETURN_OK;
-    }
+    *pValue = '0';
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetFreeMemorySize(ULONG *pulSize)
 {
-        if (pulSize == NULL)
-        {
-           return RETURN_ERR;
-        }
-        *pulSize = 0;
-        return RETURN_OK;
+    *pulSize = 0;
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetUsedMemorySize(ULONG *pulSize)
 {
-        if (pulSize == NULL)
-        {
-           return RETURN_ERR;
-        }
-        *pulSize = 0;
-        return RETURN_OK;
+    *pulSize = 0;
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetFactoryResetCount(ULONG *pulSize)
 {
-        if (pulSize == NULL)
-        {
-           return RETURN_ERR;
-        }
-        *pulSize = 2;
-        return RETURN_OK;
+    *pulSize = 2;
+
+    return RETURN_OK;
 }
 
 INT platform_hal_ClearResetCount(BOOLEAN bFlag)
 {
-        return RETURN_OK;
+    return RETURN_OK;
 }
 
 INT platform_hal_getTimeOffSet(CHAR *pValue)
-{ 
-	return RETURN_OK; 
-} 
+{
+    return RETURN_OK;
+}
 
 INT platform_hal_SetDeviceCodeImageTimeout(INT seconds)
-{ 
-	return RETURN_OK; 
-} 
+{
+    return RETURN_OK;
+}
 
 INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
-{ 
-	return RETURN_OK; 
+{
+    return RETURN_OK;
 }
 
 INT platform_hal_GetMemoryPaths(RDK_CPUS index, PPLAT_PROC_MEM_INFO *ppinfo)
 {
-        return RETURN_OK;
+    return RETURN_OK;
 }
 
 INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
 {
-#if defined(_PSM_TRANS_RDK_TRIGG_)
-	if(NULL != pState)
-	{
-		return RETURN_OK;
-	}
-	else
-	{
-		return RETURN_ERR;
-	}	
-#else
-	return RETURN_OK;
-#endif
+    return RETURN_OK;
 }
 
