@@ -70,14 +70,14 @@ INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; retur
 
 INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
-    *pValue = '0';
+    strcpy (pValue, "0");
 
     return RETURN_OK;
 }
 
 INT platform_hal_GetHardware_MemFree(CHAR *pValue)
 {
-    *pValue = '0';
+    strcpy (pValue, "0");
 
     return RETURN_OK;
 }
