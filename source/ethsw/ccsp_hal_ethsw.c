@@ -668,3 +668,15 @@ CcspHalEthSwGetPortStats
 
     return status;
 }
+
+int CcspHalEthSwGetEEEPortEnable (CCSP_HAL_ETHSW_PORT PortId, BOOLEAN *enable)
+{
+    *enable = FALSE;
+
+    return RETURN_OK;
+}
+
+int CcspHalEthSwSetEEEPortEnable (CCSP_HAL_ETHSW_PORT PortId, BOOLEAN enable)
+{
+    return RETURN_OK;
+}
