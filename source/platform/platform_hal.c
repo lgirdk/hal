@@ -76,7 +76,7 @@ INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
     }
     else
     {
-	*pValue='0';
+    	strcpy (pValue, "0");
         return RETURN_OK;
     }
 }
@@ -89,7 +89,7 @@ INT platform_hal_GetHardware_MemFree(CHAR *pValue)
     }
     else
     {
-	*pValue='0';
+    	strcpy (pValue, "0");
         return RETURN_OK;
     }
 }
