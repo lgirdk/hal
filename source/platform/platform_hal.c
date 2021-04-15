@@ -39,6 +39,8 @@
 
 #include "platform_hal.h"
 
+static unsigned long memtotal_kb = 0;
+
 /* Note that 0 == RETURN_OK == STATUS_OK    */
 /* Note that -1 == RETURN_ERR == STATUS_NOK */
 
@@ -66,7 +68,31 @@ INT platform_hal_GetBootloaderVersion(CHAR* pValue, ULONG maxSize) { strcpy(pVal
 INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Firmware Name"); return RETURN_OK; }
 INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
-INT platform_hal_GetTotalMemorySize(ULONG *pulSize) { *pulSize = 512*1024; return RETURN_OK; }
+
+/*
+   Return the total memory size if kB. If that size isn't known then return a
+   default value. Return status should always be RETURN_OK.
+*/
+int platform_hal_GetTotalMemorySize (unsigned long *pulSize)
+{
+    if (memtotal_kb == 0)
+    {
+        FILE *fp = fopen("/proc/meminfo", "r");
+
+        if (fp)
+        {
+            if (fscanf(fp, "MemTotal: %lu", &memtotal_kb) != 1)
+            {
+                /* parse error */
+            }
+            fclose(fp);
+        }
+    }
+
+    *pulSize = memtotal_kb ? memtotal_kb : (512 * 1024);
+
+    return RETURN_OK;
+}
 
 INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
@@ -82,16 +108,101 @@ INT platform_hal_GetHardware_MemFree(CHAR *pValue)
     return RETURN_OK;
 }
 
-INT platform_hal_GetFreeMemorySize(ULONG *pulSize)
+/*
+   Return the amount of free memory in kB.
+*/
+int platform_hal_GetFreeMemorySize (unsigned long *pulSize)
 {
+    char buf[64];
+    unsigned long memfree_kb = 0;
+    FILE *fp;
+
     *pulSize = 0;
+
+    if ((fp = fopen("/proc/meminfo", "r")) == NULL)
+    {
+        return RETURN_ERR;
+    }
+
+    while (fgets(buf, sizeof(buf), fp))
+    {
+        if ((memtotal_kb == 0) && (strncmp(buf, "MemTotal:", 9) == 0))
+        {
+            sscanf(buf, "MemTotal: %lu", &memtotal_kb);
+        }
+        else if (strncmp(buf, "MemFree:", 8) == 0)
+        {
+            sscanf(buf, "MemFree: %lu", &memfree_kb);
+            break;
+        }
+    }
+
+    fclose(fp);
+
+#if 0
+    printf ("memfree: %lu kB\n", memfree_kb);
+#endif
+
+    *pulSize = memfree_kb;
 
     return RETURN_OK;
 }
 
-INT platform_hal_GetUsedMemorySize(ULONG *pulSize)
+/*
+   Return the amount of used memory in kB.
+*/
+int platform_hal_GetUsedMemorySize (unsigned long *pulSize)
 {
+    char buf[64];
+    unsigned long memfree_kb = 0, buffers_kb = 0, cached_kb = 0, sreclaimable_kb = 0, used_kb;
+    FILE *fp;
+
     *pulSize = 0;
+
+    if ((fp = fopen("/proc/meminfo", "r")) == NULL)
+    {
+        return RETURN_ERR;
+    }
+
+    while (fgets(buf, sizeof(buf), fp))
+    {
+        if ((memtotal_kb == 0) && (strncmp(buf, "MemTotal:", 9) == 0))
+        {
+            sscanf(buf, "MemTotal: %lu", &memtotal_kb);
+        }
+        else if (strncmp(buf, "MemFree:", 8) == 0)
+        {
+            sscanf(buf, "MemFree: %lu", &memfree_kb);
+        }
+        else if (strncmp(buf, "Buffers:", 8) == 0)
+        {
+            sscanf(buf, "Buffers: %lu", &buffers_kb);
+        }
+        else if (strncmp(buf, "Cached:", 7) == 0)
+        {
+            sscanf(buf, "Cached: %lu", &cached_kb);
+        }
+        else if (strncmp(buf, "SReclaimable:", 13) == 0)
+        {
+            sscanf(buf, "SReclaimable: %lu", &sreclaimable_kb);
+            break;
+        }
+    }
+
+    fclose(fp);
+
+    used_kb = memtotal_kb - (memfree_kb + buffers_kb + cached_kb + sreclaimable_kb);
+
+#if 0
+    printf ("memtotal: %lu kB\n", memtotal_kb);
+    printf ("memfree: %lu kB\n", memfree_kb);
+    printf ("buffers: %lu kB\n", buffers_kb);
+    printf ("cached: %lu kB\n", cached_kb);
+    printf ("sreclaimable: %lu kB\n", sreclaimable_kb);
+    printf ("used: %lu kB\n", used_kb);
+#endif
+
+    *pulSize = used_kb;
 
     return RETURN_OK;
 }
