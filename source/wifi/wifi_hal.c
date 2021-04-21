@@ -179,7 +179,7 @@ INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
     return RETURN_OK;
 }
 
-int _syscmd(char *cmd, char *retBuf, int retBufSize)
+static int _syscmd(char *cmd, char *retBuf, int retBufSize)
 {
     FILE *f;
     char *ptr = retBuf;
