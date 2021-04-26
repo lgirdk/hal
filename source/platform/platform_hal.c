@@ -173,3 +173,28 @@ INT platform_hal_GetRouterRegion(CHAR* pValue)
 {
     return RETURN_OK;
 }
+
+unsigned int platform_hal_getFanSpeed (unsigned int fanIndex)
+{
+    return 0;
+}
+
+unsigned int platform_hal_getRPM (unsigned int fanIndex)
+{
+    return 0;
+}
+
+int platform_hal_getRotorLock (unsigned int fanIndex)
+{
+    return 0;
+}
+
+BOOLEAN platform_hal_getFanStatus (unsigned int fanIndex)
+{
+    return TRUE;
+}
+
+int platform_hal_setFanMaxOverride (BOOLEAN bOverrideFlag, unsigned int fanIndex)
+{
+    return RETURN_OK;
+}
