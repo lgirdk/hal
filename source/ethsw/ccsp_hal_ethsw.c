@@ -604,33 +604,7 @@ CCSP_HAL_ETHSW_LINK_STATUS CcspHalExtSw_GetLinkStatus (char *pMacAddr)
     return CCSP_HAL_ETHSW_LINK_Disconnected;
 }
 
-/* CcspHalEthSwGetPortStats :  */
-/**
-* Description: Retrieve the current port statistics -- Bytes sent, Bytes received, etc.
-
-* Parameters :
-    PortId        -- Port ID as defined in CCSP_HAL_ETHSW_PORT
-    pStats(out)   -- Receives the external switch stats, as in CCSP_HAL_ETHSW_STATS
-
-*
-* @return The status of the operation.
-* @retval RETURN_OK if successful.
-* @retval RETURN_ERR if any error is detected
-*
-* @execution Synchronous.
-* @sideeffect None.
-
-*
-* @note This function must not suspend and must not invoke any blocking system 
-* calls. It should probably just send a message to a driver event handler task. 
-
-*/
-INT
-CcspHalEthSwGetPortStats
-    (
-        CCSP_HAL_ETHSW_PORT         PortId,
-        PCCSP_HAL_ETHSW_STATS       pStats
-    )
+int CcspHalEthSwGetEthPortStats (CCSP_HAL_ETHSW_PORT PortId, PCCSP_HAL_ETH_STATS pStats)
 {
     int status = RETURN_ERR;
 
