@@ -660,3 +660,15 @@ int CcspHalEthSwSetEEEPortEnable (CCSP_HAL_ETHSW_PORT PortId, BOOLEAN enable)
 {
     return RETURN_OK;
 }
+
+int CcspHalEthSwGetPortEntry (CCSP_HAL_ETHSW_PORT PortId, PCCSP_HAL_ETH_FULL_CFG pEthCfg)
+{
+    pEthCfg->adminStatus = 1 ? CCSP_HAL_ETHSW_AdminUp : CCSP_HAL_ETHSW_AdminDown;
+    pEthCfg->linkStatus = 1 ? CCSP_HAL_ETHSW_LINK_Up : CCSP_HAL_ETHSW_LINK_Down;
+    pEthCfg->currLinkRate = CCSP_HAL_ETHSW_LINK_1Gbps;
+    pEthCfg->bEEEPortEnable = 1 ? TRUE : FALSE;
+    pEthCfg->maxBitRate = CCSP_HAL_ETHSW_LINK_1Gbps;
+    pEthCfg->duplexMode = CCSP_HAL_ETHSW_DUPLEX_Full;
+
+    return RETURN_OK;
+}
