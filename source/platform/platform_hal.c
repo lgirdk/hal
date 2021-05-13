@@ -63,9 +63,84 @@ INT platform_hal_DocsisParamsDBInit(void) { return RETURN_OK; }
 INT platform_hal_GetModelName(CHAR* pValue) { strcpy(pValue, "Model Name"); return RETURN_OK; }
 INT platform_hal_GetSerialNumber(CHAR* pValue) { strcpy(pValue, "Serial Number"); return RETURN_OK; }
 INT platform_hal_GetHardwareVersion(CHAR* pValue) { strcpy(pValue, "Hardware Version"); return RETURN_OK; }
-INT platform_hal_GetSoftwareVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Software Version"); return RETURN_OK; }
 INT platform_hal_GetBootloaderVersion(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Bootloader Version"); return RETURN_OK; }
-INT platform_hal_GetFirmwareName(CHAR* pValue, ULONG maxSize) { strcpy(pValue, "Firmware Name"); return RETURN_OK; }
+
+int platform_hal_GetFirmwareName (char *pValue, unsigned long maxSize)
+{
+    static char name[64];
+
+    if (name[0] == 0)
+    {
+        FILE *fp;
+        char buf[128];  /* big enough to avoid reading incomplete lines */
+        char *s = NULL;
+        size_t len = 0;
+
+        if ((fp = fopen ("/version.txt", "r")) != NULL)
+        {
+            while (fgets (buf, sizeof(buf), fp) != NULL)
+            {
+                /*
+                   The imagename field may use either a ':' or '=' separator
+                   and the value may or not be quoted. Handle all 4 cases.
+                */
+                if ((memcmp (buf, "imagename", 9) == 0) && ((buf[9] == ':') || (buf[9] == '=')))
+                {
+                    s = (buf[10] == '"') ? &buf[11] : &buf[10];
+
+                    while (1)
+                    {
+                        int inch = s[len];
+
+                        if ((inch == '"') || (inch == '\n') || (inch == 0))
+                        {
+                            break;
+                        }
+
+                        len++;
+                    }
+
+                    break;
+                }
+            }
+
+            fclose (fp);
+        }
+
+        if (len >= sizeof(name))
+        {
+            len = sizeof(name) - 1;
+        }
+
+        memcpy (name, s, len);
+        name[len] = 0;
+    }
+
+    if (name[0] != 0)
+    {
+        size_t len = strlen(name);
+
+        if (len >= maxSize)
+        {
+            len = maxSize - 1;
+        }
+
+        memcpy (pValue, name, len);
+        pValue[len] = 0;
+
+        return RETURN_OK;
+    }
+
+    pValue[0] = 0;
+
+    return RETURN_ERR;
+}
+
+int platform_hal_GetSoftwareVersion (char *pValue, unsigned long maxSize)
+{
+    return platform_hal_GetFirmwareName (pValue, maxSize);
+}
+
 INT platform_hal_GetBaseMacAddress(CHAR *pValue) { strcpy(pValue, "BasMac"); return RETURN_OK; }
 INT platform_hal_GetHardware(CHAR *pValue) { strcpy(pValue, "Hard"); return RETURN_OK; }
 
