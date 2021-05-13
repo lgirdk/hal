@@ -518,6 +518,12 @@ CcspHalEthSwLocatePortByMacAddress
 		INT * pPortId
     )
 {
+    if (pPortId == NULL)
+    {
+        return RETURN_ERR;
+    }
+
+    if (pMacAddr)
     CcspHalEthSwTrace
         ((
             "%s -- search for MAC address %02u.%02u.%02u.%02u.%02u.%02u",
