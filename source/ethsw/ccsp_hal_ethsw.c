@@ -663,12 +663,44 @@ int CcspHalEthSwSetEEEPortEnable (CCSP_HAL_ETHSW_PORT PortId, BOOLEAN enable)
 
 int CcspHalEthSwGetPortEntry (CCSP_HAL_ETHSW_PORT PortId, PCCSP_HAL_ETH_FULL_CFG pEthCfg)
 {
-    pEthCfg->adminStatus = 1 ? CCSP_HAL_ETHSW_AdminUp : CCSP_HAL_ETHSW_AdminDown;
-    pEthCfg->linkStatus = 1 ? CCSP_HAL_ETHSW_LINK_Up : CCSP_HAL_ETHSW_LINK_Down;
-    pEthCfg->currLinkRate = CCSP_HAL_ETHSW_LINK_1Gbps;
-    pEthCfg->bEEEPortEnable = 1 ? TRUE : FALSE;
-    pEthCfg->maxBitRate = CCSP_HAL_ETHSW_LINK_1Gbps;
-    pEthCfg->duplexMode = CCSP_HAL_ETHSW_DUPLEX_Full;
+    CCSP_HAL_ETHSW_ADMIN_STATUS adminStatus;
+    CCSP_HAL_ETHSW_DUPLEX_MODE duplexMode;
+    CCSP_HAL_ETHSW_LINK_RATE maxBitRate;
+    CCSP_HAL_ETHSW_LINK_STATUS linkStatus;
+    CCSP_HAL_ETHSW_LINK_RATE currLinkRate;
+    BOOLEAN bEEEPortEnable;
+    int retVal;
+
+    retVal = CcspHalEthSwGetPortCfg(PortId, &maxBitRate, &duplexMode);
+    if (retVal != RETURN_OK) {
+            CcspHalEthSwTrace(("Error: CcspHalEthSwGetPortCfg, PortId %d, retVal %d", PortId, retVal));
+            return RETURN_ERR;
+    }
+
+    retVal = CcspHalEthSwGetPortStatus(PortId, &currLinkRate, &duplexMode, &linkStatus);
+    if (retVal != RETURN_OK) {
+            CcspHalEthSwTrace(("Error: CcspHalEthSwGetPortStatus, PortId %d, retVal %d", PortId, retVal));
+            return RETURN_ERR;
+    }
+
+    retVal = CcspHalEthSwGetPortAdminStatus(PortId, &adminStatus);
+    if (retVal != RETURN_OK) {
+            CcspHalEthSwTrace(("Error: CcspHalEthSwGetPortAdminStatus, PortId %d, retVal %d", PortId, retVal));
+            return RETURN_ERR;
+    }
+
+    retVal = CcspHalEthSwGetEEEPortEnable (PortId, &bEEEPortEnable);
+    if (retVal != RETURN_OK) {
+            CcspHalEthSwTrace(("Error: CcspHalEthSwGetEEEPortEnable, PortId %d, retVal %d", PortId, retVal));
+            return RETURN_ERR;
+    }
+
+    pEthCfg->adminStatus = adminStatus;
+    pEthCfg->duplexMode = duplexMode;
+    pEthCfg->maxBitRate = maxBitRate;
+    pEthCfg->linkStatus = linkStatus;
+    pEthCfg->currLinkRate = currLinkRate;
+    pEthCfg->bEEEPortEnable = bEEEPortEnable;
 
     return RETURN_OK;
 }
