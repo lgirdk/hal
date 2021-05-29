@@ -125,6 +125,23 @@ INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
     return RETURN_OK;
 }
 
+int platform_hal_getFactoryCmVariant (char *pValue)
+{
+    strcpy (pValue, "");
+
+    return RETURN_OK;
+}
+
+int platform_hal_setFactoryCmVariant (char *pValue)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_setLed (PLEDMGMT_PARAMS pValue)
+{
+    return RETURN_OK;
+}
+
 INT platform_hal_GetMemoryPaths(RDK_CPUS index, PPLAT_PROC_MEM_INFO *ppinfo)
 {
     return RETURN_OK;
@@ -175,6 +192,30 @@ int platform_hal_setFanMaxOverride (BOOLEAN bOverrideFlag, unsigned int fanIndex
     return RETURN_OK;
 }
 
+int platform_hal_SetSNMPOnboardRebootEnable (char *pValue)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_GetMACsecEnable (int ethPort, BOOLEAN *pFlag)
+{
+    *pFlag = FALSE;
+
+    return RETURN_OK;
+}
+
+int platform_hal_SetMACsecEnable (int ethPort, BOOLEAN Flag)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_GetMACsecOperationalStatus (int ethPort, BOOLEAN *pFlag)
+{
+    *pFlag = FALSE;
+
+    return RETURN_OK;
+}
+
 int platform_hal_GetCmMacAddress (char *pValue, unsigned int len)
 {
     unsigned char mac[6];
@@ -200,6 +241,22 @@ int platform_hal_GetCmMacAddress (char *pValue, unsigned int len)
     {
         return RETURN_ERR;
     }
+
+    return RETURN_OK;
+}
+
+int platform_hal_getCMTSMac (char *pValue)
+{
+    unsigned char mac[6];
+
+    mac[0] = 0x11;
+    mac[1] = 0x22;
+    mac[2] = 0x33;
+    mac[3] = 0x44;
+    mac[4] = 0x55;
+    mac[5] = 0xBB;
+
+    sprintf (pValue, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     return RETURN_OK;
 }
