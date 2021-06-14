@@ -155,3 +155,8 @@ int HandlePostConfigVendor(bridgeDetails *bridgeInfo,int InstanceNumber)
 	}
 	return 0;
 }
+
+char *getVendorIfaces()
+{
+	return NULL;
+}
