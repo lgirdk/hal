@@ -751,3 +751,27 @@ int cm_hal_Set_ErouterModeControl (int initMode)
     return RETURN_OK;
 }
 
+int docsis_getDsOFDMChannelCount (unsigned int *count)
+{
+    *count = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getDsOFDMChannelDetails (unsigned int count, cm_ds_ofdm_chan_t *channel)
+{
+    return RETURN_OK;
+}
+
+int docsis_getUsOFDMAChannelCount (unsigned int *count)
+{
+    *count = 0;
+
+    return RETURN_OK;
+}
+
+int docsis_getUsOFDMAChannelDetails (unsigned int count, cm_us_ofdma_chan_t *channel)
+{
+    return RETURN_OK;
+}
+
