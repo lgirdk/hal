@@ -165,3 +165,7 @@ INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
 #endif
 }
 
+INT platform_hal_GetRouterRegion(CHAR* pValue)
+{
+	return RETURN_OK;
+}
