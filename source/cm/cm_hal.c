@@ -168,7 +168,7 @@ int docsis_GetDSChannel (PCMMGMT_CM_DS_CHANNEL *ppinfo)
         sprintf(pinfo->Frequency, "%u", 6440);
         sprintf(pinfo->PowerLevel, "%u", 75);
         sprintf(pinfo->SNRLevel, "%u", 50);
-        sprintf(pinfo->Modulation, "%s", "QPSK");
+        sprintf(pinfo->Modulation, "%s", "QAM256");
         pinfo->Octets = 123;
         pinfo->Correcteds = 100;
         pinfo->Uncorrectables = 12;
@@ -199,7 +199,7 @@ int docsis_GetUsStatus (unsigned short i, PCMMGMT_CM_US_CHANNEL pinfo)
     sprintf(pinfo->PowerLevel, "%u", 60);
     sprintf(pinfo->ChannelType, "%s", "Dummy");
     sprintf(pinfo->SymbolRate, "%u", 115200);
-    sprintf(pinfo->Modulation, "%s", "QAM");
+    sprintf(pinfo->Modulation, "%s", "QAM256");
     sprintf(pinfo->LockStatus, "%s", "Locked");
     pinfo->T3Timeouts = 0;
     pinfo->T4Timeouts = 0;
