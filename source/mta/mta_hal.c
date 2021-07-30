@@ -77,7 +77,22 @@
 
 // COSA_DML_MTA_LOG MtaLog = { TRUE, TRUE };
 
-INT   mta_hal_InitDB(void) { return RETURN_OK; }
+int mta_hal_InitDB (void)
+{
+    /*
+       Note that this init function may get called more than once.
+       The code should ensure that that doesn't cause problems.
+    */
+    static int initdone = 0;
+
+    if (initdone) {
+        return RETURN_OK;
+    }
+
+    initdone = 1;
+
+    return RETURN_OK;
+}
 
 INT   mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo) {
 
