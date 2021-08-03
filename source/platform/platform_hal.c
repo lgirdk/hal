@@ -365,3 +365,36 @@ int platform_hal_GetCustomerIndex (void)
 {
     return 0;
 }
+
+int platform_hal_GetLedDSErrorTimer(void)
+{
+    /* Return the default value. The actual implementation needs to be done by OEMs */
+    return 120;
+}
+
+int platform_hal_GetLedUSErrorTimer(void)
+{
+    /* Return the default value. The actual implementation needs to be done by OEMs */
+    return 30;
+}
+
+int platform_hal_GetLedRegistrationErrorTimer(void)
+{
+    /* Return the default value. The actual implementation needs to be done by OEMs */
+    return 30;
+}
+
+int platform_hal_SetLedDSErrorTimer(int value)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_SetLedUSErrorTimer(int value)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_SetLedRegistrationErrorTimer(int value)
+{
+    return RETURN_OK;
+}
