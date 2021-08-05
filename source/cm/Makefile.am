@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libcm_mgnt.la
+
 libcm_mgnt_la_CPPFLAGS =
 libcm_mgnt_la_SOURCES = cm_hal.c
-libcm_mgnt_la_LDFLAGS = 
+libcm_mgnt_la_LDFLAGS =

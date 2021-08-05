@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_vlan.la
+
 libhal_vlan_la_CPPFLAGS =
 libhal_vlan_la_SOURCES = vlan_hal.c
-libhal_vlan_la_LDFLAGS = 
+libhal_vlan_la_LDFLAGS =

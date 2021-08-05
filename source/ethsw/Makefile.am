@@ -19,17 +19,18 @@
 AM_CFLAGS = -D_ANSC_LINUX
 AM_CFLAGS += -D_ANSC_USER
 AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
-AM_CFLAGS += -I$(top_srcdir)/./include
 
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_ethsw.la
+
 libhal_ethsw_la_CPPFLAGS =
 libhal_ethsw_la_SOURCES = ccsp_hal_ethsw.c
-libhal_ethsw_la_LDFLAGS = 
+libhal_ethsw_la_LDFLAGS =
 
 bin_PROGRAMS = eth_api
-eth_api_CPPFLAGS = -I$(top_srcdir)/include $(CPPFLAGS)
+
+eth_api_CPPFLAGS =
 eth_api_SOURCES = eth_api.c
 eth_api_LDFLAGS = -lhal_ethsw
 eth_api_LDADD = libhal_ethsw.la

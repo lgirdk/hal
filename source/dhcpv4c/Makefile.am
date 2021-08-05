@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libapi_dhcpv4c.la
+
 libapi_dhcpv4c_la_CPPFLAGS =
 libapi_dhcpv4c_la_SOURCES = dhcpv4c_api.c
-libapi_dhcpv4c_la_LDFLAGS = 
+libapi_dhcpv4c_la_LDFLAGS =
