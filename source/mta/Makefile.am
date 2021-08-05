@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_mta.la
+
 libhal_mta_la_CPPFLAGS =
 libhal_mta_la_SOURCES = mta_hal.c
-libhal_mta_la_LDFLAGS = 
+libhal_mta_la_LDFLAGS =
