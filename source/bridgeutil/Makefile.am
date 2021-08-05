@@ -22,16 +22,13 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 AM_CFLAGS += -fPIC
 AM_CFLAGS += -D_GNU_SOURCE
 AM_CFLAGS += -DSC_POSIX_SEM
-AM_LDFLAGS = -lpthread
-AM_LDFLAGS += -lz
 
-AM_CPPFLAGS = -Wall -Werror -fPIC
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libbridge_utils.la
 
 libbridge_utils_la_LDFLAGS = -lpthread 
 
-libbridge_utils_la_CPPFLAGS = -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/ccsp $(CPPFLAGS)
+libbridge_utils_la_CPPFLAGS = -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/ccsp
 
-libbridge_utils_la_SOURCES =  bridge_util_oem.c
+libbridge_utils_la_SOURCES = bridge_util_oem.c
