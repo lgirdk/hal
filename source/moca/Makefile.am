@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_moca.la
+
 libhal_moca_la_CPPFLAGS =
 libhal_moca_la_SOURCES = moca_hal.c
-libhal_moca_la_LDFLAGS = 
+libhal_moca_la_LDFLAGS =

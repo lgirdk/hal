@@ -23,6 +23,7 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_pon.la
+
 libhal_pon_la_CPPFLAGS =
 libhal_pon_la_SOURCES = dpoe_hal.c
-libhal_pon_la_LDFLAGS = 
+libhal_pon_la_LDFLAGS =
