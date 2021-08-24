@@ -24,3 +24,10 @@ missing
 Makefile
 Makefile.in
 stamp-h1
+source/dhcpv4c/devices_rpi
+source/dhcpv4c/devices_turris
+source/ethsw/devices_rpi
+source/ethsw/devices_turris
+source/platform/devices_rpi
+source/platform/devices_turris
+source/wifi/devices_rpi
