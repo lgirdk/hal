@@ -129,18 +129,21 @@ INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
     {
         return RETURN_ERR;
     }
-    *pValue='0';
-    return RETURN_OK;
 
+    *pValue = '0';
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetHardware_MemFree(CHAR *pValue)
 {
     if (pValue == NULL)
-    {   
+    {
         return RETURN_ERR;
     }
-    *pValue='0';
+
+    *pValue = '0';
+
     return RETURN_OK;
 }
 
@@ -150,7 +153,9 @@ INT platform_hal_GetFreeMemorySize(ULONG *pulSize)
     {
         return RETURN_ERR;
     }
+
     *pulSize = 0;
+
     return RETURN_OK;
 }
 
@@ -160,7 +165,9 @@ INT platform_hal_GetUsedMemorySize(ULONG *pulSize)
     {
         return RETURN_ERR;
     }
+
     *pulSize = 0;
+
     return RETURN_OK;
 }
 
@@ -170,7 +177,9 @@ INT platform_hal_GetFactoryResetCount(ULONG *pulSize)
     {
         return RETURN_ERR;
     }
+
     *pulSize = 2;
+
     return RETURN_OK;
 }
 
@@ -182,10 +191,12 @@ INT platform_hal_ClearResetCount(BOOLEAN bFlag)
 INT platform_hal_getTimeOffSet(CHAR *pValue)
 {
     if (pValue == NULL)
-    {   
+    {
         return RETURN_ERR;
     }
+
     *pValue='0';
+
     return RETURN_OK;
 }
 
@@ -211,7 +222,8 @@ INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
     {
         return RETURN_OK;
     }
-        return RETURN_ERR;
+
+    return RETURN_ERR;
 #else
     return RETURN_OK;
 #endif
@@ -220,10 +232,12 @@ INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
 INT platform_hal_GetRouterRegion(CHAR* pValue)
 {
     if (pValue == NULL)
-    {   
+    {
         return RETURN_ERR;
     }
-    *pValue='0';
+
+    *pValue = '0';
+
     return RETURN_OK;
 }
 
