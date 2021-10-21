@@ -171,11 +171,6 @@ int platform_hal_GetTotalMemorySize (unsigned long *pulSize)
 
 INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 {
-    if (pValue == NULL)
-    {
-        return RETURN_ERR;
-    }
-
     strcpy (pValue, "0");
 
     return RETURN_OK;
@@ -183,11 +178,6 @@ INT platform_hal_GetHardware_MemUsed(CHAR *pValue)
 
 INT platform_hal_GetHardware_MemFree(CHAR *pValue)
 {
-    if (pValue == NULL)
-    {
-        return RETURN_ERR;
-    }
-
     strcpy (pValue, "0");
 
     return RETURN_OK;
@@ -201,11 +191,6 @@ int platform_hal_GetFreeMemorySize (unsigned long *pulSize)
     char buf[64];
     unsigned long memfree_kb = 0;
     FILE *fp;
-
-    if (pulSize == NULL)
-    {
-        return RETURN_ERR;
-    }
 
     *pulSize = 0;
 
@@ -246,11 +231,6 @@ int platform_hal_GetUsedMemorySize (unsigned long *pulSize)
     char buf[64];
     unsigned long memfree_kb = 0, buffers_kb = 0, cached_kb = 0, sreclaimable_kb = 0, used_kb;
     FILE *fp;
-
-    if (pulSize == NULL)
-    {
-        return RETURN_ERR;
-    }
 
     *pulSize = 0;
 
@@ -304,11 +284,6 @@ int platform_hal_GetUsedMemorySize (unsigned long *pulSize)
 
 INT platform_hal_GetFactoryResetCount(ULONG *pulSize)
 {
-    if (pulSize == NULL)
-    {
-        return RETURN_ERR;
-    }
-
     *pulSize = 2;
 
     return RETURN_OK;
@@ -321,11 +296,6 @@ INT platform_hal_ClearResetCount(BOOLEAN bFlag)
 
 INT platform_hal_getTimeOffSet(CHAR *pValue)
 {
-    if (pValue == NULL)
-    {
-        return RETURN_ERR;
-    }
-
     strcpy (pValue, "0");
 
     return RETURN_OK;
@@ -372,25 +342,11 @@ INT platform_hal_GetMemoryPaths(RDK_CPUS index, PPLAT_PROC_MEM_INFO *ppinfo)
 
 INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
 {
-#if defined(_PSM_TRANS_RDK_TRIGG_)
-    if(NULL != pState)
-    {
-        return RETURN_OK;
-    }
-
-    return RETURN_ERR;
-#else
     return RETURN_OK;
-#endif
 }
 
 INT platform_hal_GetRouterRegion(CHAR* pValue)
 {
-    if (pValue == NULL)
-    {
-        return RETURN_ERR;
-    }
-
     return RETURN_ERR;
 }
 
