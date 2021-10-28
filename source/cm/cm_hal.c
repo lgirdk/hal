@@ -609,6 +609,11 @@ int docsis_IsEnergyDetected (BOOLEAN *pEnergyDetected)
     return RETURN_ERR;
 }
 
+int docsis_FactoryReset (void)
+{
+    return RETURN_OK;
+}
+
 
 /****************************************************************************/
 
