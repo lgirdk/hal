@@ -800,6 +800,11 @@ INT wifi_getRadioAutoChannelRefreshPeriod(INT radioIndex, ULONG *output_ulong) /
 	return RETURN_OK;
 }
 
+INT wifi_setRadioAutoChannelRefreshPeriod(INT radioIndex, ULONG seconds)
+{
+	return RETURN_ERR;
+}
+
 //Set the ACS refresh period in seconds
 INT wifi_setRadioDfsRefreshPeriod(INT radioIndex, ULONG seconds) //Tr181
 {
@@ -3381,6 +3386,11 @@ INT wifi_getApAssociatedDeviceStats(INT apIndex, mac_address_t *clientMacAddress
 }
 
 INT wifi_getBSSTransitionActivation(UINT apIndex, BOOL *activate)
+{
+    return RETURN_ERR;
+}
+
+INT wifi_getApInterworkingElement(INT apIndex, wifi_InterworkingElement_t *output_struct)
 {
     return RETURN_ERR;
 }
