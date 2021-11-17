@@ -543,3 +543,9 @@ CcspHalEthSwLocatePortByMacAddress
 
     return  RETURN_OK;
 }
+#ifndef defined(INTEL_PUMA7) && defined(_XB7_PRODUCT_REQ_)
+INT CcspHalExtSw_getAssociatedDevice(ULONG *output_array_size, eth_device_t **output_struct)
+{
+    return RETURN_OK;
+}
+#endif
