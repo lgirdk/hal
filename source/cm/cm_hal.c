@@ -37,7 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cm_hal.h" 
+#include "cm_hal.h"
+#include "safec_lib.h"
 
 INT cm_hal_InitDB(void) { return RETURN_OK; }
 INT docsis_InitDS(void) { return RETURN_OK; }
@@ -52,7 +53,10 @@ INT docsis_GetCertStatus(ULONG* pVal) {
 }
 
 INT docsis_getCMStatus(CHAR *cm_status) { 
-    strcpy(cm_status, "Registration Complete"); 
+    errno_t rc = -1;
+    /* cm_status is a pointer pointing to 1024 bytes data */
+    rc = strcpy_s(cm_status, 1024 ,"Registration Complete");
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 
@@ -68,8 +72,10 @@ static CMMGMT_CM_DS_CHANNEL g_CmDsChannel = {
     .LockStatus         = "Locked",
 };
 
-INT docsis_GetDSChannel(PCMMGMT_CM_DS_CHANNEL * ppInfo) {    
-    memcpy(*ppInfo, &g_CmDsChannel, sizeof(CMMGMT_CM_DS_CHANNEL));
+INT docsis_GetDSChannel(PCMMGMT_CM_DS_CHANNEL * ppInfo) {
+    errno_t rc = -1;
+    rc = memcpy_s(*ppInfo, sizeof(CMMGMT_CM_DS_CHANNEL), &g_CmDsChannel, sizeof(CMMGMT_CM_DS_CHANNEL));
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 
@@ -84,7 +90,9 @@ static CMMGMT_CM_US_CHANNEL g_CmUsChannel = {
 };
 
 INT docsis_GetUSChannel(PCMMGMT_CM_US_CHANNEL * ppInfo) {
-    memcpy(*ppInfo, &g_CmUsChannel, sizeof(CMMGMT_CM_US_CHANNEL));
+    errno_t rc = -1;
+    rc = memcpy_s(*ppInfo, sizeof(CMMGMT_CM_US_CHANNEL) , &g_CmUsChannel, sizeof(CMMGMT_CM_US_CHANNEL));
+    ERR_CHK(rc);
     return RETURN_OK;
 
 }
@@ -124,7 +132,9 @@ CMMGMT_CM_DOCSIS_INFO g_CmDocsisInfo = {
  
 INT docsis_GetDOCSISInfo(PCMMGMT_CM_DOCSIS_INFO pInfo) {
 
-    memcpy(pInfo, &g_CmDocsisInfo, sizeof(CMMGMT_CM_DOCSIS_INFO));
+    errno_t rc = -1;
+    rc = memcpy_s(pInfo, sizeof(CMMGMT_CM_DOCSIS_INFO) , &g_CmDocsisInfo, sizeof(CMMGMT_CM_DOCSIS_INFO));
+    ERR_CHK(rc);
     return RETURN_OK;
 
 }
@@ -134,7 +144,9 @@ CMMGMT_CM_ERROR_CODEWORDS CMErrorCodewords = { 1111, 1112, 1113};
 INT docsis_GetErrorCodewords(PCMMGMT_CM_ERROR_CODEWORDS * ppInfo) {
 
     // just one
-    memcpy(*ppInfo, &CMErrorCodewords, sizeof(CMMGMT_CM_ERROR_CODEWORDS) );
+    errno_t rc = -1;
+    rc = memcpy_s(*ppInfo, sizeof(CMMGMT_CM_ERROR_CODEWORDS) , &CMErrorCodewords, sizeof(CMMGMT_CM_ERROR_CODEWORDS) );
+    ERR_CHK(rc);
 
     return RETURN_OK;
 
@@ -143,13 +155,18 @@ INT docsis_GetErrorCodewords(PCMMGMT_CM_ERROR_CODEWORDS * ppInfo) {
 static char g_MddIpOverride[64] = "honorMDD";
 
 INT docsis_GetMddIpModeOverride(CHAR *pValue) {
-    strcpy(pValue, g_MddIpOverride);
+    errno_t rc = -1;
+    /* pValue is a pointer pointing to 1024 bytes data */
+    rc = strcpy_s(pValue, 1024 ,g_MddIpOverride);
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 
 INT docsis_SetMddIpModeOverride(CHAR *pValue) {
     if(pValue && strlen(pValue) < sizeof(g_MddIpOverride) -1) {
-        strcpy(g_MddIpOverride, pValue);
+        errno_t rc = -1;
+        rc = strcpy_s(g_MddIpOverride, sizeof(g_MddIpOverride) , pValue);
+        ERR_CHK(rc);
         return RETURN_OK;
     }
     else return RETURN_ERR;
@@ -177,22 +194,27 @@ void docsis_SetStartFreq(ULONG value) {
 CMMGMT_CM_EventLogEntry_t DocsisLog[2];
 
 INT docsis_GetDocsisEventLogItems(CMMGMT_CM_EventLogEntry_t *entryArray, INT len){
-    
-    memset(DocsisLog, 0, sizeof(CMMGMT_CM_EventLogEntry_t)*2);
 
+    errno_t rc = -1;
+    rc = memset_s(DocsisLog, sizeof(CMMGMT_CM_EventLogEntry_t)*2, 0, sizeof(CMMGMT_CM_EventLogEntry_t)*2);
+    ERR_CHK(rc);
     DocsisLog[0].docsDevEvIndex = 1;
     DocsisLog[0].docsDevEvCounts = 1;
     DocsisLog[0].docsDevEvLevel = 1;
     DocsisLog[0].docsDevEvId = 1;
-    strcpy(DocsisLog[0].docsDevEvText, "This is entry 1");
+    /* EVM_MAX_EVENT_TEXT      255 */
+    rc = strcpy_s(DocsisLog[0].docsDevEvText, 255 , "This is entry 1");
+    ERR_CHK(rc);
 
     DocsisLog[1].docsDevEvIndex = 2;
     DocsisLog[1].docsDevEvCounts = 2;
     DocsisLog[1].docsDevEvLevel = 2;
     DocsisLog[1].docsDevEvId = 2;
-    strcpy(DocsisLog[1].docsDevEvText, "This is entry 2");
+    rc = strcpy_s(DocsisLog[1].docsDevEvText, 255 , "This is entry 2");
+    ERR_CHK(rc);
 
-    memcpy(entryArray, DocsisLog, sizeof(CMMGMT_CM_EventLogEntry_t)*2);
+    rc = memcpy_s(entryArray, sizeof(CMMGMT_CM_EventLogEntry_t)*2 ,DocsisLog, sizeof(CMMGMT_CM_EventLogEntry_t)*2);
+    ERR_CHK(rc);
 
     return 2;
 }
@@ -213,7 +235,9 @@ static CMMGMT_CM_DHCP_INFO g_CmDhcpInfo = {
 };
 
 INT cm_hal_GetDHCPInfo(PCMMGMT_CM_DHCP_INFO pInfo) {
-    memcpy(pInfo, &g_CmDhcpInfo, sizeof(*pInfo));
+    errno_t rc = -1;
+    rc = memcpy_s(pInfo, sizeof(CMMGMT_CM_DHCP_INFO) , &g_CmDhcpInfo, sizeof(*pInfo));
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 
@@ -230,13 +254,18 @@ static CMMGMT_CM_IPV6DHCP_INFO g_CmDhcpv6Info = {
 };
 
 INT cm_hal_GetIPv6DHCPInfo(PCMMGMT_CM_IPV6DHCP_INFO pInfo) {
-    memcpy(pInfo, &g_CmDhcpv6Info, sizeof(*pInfo));
+    errno_t rc = -1;
+    rc = memcpy_s(pInfo, sizeof(CMMGMT_CM_IPV6DHCP_INFO) , &g_CmDhcpv6Info, sizeof(*pInfo));
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 
 
 INT cm_hal_GetMarket(CHAR* market) {
-    strcpy(market, "Dummy-Market");
+    errno_t rc = -1;
+    /* market is a pointer pointing to 1024 byte data*/
+    rc = strcpy_s(market, 1024 ,"Dummy-Market");
+    ERR_CHK(rc);
     return RETURN_OK;
 }
 

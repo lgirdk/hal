@@ -71,6 +71,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "moca_hal.h"
+#include "safec_lib.h"
 
 /**********************************************************************************
  *
@@ -116,10 +117,12 @@
 */
 INT moca_GetIfConfig(ULONG ifIndex, moca_cfg_t *pmoca_config)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_config) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_config, 0, sizeof(moca_cfg_t));
+		rc = memset_s(pmoca_config, sizeof(moca_cfg_t), 0, sizeof(moca_cfg_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -208,10 +211,12 @@ INT moca_SetIfConfig(ULONG ifIndex, moca_cfg_t *pmoca_config)
 */
 INT moca_IfGetDynamicInfo(ULONG ifIndex, moca_dynamic_info_t *pmoca_dynamic_info)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_dynamic_info) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_dynamic_info, 0, sizeof(moca_dynamic_info_t));
+		rc = memset_s(pmoca_dynamic_info, sizeof(moca_dynamic_info_t), 0, sizeof(moca_dynamic_info_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -246,10 +251,12 @@ INT moca_IfGetDynamicInfo(ULONG ifIndex, moca_dynamic_info_t *pmoca_dynamic_info
 */
 INT moca_IfGetStaticInfo(ULONG ifIndex, moca_static_info_t *pmoca_static_info)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_static_info) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_static_info, 0, sizeof(moca_static_info_t));
+		rc = memset_s(pmoca_static_info, sizeof(moca_static_info_t), 0, sizeof(moca_static_info_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -283,10 +290,12 @@ INT moca_IfGetStaticInfo(ULONG ifIndex, moca_static_info_t *pmoca_static_info)
 */
 INT moca_IfGetStats(ULONG ifIndex, moca_stats_t *pmoca_stats)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_stats) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_stats, 0, sizeof(moca_stats_t));
+		rc =  memset_s(pmoca_stats, sizeof(moca_stats_t), 0, sizeof(moca_stats_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -347,10 +356,12 @@ INT moca_GetNumAssociatedDevices(ULONG ifIndex, ULONG *pulCount)
 */
 INT moca_IfGetExtCounter(ULONG ifIndex, moca_mac_counters_t *pmoca_mac_counters)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_mac_counters) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_mac_counters, 0, sizeof(moca_mac_counters_t));
+		rc = memset_s(pmoca_mac_counters, sizeof(moca_mac_counters_t),0, sizeof(moca_mac_counters_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -377,10 +388,12 @@ INT moca_IfGetExtCounter(ULONG ifIndex, moca_mac_counters_t *pmoca_mac_counters)
 */
 INT moca_IfGetExtAggrCounter(ULONG ifIndex, moca_aggregate_counters_t *pmoca_aggregate_counts)
 {
+	errno_t rc = -1;
 	if (NULL == pmoca_aggregate_counts) {
 		return STATUS_FAILURE;
 	} else {
-		memset(pmoca_aggregate_counts, 0, sizeof(moca_aggregate_counters_t));
+		rc = memset_s(pmoca_aggregate_counts, sizeof(moca_aggregate_counters_t),0, sizeof(moca_aggregate_counters_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -406,11 +419,13 @@ INT moca_IfGetExtAggrCounter(ULONG ifIndex, moca_aggregate_counters_t *pmoca_agg
 */
 INT moca_GetMocaCPEs(ULONG ifIndex, moca_cpe_t *cpes, INT *pnum_cpes)
 {
+	errno_t rc = -1;
 	if (NULL == pnum_cpes || NULL == cpes) {
 		return STATUS_FAILURE;
 	} else {
 		*pnum_cpes = 0;
-		memset(cpes, 0, sizeof(moca_cpe_t));
+		rc = memset_s(cpes, sizeof(moca_cpe_t), 0, sizeof(moca_cpe_t));
+		ERR_CHK(rc);
 		return STATUS_SUCCESS;
 	}
 }
@@ -522,11 +537,13 @@ BOOL moca_HardwareEquipped(void)
 */
 INT moca_GetFullMeshRates(ULONG ifIndex, moca_mesh_table_t *pDeviceArray, ULONG *pulCount)
 {
+	errno_t rc = -1;
 	int status=STATUS_SUCCESS;
 	if (NULL == pDeviceArray) {
 		return STATUS_FAILURE;
 	}
-    memset(pDeviceArray, 0, sizeof(moca_mesh_table_t));
+    rc = memset_s(pDeviceArray, sizeof(moca_mesh_table_t), 0, sizeof(moca_mesh_table_t));
+    ERR_CHK(rc);
     pDeviceArray->TxNodeID=0;
     pDeviceArray->RxNodeID=0;
     pDeviceArray->TxRate=0;
@@ -555,16 +572,19 @@ INT moca_GetFullMeshRates(ULONG ifIndex, moca_mesh_table_t *pDeviceArray, ULONG 
 */
 INT moca_GetFlowStatistics(ULONG ifIndex, moca_flow_table_t *pDeviceArray, ULONG *pulCount)
 {
+	errno_t rc = -1;
 	int status=STATUS_SUCCESS;
 	if (NULL == pDeviceArray) {
 		return STATUS_FAILURE;
 	}
-    memset(pDeviceArray, 0, sizeof(moca_flow_table_t));
+    rc = memset_s(pDeviceArray, sizeof(moca_flow_table_t),0, sizeof(moca_flow_table_t));
+    ERR_CHK(rc);
     pDeviceArray->FlowID=0;
     pDeviceArray->IngressNodeID=0;
     pDeviceArray->EgressNodeID=0;
     pDeviceArray->FlowTimeLeft=0;
-    memset(pDeviceArray->DestinationMACAddress, 0, sizeof(pDeviceArray->DestinationMACAddress));
+    rc = memset_s(pDeviceArray->DestinationMACAddress, sizeof(pDeviceArray->DestinationMACAddress), 0, sizeof(pDeviceArray->DestinationMACAddress));
+    ERR_CHK(rc);
     pDeviceArray->PacketSize=0;
     pDeviceArray->PeakDataRate=0;
     pDeviceArray->BurstSize=0;

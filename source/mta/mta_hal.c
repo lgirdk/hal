@@ -72,6 +72,7 @@
 #include <string.h>
 
 #include "mta_hal.h"
+#include "safec_lib.h"
 
 #define _ERROR_ "NOT SUPPORTED"
 
@@ -96,7 +97,9 @@ int mta_hal_InitDB (void)
 
 INT   mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo) {
 
-    memset(pInfo, 0, sizeof(MTAMGMT_MTA_DHCP_INFO));
+    errno_t rc = -1;
+    rc = memset_s(pInfo, sizeof(MTAMGMT_MTA_DHCP_INFO), 0, sizeof(MTAMGMT_MTA_DHCP_INFO));
+    ERR_CHK(rc);
 
     pInfo->LeaseTimeRemaining = 6;
 
@@ -109,16 +112,26 @@ INT   mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo) {
     pInfo->PrimaryDNS.Value = 0x06060606U;
     pInfo->SecondaryDNS.Value = 0x06060606U;
 
-    strcpy(pInfo->BootFileName, "BootFileName");
-    strcpy(pInfo->FQDN, "FQDN");
-    strcpy(pInfo->RebindTimeRemaining, "RebindTimeRemaining");
-    strcpy(pInfo->RenewTimeRemaining, "RenewTimeRemaining");
-    strcpy(pInfo->DHCPOption3, "DHCPOption3");
-    strcpy(pInfo->DHCPOption6, "DHCPOption6");
-    strcpy(pInfo->DHCPOption7, "DHCPOption7");
-    strcpy(pInfo->DHCPOption8, "DHCPOption8");
-    strcpy(pInfo->PCVersion, "PCVersion");
-    strcpy(pInfo->MACAddress, "66:66:66:66:66:66");
+    strcpy_s(pInfo->BootFileName, sizeof(pInfo->BootFileName) , "BootFileName");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->FQDN, sizeof(pInfo->FQDN) ,"FQDN");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->RebindTimeRemaining, sizeof(pInfo->RebindTimeRemaining) ,"RebindTimeRemaining");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->RenewTimeRemaining, sizeof(pInfo->RenewTimeRemaining) ,"RenewTimeRemaining");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->DHCPOption3, sizeof(pInfo->DHCPOption3) ,"DHCPOption3");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->DHCPOption6, sizeof(pInfo->DHCPOption6) , "DHCPOption6");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->DHCPOption7, sizeof(pInfo->DHCPOption7) ,"DHCPOption7");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->DHCPOption8, sizeof(pInfo->DHCPOption8) ,"DHCPOption8");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->PCVersion, sizeof(pInfo->PCVersion) , "PCVersion");
+    ERR_CHK(rc);
+    strcpy_s(pInfo->MACAddress, sizeof(pInfo->MACAddress) ,"66:66:66:66:66:66");
+    ERR_CHK(rc);
 
     return RETURN_OK;
 }
@@ -160,7 +173,9 @@ ULONG mta_hal_LineTableGetNumberOfEntries() { return 1; }
 
 INT   mta_hal_LineTableGetEntry(ULONG Index, PMTAMGMT_MTA_LINETABLE_INFO pEntry) {
 
-    memset(pEntry, 0, sizeof(MTAMGMT_MTA_LINETABLE_INFO));
+    errno_t rc = -1;
+    rc = memset_s(pEntry, sizeof(MTAMGMT_MTA_LINETABLE_INFO), 0, sizeof(MTAMGMT_MTA_LINETABLE_INFO));
+    ERR_CHK(rc);
 
 	pEntry->InstanceNumber = Index + 1;	
 
@@ -169,12 +184,18 @@ INT   mta_hal_LineTableGetEntry(ULONG Index, PMTAMGMT_MTA_LINETABLE_INFO pEntry)
     pEntry->CAPort = 6;
     pEntry->MWD = 6;
 
-    strcpy(pEntry->ForeignEMF, "ForeignEMF");
-    strcpy(pEntry->HazardousPotential, "HazardousPotential");
-    strcpy(pEntry->ResistiveFaults, "ResistiveFaults");
-    strcpy(pEntry->ReceiverOffHook, "ReceiverOffHook");
-    strcpy(pEntry->RingerEquivalency, "RingerEquivalency");
-    strcpy(pEntry->CAName, "CAName");
+    rc = strcpy_s(pEntry->ForeignEMF, sizeof(pEntry->ForeignEMF) , "ForeignEMF");
+    ERR_CHK(rc);
+    rc = strcpy_s(pEntry->HazardousPotential, sizeof(pEntry->HazardousPotential) , "HazardousPotential");
+    ERR_CHK(rc);
+    rc = strcpy_s(pEntry->ResistiveFaults, sizeof(pEntry->ResistiveFaults) ,"ResistiveFaults");
+    ERR_CHK(rc);
+    rc = strcpy_s(pEntry->ReceiverOffHook, sizeof(pEntry->ReceiverOffHook) ,"ReceiverOffHook");
+    ERR_CHK(rc);
+    rc = strcpy_s(pEntry->RingerEquivalency, sizeof(pEntry->RingerEquivalency) ,"RingerEquivalency");
+    ERR_CHK(rc);
+    rc = strcpy_s(pEntry->CAName, sizeof(pEntry->CAName) ,"CAName");
+    ERR_CHK(rc);
 
     return RETURN_OK;
 }
@@ -184,11 +205,15 @@ INT   mta_hal_TriggerDiagnostics(ULONG Index) { return RETURN_OK; }
 INT   mta_hal_GetServiceFlow(ULONG* Count, PMTAMGMT_MTA_SERVICE_FLOW *ppCfg) {
 
     *Count = 1;
+    errno_t rc = -1;
 
     *ppCfg = (PMTAMGMT_MTA_SERVICE_FLOW)malloc(sizeof(MTAMGMT_MTA_SERVICE_FLOW));
-    memset(*ppCfg, 0, sizeof(MTAMGMT_MTA_SERVICE_FLOW));
+    rc = memset_s(*ppCfg, sizeof(MTAMGMT_MTA_SERVICE_FLOW), 0, sizeof(MTAMGMT_MTA_SERVICE_FLOW));
+    ERR_CHK(rc);
 
-    strcpy((*ppCfg)->Direction, "upstream");
+    /* ppcfg is a pointer pointing to an array of size 16 */
+    rc = strcpy_s((*ppCfg)->Direction, 16 , "upstream");
+    ERR_CHK(rc);
     (*ppCfg)->MaxTrafficBurst = 6;
     (*ppCfg)->MaxTrafficRate = 6;
     (*ppCfg)->MinReservedPkt = 6;
@@ -303,28 +328,43 @@ CosaDmlMTAHandsetsGetEntry
 INT   mta_hal_GetCalls(ULONG InstanceNumber, ULONG *pulCount, PMTAMGMT_MTA_CALLS *ppCfg) {
 
     *pulCount = 1;
+    errno_t rc = -1;
 
     *ppCfg = (PMTAMGMT_MTA_CALLS)malloc(sizeof(MTAMGMT_MTA_CALLS));
-    memset(*ppCfg, 0, sizeof(MTAMGMT_MTA_CALLS));
+    rc = memset_s(*ppCfg, sizeof(MTAMGMT_MTA_CALLS), 0, sizeof(MTAMGMT_MTA_CALLS));
+    ERR_CHK(rc);
 
-    strcpy((*ppCfg)->CallEndTime, "2000-01-01");
-    strcpy((*ppCfg)->CallStartTime, "2000-01-01");
-    strcpy((*ppCfg)->PktLossConcealment, "Standard");
-    strcpy((*ppCfg)->CWErrorRate, "CWErrorRate");
+    /*ppCfg is a pointer pointing to an array of size 64 */
+    rc = strcpy_s((*ppCfg)->CallEndTime, 64 , "2000-01-01");
+    ERR_CHK(rc);
+    rc = strcpy_s((*ppCfg)->CallStartTime, 64 ,"2000-01-01");
+    ERR_CHK(rc);
+    rc = strcpy_s((*ppCfg)->PktLossConcealment, 16 ,"Standard");
+    ERR_CHK(rc);
+    rc = strcpy_s((*ppCfg)->CWErrorRate, 16 ,"CWErrorRate");
+    ERR_CHK(rc);
 
-	strcpy((*ppCfg)->CWErrors, "CWErrors");
-	strcpy((*ppCfg)->SNR, "122");
-	strcpy((*ppCfg)->DownstreamPower, "5.1");	
-	strcpy((*ppCfg)->RemoteJBAbsMaxDelay, "20.2");
+	rc = strcpy_s((*ppCfg)->CWErrors, 16 , "CWErrors");
+    ERR_CHK(rc);
+	rc = strcpy_s((*ppCfg)->SNR, 16 , "122");
+	ERR_CHK(rc);
+    rc = strcpy_s((*ppCfg)->DownstreamPower, 16 , "5.1");	
+	ERR_CHK(rc);
+    rc = strcpy_s((*ppCfg)->RemoteJBAbsMaxDelay, 16 ,"20.2");
+    ERR_CHK(rc);
 
     return RETURN_OK;
 }
 
 INT   mta_hal_GetCALLP(ULONG LineNumber, PMTAMGMT_MTA_CALLP pCallp) {
+    errno_t rc = -1;
 
-    strcpy(pCallp->LCState, "Idle");
-    strcpy(pCallp->CallPState, "Idle");
-    strcpy(pCallp->LoopCurrent, "Normal");
+    rc = strcpy_s(pCallp->LCState, sizeof(pCallp->LCState) ,"Idle");
+    ERR_CHK(rc);
+    rc = strcpy_s(pCallp->CallPState, sizeof(pCallp->CallPState) ,"Idle");
+    ERR_CHK(rc);
+    rc = strcpy_s(pCallp->LoopCurrent, sizeof(pCallp->LoopCurrent) , "Normal");
+    ERR_CHK(rc);
 
     return RETURN_OK;
 }
@@ -345,17 +385,21 @@ INT   mta_hal_GetMtaLog(ULONG *Count, PMTAMGMT_MTA_MTALOG_FULL *ppConf) {
     ULONG              i = 0;
 
     *Count = 2;
+    errno_t rc = -1;
 
     *ppConf = (PMTAMGMT_MTA_MTALOG_FULL)malloc(sizeof(MTAMGMT_MTA_MTALOG_FULL)*2);
-    memset(*ppConf, 0, sizeof(MTAMGMT_MTA_MTALOG_FULL)*2);
+    rc = memset_s(*ppConf, sizeof(MTAMGMT_MTA_MTALOG_FULL)*2, 0, sizeof(MTAMGMT_MTA_MTALOG_FULL)*2);
+    ERR_CHK(rc);
 
-    memcpy(*ppConf, &MtaLog, sizeof(MtaLog) );
+    rc = memcpy_s(*ppConf, sizeof(MTAMGMT_MTA_MTALOG_FULL) , &MtaLog, sizeof(MtaLog) );
+    ERR_CHK(rc);
 
     for ( i=0; i<2; i++)
     {
         if ( MtaLog[i].pDescription ) {
             (*ppConf)[i].pDescription = (CHAR*)malloc(sizeof(CHAR)*(strlen(MtaLog[i].pDescription) + 1));
-            strcpy((*ppConf)[i].pDescription, MtaLog[i].pDescription);
+            rc = strcpy_s((*ppConf)[i].pDescription, 64 ,MtaLog[i].pDescription);
+            ERR_CHK(rc);
         }
         else
             (*ppConf)[i].pDescription = NULL;
@@ -416,17 +460,52 @@ INT mta_hal_BatteryGetRemainingCharge(ULONG* Val) { *Val = 1300; return RETURN_O
 INT mta_hal_BatteryGetRemainingTime(ULONG* Val)   { *Val = 1;    return RETURN_OK; }
 INT mta_hal_BatteryGetNumberofCycles(ULONG* Val)  { *Val = 4321; return RETURN_OK; }
 
-INT mta_hal_BatteryGetPowerStatus(CHAR *Val, ULONG *len) { strcpy(Val, "Battery");          *len=strlen(Val)+1; return RETURN_OK; }
-INT mta_hal_BatteryGetCondition(CHAR *Val, ULONG *len)   { strcpy(Val, "Good");             *len=strlen(Val)+1; return RETURN_OK; }
-INT mta_hal_BatteryGetStatus(CHAR* Val, ULONG *len)      { strcpy(Val, "Discharging");      *len=strlen(Val)+1; return RETURN_OK; }
-INT mta_hal_BatteryGetLife(CHAR* Val, ULONG *len)        { strcpy(Val, "Need Replacement"); *len=strlen(Val)+1; return RETURN_OK; }
+INT mta_hal_BatteryGetPowerStatus(CHAR *Val, ULONG *len)
+{
+    errno_t rc = -1;
+    /* Val is a pointer pointing to 32 bytes of data */
+    rc = strcpy_s(Val, *len ,"Battery");
+    ERR_CHK(rc);
+    *len=strlen(Val)+1; 
+    return RETURN_OK; 
+}
+INT mta_hal_BatteryGetCondition(CHAR *Val, ULONG *len)
+{
+    errno_t rc = -1;
+    rc = strcpy_s(Val, *len ,"Good");
+    ERR_CHK(rc);
+    *len=strlen(Val)+1;
+    return RETURN_OK;
+}
+INT mta_hal_BatteryGetStatus(CHAR* Val, ULONG *len)
+{
+    errno_t rc = -1;
+    rc = strcpy_s(Val, *len ,"Discharging");
+    ERR_CHK(rc);
+    *len=strlen(Val)+1;
+    return RETURN_OK;
+}
+INT mta_hal_BatteryGetLife(CHAR* Val, ULONG *len)
+{
+    errno_t rc = -1;
+    rc = strcpy_s(Val, *len ,"Need Replacement");
+    ERR_CHK(rc);
+    *len=strlen(Val)+1;
+    return RETURN_OK;
+}
 
-INT mta_hal_BatteryGetInfo(PMTAMGMT_MTA_BATTERY_INFO pInfo) {
+INT mta_hal_BatteryGetInfo(PMTAMGMT_MTA_BATTERY_INFO pInfo)
+{
+    errno_t rc = -1;
 
-    strcpy(pInfo->ModelNumber,    "ModelNumber1.0");
-    strcpy(pInfo->SerialNumber,   "SerialNumber1.0");
-    strcpy(pInfo->PartNumber,     "PartNumber1.0");
-    strcpy(pInfo->ChargerFirmwareRevision, "ChargerFirmwareRevision1.0");
+    rc = strcpy_s(pInfo->ModelNumber,  sizeof(pInfo->ModelNumber)  , "ModelNumber1.0");
+    ERR_CHK(rc);
+    rc = strcpy_s(pInfo->SerialNumber, sizeof(pInfo->SerialNumber)  ,  "SerialNumber1.0");
+    ERR_CHK(rc);
+    rc = strcpy_s(pInfo->PartNumber,  sizeof(pInfo->PartNumber)  ,   "PartNumber1.0");
+    ERR_CHK(rc);
+    rc = strcpy_s(pInfo->ChargerFirmwareRevision, sizeof(pInfo->ChargerFirmwareRevision), "ChargerFirmwareRevision1.0");
+    ERR_CHK(rc);
 
     return RETURN_OK;
 }

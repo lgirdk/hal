@@ -49,6 +49,8 @@
 **********************************************************************/
 
 #include "vlan_hal.h"
+#include "safec_lib.h"
+
 
 vlan_vlanidconfiguration_t *gpvlan_Config_Head = NULL;
 
@@ -64,6 +66,7 @@ vlan_vlanidconfiguration_t *gpvlan_Config_Head = NULL;
 int vlan_hal_addGroup(const char *groupName, const char *default_vlanID)
 {
     char cmdBuff[128] = { 0 };
+    errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -87,7 +90,11 @@ int vlan_hal_addGroup(const char *groupName, const char *default_vlanID)
 	}
 
 	/* Add new group on bridge */
-    snprintf(cmdBuff, sizeof(cmdBuff), "brctl addbr %s", groupName);
+    rc = sprintf_s(cmdBuff, sizeof(cmdBuff), "brctl addbr %s", groupName);
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
     system(cmdBuff);
 
     /* 
@@ -111,6 +118,7 @@ int vlan_hal_addGroup(const char *groupName, const char *default_vlanID)
 int vlan_hal_delGroup(const char *groupName)
 {
     char cmdBuff[128] = { 0 };
+    errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -139,19 +147,28 @@ int vlan_hal_delGroup(const char *groupName)
 	*/
 	vlan_hal_delete_all_Interfaces(groupName);
 
-	snprintf(cmdBuff, 
+	rc = sprintf_s(cmdBuff, 
 		     sizeof(cmdBuff), 
 		     "ip link set %s down", 
 		     groupName);
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
 
 	system(cmdBuff);
 
 	/* Delete already existing group on bridge */
-	memset( cmdBuff, 0, sizeof( cmdBuff ));
-    snprintf(cmdBuff, 
+
+    rc = sprintf_s(cmdBuff, 
 		     sizeof(cmdBuff), 
 		     "brctl delbr %s", 
 		     groupName);
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
+
 
     system(cmdBuff);
 
@@ -171,6 +188,7 @@ int vlan_hal_addInterface(const char *groupName, const char *ifName, const char 
 {
     char cmdBuff[128] = { 0 };
 	char TempvlanID[VLAN_HAL_MAX_VLANID_TEXT_LENGTH]= { 0 };
+	errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -216,7 +234,8 @@ int vlan_hal_addInterface(const char *groupName, const char *ifName, const char 
 	}
 	else
 	{
-	   strncpy( TempvlanID, vlanID, sizeof( TempvlanID ) - 1 );
+	   rc = strcpy_s( TempvlanID, sizeof( TempvlanID ), vlanID );
+	   ERR_CHK(rc);
 	}
 
 	/* 
@@ -234,7 +253,7 @@ int vlan_hal_addInterface(const char *groupName, const char *ifName, const char 
 	}
 
 	/* Add new device interface into bridge */
-	snprintf(cmdBuff, 
+	rc = sprintf_s(cmdBuff, 
 			 sizeof(cmdBuff), 
 			 "vconfig add %s %s; brctl addif %s %s.%s", 
 			 ifName,
@@ -242,7 +261,10 @@ int vlan_hal_addInterface(const char *groupName, const char *ifName, const char 
 			 groupName,
 			 ifName,
 			 TempvlanID);
-
+	if(rc < EOK)
+	{
+		ERR_CHK(rc);
+	}
 	system(cmdBuff);
 	
 	printf("%s - Exit\n",__FUNCTION__);
@@ -257,6 +279,7 @@ int vlan_hal_delInterface(const char *groupName, const char *ifName, const char 
 {
 	char cmdBuff[128] = { 0 };
 	char TempvlanID[VLAN_HAL_MAX_VLANID_TEXT_LENGTH]= { 0 };
+	errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -302,7 +325,8 @@ int vlan_hal_delInterface(const char *groupName, const char *ifName, const char 
 	}
 	else
 	{
-	   strncpy( TempvlanID, vlanID, sizeof( TempvlanID ) - 1 );
+	   rc = strcpy_s( TempvlanID, sizeof( TempvlanID ), vlanID );
+	   ERR_CHK(rc);
 	}
 
 	/* 
@@ -320,14 +344,19 @@ int vlan_hal_delInterface(const char *groupName, const char *ifName, const char 
 	}
 
 	/* Delete already existing device interface from bridge */
-	memset(cmdBuff, 0, sizeof(cmdBuff));
-	snprintf(cmdBuff, 
+	rc = memset_s(cmdBuff, sizeof( cmdBuff ),0, sizeof(cmdBuff));
+	ERR_CHK(rc);
+	rc = sprintf_s(cmdBuff, 
 			 sizeof(cmdBuff), 
 			 "vconfig rem %s.%s; brctl delif %s %s", 
 			 ifName,
 			 TempvlanID,
 			 groupName,
 			 ifName);
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
 
 	system(cmdBuff);
 	
@@ -340,6 +369,7 @@ int vlan_hal_delInterface(const char *groupName, const char *ifName, const char 
 int vlan_hal_printGroup(const char *groupName)
 {
 	char cmd[128];
+	errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -350,9 +380,12 @@ int vlan_hal_printGroup(const char *groupName)
 		return RETURN_ERR;
 	}
 
-	memset(cmd,0,sizeof(cmd));
- 	sprintf(cmd, "brctl show %s", groupName);
-        system(cmd);
+	rc = sprintf_s(cmd, sizeof(cmd), "brctl show %s", groupName);
+	if(rc < EOK)
+	{
+		ERR_CHK(rc);
+	}
+ 	system(cmd);
 
 	/* memset(cmd,0,sizeof(cmd));
 	    sprintf(cmd, "brctl showmacs %s", groupName);
@@ -372,11 +405,12 @@ int vlan_hal_printGroup(const char *groupName)
 int vlan_hal_printAllGroup( void )
 {
 	char cmd[128];
+	errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
-	memset(cmd,0,sizeof(cmd));
-    sprintf(cmd, "brctl show");
+	rc = strcpy_s(cmd, sizeof(cmd) , "brctl show");
+	ERR_CHK(rc);
     system(cmd);
 
 	printf("%s - Exit\n",__FUNCTION__);
@@ -389,6 +423,7 @@ int vlan_hal_delete_all_Interfaces(const char *groupName)
 {
     FILE  *fp;
 	char   cmdBuff[128] = { 0 };
+	errno_t rc = -1;
 
 	printf("%s - Entry\n",__FUNCTION__);
 
@@ -399,10 +434,14 @@ int vlan_hal_delete_all_Interfaces(const char *groupName)
 		return RETURN_ERR;
 	}
 
-	snprintf(cmdBuff, 
+	rc = sprintf_s(cmdBuff, 
 			 sizeof(cmdBuff), 
 			 "brctl show %s | awk '{ print $NF }' | tail +2", 
 			 groupName);
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
 
     fp = popen(cmdBuff, "r");
 
@@ -441,6 +480,7 @@ int _is_this_group_available_in_linux_bridge(char * br_name)
 {
     char buf[512] = {0};
     char cmd[128] = {0};
+    errno_t rc = -1;
 
 	/* Prevalidation for received params */
 	if( NULL == br_name )
@@ -449,7 +489,11 @@ int _is_this_group_available_in_linux_bridge(char * br_name)
 		return 0;
 	}
 
-    sprintf(cmd, "brctl show | grep -w %s", br_name );
+    rc = sprintf_s(cmd, sizeof(cmd) , "brctl show | grep -w %s", br_name );
+    if(rc < EOK)
+    {
+        ERR_CHK(rc);
+    }
     _get_shell_outputbuffer(cmd, buf, sizeof(buf));
 
     if (strstr(buf, br_name))
@@ -465,6 +509,7 @@ int _is_this_interface_available_in_linux_bridge(char * if_name, char *vlanID)
     char   buf[512] 	= { 0 };
     char   cmdBuff[128] = { 0 };
     BOOL   bFound 	    = FALSE;
+    errno_t rc = -1;
 
 /* Prevalidation for received params */
    if( ( NULL == if_name )|| ( NULL == vlanID ) )
@@ -474,7 +519,8 @@ int _is_this_interface_available_in_linux_bridge(char * if_name, char *vlanID)
 	return 0;
    }
 
-   snprintf(cmdBuff, sizeof(cmdBuff),"brctl show | awk '{ print $NF }' | tail +2" );
+    rc = strcpy_s(cmdBuff, sizeof(cmdBuff),"brctl show | awk '{ print $NF }' | tail +2" );
+    ERR_CHK(rc);
 
    fp = popen(cmdBuff, "r");
 
@@ -525,6 +571,7 @@ int _is_this_interface_available_in_given_linux_bridge(char * if_name, char * br
     char   buf[512] 	= { 0 };
     char   cmdBuff[128] = { 0 };
 	BOOL   bFound 	    = FALSE;
+	errno_t rc = -1;
 
 	/* Prevalidation for received params */
 	if( ( NULL == br_name )|| \
@@ -536,10 +583,14 @@ int _is_this_interface_available_in_given_linux_bridge(char * if_name, char * br
 		return 0;
 	}
 
-	snprintf(cmdBuff, 
+	rc = sprintf_s(cmdBuff, 
 			 sizeof(cmdBuff), 
 			 "brctl show %s | awk '{ print $NF }' | tail +2", 
 			 br_name);
+	if(rc < EOK)
+	{
+		ERR_CHK(rc);
+	}
 
     fp = popen(cmdBuff, "r");
 
@@ -590,6 +641,7 @@ void _get_shell_outputbuffer(char * cmd, char * out, int len)
 {
     FILE * fp;
     char   buf[512] = { 0 };
+    errno_t rc = -1;
 
     fp = popen(cmd, "r");
 
@@ -607,10 +659,12 @@ void _get_shell_outputbuffer(char * cmd, char * out, int len)
 		*/
 		while( fgets(line_buff, VLAN_HAL_MAX_LINE_BUFFER_LENGTH, fp) != NULL )
 		{
-			strcat( buf, line_buff );
+			rc = strcat_s( buf, sizeof(buf) ,line_buff );
+			ERR_CHK(rc);
 		}
 
-		strncpy( out, buf, len - 1 );
+		rc = strncpy_s( out, len , buf, len - 1 );
+		ERR_CHK(rc);
 
         pclose(fp);        
     }
@@ -620,6 +674,7 @@ void _get_shell_outputbuffer(char * cmd, char * out, int len)
 int insert_VLAN_ConfigEntry(char *groupName, char *vlanID)
 {
 	vlan_vlanidconfiguration_t *pvlan_Config_Temp = NULL;
+	errno_t rc = -1;
 
 	if( ( NULL == groupName ) || \
 		( NULL == vlanID )
@@ -638,9 +693,12 @@ int insert_VLAN_ConfigEntry(char *groupName, char *vlanID)
 		return RETURN_ERR;
 	}
 
-	memset( pvlan_Config_Temp, 0, sizeof( vlan_vlanidconfiguration_t ) );
-	strncpy( pvlan_Config_Temp->groupName, groupName, sizeof( pvlan_Config_Temp->groupName ) - 1 );
-	strncpy( pvlan_Config_Temp->vlanID, vlanID, sizeof( pvlan_Config_Temp->vlanID ) - 1 );
+	rc = memset_s( pvlan_Config_Temp, sizeof( vlan_vlanidconfiguration_t ), 0, sizeof( vlan_vlanidconfiguration_t ) );
+	ERR_CHK(rc);
+	rc = strcpy_s( pvlan_Config_Temp->groupName, sizeof( pvlan_Config_Temp->groupName ) , groupName);
+	ERR_CHK(rc);
+	rc = strcpy_s( pvlan_Config_Temp->vlanID, sizeof( pvlan_Config_Temp->vlanID ) , vlanID );
+	ERR_CHK(rc);
 	pvlan_Config_Temp->nextlink = NULL;
 	
     /* 
@@ -715,6 +773,7 @@ int get_vlanId_for_GroupName(const char *groupName, char *vlanID)
 {
 	vlan_vlanidconfiguration_t *pvlan_Config_temp = NULL;
 	BOOL					    bFound 			  = FALSE;
+	errno_t rc = -1;
 
 	if( ( NULL == groupName ) || \
 		( NULL == vlanID )
@@ -735,9 +794,10 @@ int get_vlanId_for_GroupName(const char *groupName, char *vlanID)
 		 */
 		if( 0 == strcmp( pvlan_Config_temp->groupName, groupName ) )
 		{
-		  memcpy( vlanID, 
+		  rc = memcpy_s( vlanID, 32,
 		  		  pvlan_Config_temp->vlanID, 
 		  		  sizeof( pvlan_Config_temp->vlanID ) - 1 );
+		  ERR_CHK(rc);
 
 		  bFound = TRUE;
 		  break;
