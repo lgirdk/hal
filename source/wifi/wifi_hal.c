@@ -2865,6 +2865,13 @@ INT wifi_setRadioChannelWeights (INT radioIndex, const ULONG *output_weights)
     return RETURN_OK;
 }
 
+INT wifi_getApRadiusTransportInterface (UINT *RadiusInterface)
+{
+    *RadiusInterface = 0;
+
+    return RETURN_OK;
+}
+
 INT wifi_setApRadiusTransportInterface (UINT RadiusInterface)
 {
     return RETURN_OK;
