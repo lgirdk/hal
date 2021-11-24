@@ -343,7 +343,7 @@ INT platform_hal_SetDeviceCodeImageValid(BOOLEAN flag)
 
 int platform_hal_getFactoryPartnerId (char *pValue)
 {
-    strcpy (pValue, "");
+    strcpy (pValue, "RDKM");
 
     return RETURN_OK;
 }
