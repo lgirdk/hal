@@ -3398,6 +3398,18 @@ INT wifi_getApInterworkingElement(INT apIndex, wifi_InterworkingElement_t *outpu
     return RETURN_ERR;
 }
 
+INT wifi_setRadioRetryLimit(INT radioIndex, ULONG val)
+{
+    return RETURN_OK;
+}
+
+INT wifi_getRadioRetryLimit(INT radioIndex, ULONG *output_ulong)
+{
+    *output_ulong = 7;
+
+    return RETURN_OK;
+}
+ 
 /**
  OPENSYNC WIFI HAL EXTENSIONS END
 */
