@@ -138,9 +138,9 @@ INT   mta_hal_GetDHCPInfo(PMTAMGMT_MTA_DHCP_INFO pInfo) {
 
 INT mta_hal_GetDHCPV6Info(PMTAMGMT_MTA_DHCPv6_INFO pInfo)
 {
-    /* Initial empty stub just to satisfy linking */
+    memset(pInfo, 0, sizeof(MTAMGMT_MTA_DHCPv6_INFO));
 
-    return RETURN_ERR;
+    return RETURN_OK;
 }
 
 /*
