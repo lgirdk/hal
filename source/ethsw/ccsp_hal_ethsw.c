@@ -600,6 +600,30 @@ int CcspHalExtSw_getAssociatedDevice (ULONG *output_array_size, eth_device_t **o
     return  RETURN_OK;
 }
 
+int CcspHalExtSw_getEthWanEnable (BOOLEAN *pFlag)
+{
+    *pFlag = TRUE;
+
+    return RETURN_OK;
+}
+
+int CcspHalExtSw_setEthWanEnable (BOOLEAN Flag)
+{
+    return RETURN_OK;
+}
+
+int CcspHalExtSw_getEthWanPort (unsigned int *pPort)
+{
+    *pPort = 0;
+
+    return RETURN_OK;
+}
+
+int CcspHalExtSw_setEthWanPort (unsigned int Port)
+{
+    return RETURN_OK;
+}
+
 CCSP_HAL_ETHSW_LINK_STATUS CcspHalExtSw_GetLinkStatus (char *pMacAddr)
 {
     char *connectedmac = "00:11:22:33:44:55";
