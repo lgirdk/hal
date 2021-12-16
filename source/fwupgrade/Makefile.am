@@ -16,4 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-SUBDIRS = moca wifi dhcpv4c platform cm mta mso_mgmt ethsw fwupgrade vlan
+
+ACLOCAL_AMFLAGS = -I m4
+
+lib_LTLIBRARIES = libfw_upgrade.la
+
+libfw_upgrade_la_CFLAGS =
+libfw_upgrade_la_CPPFLAGS =
+libfw_upgrade_la_SOURCES = fw_upgrade.c
+libfw_upgrade_la_LDFLAGS =
