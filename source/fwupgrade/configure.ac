@@ -22,7 +22,7 @@
 
 AC_PREREQ([2.65])
 AC_INIT([hal], [1.0], [BUG-REPORT-ADDRESS])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 LT_INIT
 
 AC_PREFIX_DEFAULT(`pwd`)
@@ -48,20 +48,7 @@ AC_C_INLINE
 # Checks for library functions.
 AC_FUNC_MALLOC
 
-AC_CONFIG_FILES(
-	source/moca/Makefile
-	source/wifi/Makefile
-	source/dhcpv4c/Makefile
-	source/platform/Makefile
-	source/cm/Makefile
-	source/mta/Makefile
-        source/mso_mgmt/Makefile
-	source/ethsw/Makefile
-	source/fwupgrade/Makefile
-	source/vlan/Makefile
-	source/Makefile
-	Makefile
-)
+AC_CONFIG_FILES(Makefile)
 
 
 AC_OUTPUT
