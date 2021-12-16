@@ -624,6 +624,20 @@ int CcspHalExtSw_setEthWanPort (unsigned int Port)
     return RETURN_OK;
 }
 
+void GWP_RegisterEthWan_Callback (appCallBack *obj)
+{
+}
+
+int GWP_GetEthWanLinkStatus (void)
+{
+    return 1;
+}
+
+int GWP_GetEthWanInterfaceName (unsigned char *Interface, unsigned long maxSize)
+{
+    return RETURN_ERR;
+}
+
 CCSP_HAL_ETHSW_LINK_STATUS CcspHalExtSw_GetLinkStatus (char *pMacAddr)
 {
     char *connectedmac = "00:11:22:33:44:55";
