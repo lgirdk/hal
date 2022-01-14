@@ -226,3 +226,21 @@ INT platform_hal_GetRouterRegion(CHAR* pValue)
     *pValue='0';
     return RETURN_OK;
 }
+
+INT platform_hal_GetDhcpv6_Options ( dhcp_opt_list ** req_opt_list, dhcp_opt_list ** send_opt_list)
+{
+
+    if(req_opt_list == NULL || send_opt_list == NULL){
+        return -1;
+    }
+    return 0;
+}
+INT platform_hal_GetDhcpv4_Options ( dhcp_opt_list ** req_opt_list, dhcp_opt_list ** send_opt_list)
+{
+
+    if(req_opt_list == NULL || send_opt_list == NULL){
+        return -1;
+    }
+    return 0;
+}
+
