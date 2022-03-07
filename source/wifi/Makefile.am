@@ -23,6 +23,6 @@ AM_CFLAGS += -D_ANSC_LITTLE_ENDIAN_
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libhal_wifi.la
-libhal_wifi_la_CPPFLAGS = -I$(top_srcdir)/./include $(CPPFLAGS)
+libhal_wifi_la_CPPFLAGS =
 libhal_wifi_la_SOURCES = wifi_hal.c
 libhal_wifi_la_LDFLAGS = 
