@@ -73,8 +73,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "safec_lib.h"
-
 
 #define HAL_DHCPV4C_ERT_DBG(x) do{fprintf x; fflush(stdout);}while(0);
 
@@ -117,9 +115,10 @@ static INT dhcpv4c_sysevent_get_value(char *query_name, char *query_value, unsig
                         return STATUS_FAILURE;
                 } else {
                         int ret = STATUS_SUCCESS;
-                        char ert_ifname[32] = {0};
+                        char ert_ifname[32];
                         char name[64];
-                        errno_t rc  = -1;
+
+                        memset(ert_ifname, 0, sizeof(ert_ifname));
 
                         ret = sysevent_get(se_fd, se_token, "current_wan_ifname", ert_ifname, sizeof(ert_ifname));
                         if (ret != 0 || strlen(ert_ifname) == 0) {
@@ -127,11 +126,7 @@ static INT dhcpv4c_sysevent_get_value(char *query_name, char *query_value, unsig
                                 return STATUS_FAILURE;
                         }
 
-                        rc = sprintf_s(name, sizeof(name), query_name, ert_ifname);
-                        if(rc < EOK)
-                        {
-                                ERR_CHK(rc);
-                        }
+                        snprintf(name, sizeof(name), query_name, ert_ifname);
 
                         ret = sysevent_get(se_fd, se_token, name, query_value, query_value_size);
 
@@ -188,8 +183,10 @@ INT dhcpv4c_get_ert_lease_time_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_lease_time", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -211,9 +208,10 @@ INT dhcpv4c_get_ert_remain_lease_time_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 unsigned lease_time = 0, start_time = 0, up_time = 0, remain_lease_time = 0;
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_lease_time", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -250,9 +248,11 @@ INT dhcpv4c_get_ert_remain_renew_time_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 unsigned lease_time = 0, start_time = 0, up_time = 0, renew_time = 0, remain_renew_time = 0;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_lease_time", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -291,9 +291,11 @@ INT dhcpv4c_get_ert_remain_rebind_time_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 unsigned lease_time = 0, start_time = 0, up_time = 0, rebind_time = 0, remain_bind_time = 0;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_lease_time", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -347,7 +349,6 @@ INT dhcpv4c_get_ert_ifname_udhcp(CHAR *pName)
         } else {
                 token_t        se_token;
                 int            se_fd = -1;
-                errno_t        rc    = -1;
 
                 se_fd = s_sysevent_connect(&se_token);
                 if (0 > se_fd) {
@@ -355,18 +356,18 @@ INT dhcpv4c_get_ert_ifname_udhcp(CHAR *pName)
                         return STATUS_FAILURE;
                 } else {
                         int ret = STATUS_SUCCESS;
-                        char ert_ifname[32] = {0};
+                        char ert_ifname[32];
+
+                        memset(ert_ifname, 0, sizeof(ert_ifname));
 
                         ret = sysevent_get(se_fd, se_token, "current_wan_ifname", ert_ifname, sizeof(ert_ifname));
                         if (ret != 0 || strlen(ert_ifname) == 0) {
                                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d syseventError use default name %s\n", __FUNCTION__, __LINE__, DEFAULT_ERT_IFNAME));
-                                rc = strcpy_s(pName, 100 ,DEFAULT_ERT_IFNAME);
-                                ERR_CHK(rc);
+                                strcpy(pName, DEFAULT_ERT_IFNAME);
                                 return STATUS_SUCCESS;
                         }
 
-                        rc = strcpy_s(pName, 100, ert_ifname); /* Pointer pointing to 100 bytes of data */
-                        ERR_CHK(rc);
+                        strcpy(pName, ert_ifname);
                 }
         }
 
@@ -381,9 +382,11 @@ INT dhcpv4c_get_ert_fsm_state_udhcp(INT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_dhcp_state", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -416,9 +419,11 @@ INT dhcpv4c_get_ert_ip_addr_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_ipaddr", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -441,10 +446,11 @@ INT dhcpv4c_get_ert_mask_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
                 unsigned mask = 0;
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_subnet", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -468,10 +474,12 @@ INT dhcpv4c_get_ert_gw_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
                 unsigned gw_num = 0;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_gw_number", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -506,10 +514,12 @@ INT dhcpv4c_get_ert_dns_svrs_udhcp(dhcpv4c_ip_list_t *pList)
         if (NULL == pList) {
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
                 unsigned dns_num = 0;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_dns_number", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
@@ -526,12 +536,9 @@ INT dhcpv4c_get_ert_dns_svrs_udhcp(dhcpv4c_ip_list_t *pList)
                                 dns_num = 4;
 
                         for (i=0; i<dns_num; i++) {
-                                char gw_str[32] = {0};
-                                errno_t rc = sprintf_s(gw_str, sizeof(gw_str), "ipv4_%%s_dns_%d", i);
-                                if(rc < EOK)
-                                {
-                                        ERR_CHK(rc);
-                                }
+                                char gw_str[32];
+                                memset(gw_str, 0, sizeof(gw_str));
+                                snprintf(gw_str, sizeof(gw_str), "ipv4_%s_dns_%d", "%s", i);
                                 ret = dhcpv4c_sysevent_get_value(gw_str, query_value, sizeof(query_value));
                                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
                                         continue;
@@ -558,9 +565,11 @@ INT dhcpv4c_get_ert_dhcp_svr_udhcp(UINT *pValue)
                 HAL_DHCPV4C_ERT_DBG((stderr, "%s %d invalid parameter\n", __FUNCTION__, __LINE__));
                 return STATUS_FAILURE;
         } else {
-                char query_value[64] = {0};
+                char query_value[64];
                 int ret = STATUS_SUCCESS;
                 struct in_addr addr;
+
+                memset(query_value, 0, sizeof(query_value));
 
                 ret = dhcpv4c_sysevent_get_value("ipv4_%s_dhcp_server", query_value, sizeof(query_value));
                 if (ret != STATUS_SUCCESS || strlen(query_value) == 0) {
