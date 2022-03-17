@@ -51,7 +51,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wifi_hal.h"
-#include "safec_lib.h"
 
 #ifndef AP_PREFIX
 #define AP_PREFIX	"ath"
@@ -224,12 +223,7 @@ static int _syscmd(char *cmd, char *retBuf, int retBufSize)
 //Get the wifi hal version in string, eg "2.0.0".  WIFI_HAL_MAJOR_VERSION.WIFI_HAL_MINOR_VERSION.WIFI_HAL_MAINTENANCE_VERSION
 INT wifi_getHalVersion(CHAR *output_string)   //RDKB   
 {
-	errno_t rc = -1;
-	rc = sprintf_s(output_string, 64, "%d.%d.%d", WIFI_HAL_MAJOR_VERSION, WIFI_HAL_MINOR_VERSION, WIFI_HAL_MAINTENANCE_VERSION);
-	if(rc < EOK)
-	{
-		ERR_CHK(rc);
-	}
+	snprintf(output_string, 64, "%d.%d.%d", WIFI_HAL_MAJOR_VERSION, WIFI_HAL_MINOR_VERSION, WIFI_HAL_MAINTENANCE_VERSION);
 	return RETURN_OK;
 }
 
@@ -427,13 +421,12 @@ INT wifi_createInitialConfigFiles()
 // outputs the country code to a max 64 character string
 INT wifi_getRadioCountryCode(INT radioIndex, CHAR *output_string)
 {
-	errno_t rc = -1;
 	if (NULL == output_string) {
 		return RETURN_ERR;
+	} else {
+		snprintf(output_string, 64, "841");
+		return RETURN_OK;
 	}
-	rc = strcpy_s(output_string, 64, "841");
-	ERR_CHK(rc);
-	return RETURN_OK;
 }
 
 INT wifi_setRadioCountryCode(INT radioIndex, CHAR *CountryCode)
@@ -494,16 +487,11 @@ INT wifi_getRadioStatus(INT radioIndex, BOOL *output_bool)	//RDKB
 //Get the Radio Interface name from platform, eg "wifi0"
 INT wifi_getRadioIfName(INT radioIndex, CHAR *output_string) //Tr181
 {
-	errno_t rc = -1;
 	if(radioIndex < 0 || radioIndex > 1)
 		return RETURN_ERR;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = sprintf_s(output_string, 64, "%s%d", RADIO_PREFIX, radioIndex);
-	if(rc < EOK)
-	{
-		ERR_CHK(rc);
-	}
+	snprintf(output_string, 64, "%s%d", RADIO_PREFIX, radioIndex);
 	return RETURN_OK;
 }
 
@@ -514,22 +502,16 @@ INT wifi_getRadioMaxBitRate(INT radioIndex, CHAR *output_string)	//RDKB
 	char cmd[64];
     char buf[1024];
 	int apIndex;
-	errno_t rc = -1;
 	
     if (NULL == output_string) 
 		return RETURN_ERR;
 	
     apIndex=(radioIndex==0)?0:1;
 
-    rc = sprintf_s(cmd, sizeof(cmd), "iwconfig %s%d | grep \"Bit Rate\" | cut -d':' -f2 | cut -d' ' -f1,2", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd, sizeof(cmd), "iwconfig %s%d | grep \"Bit Rate\" | cut -d':' -f2 | cut -d' ' -f1,2", AP_PREFIX, apIndex);
     _syscmd(cmd,buf, sizeof(buf));
 
-    rc = strcpy_s(output_string, 64, buf);
-    ERR_CHK(rc);
+    snprintf(output_string, 64, "%s", buf);
 	
 	return RETURN_OK;
 }
@@ -539,11 +521,9 @@ INT wifi_getRadioMaxBitRate(INT radioIndex, CHAR *output_string)	//RDKB
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioSupportedFrequencyBands(INT radioIndex, CHAR *output_string)	//RDKB
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, "2.4GHz,5GHz");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, "2.4GHz,5GHz");
 	return RETURN_OK;
 }
 
@@ -551,11 +531,9 @@ INT wifi_getRadioSupportedFrequencyBands(INT radioIndex, CHAR *output_string)	//
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioOperatingFrequencyBand(INT radioIndex, CHAR *output_string) //Tr181
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"2.4GHz":"5GHz");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"2.4GHz":"5GHz");
 	return RETURN_OK;
 }
 
@@ -563,11 +541,9 @@ INT wifi_getRadioOperatingFrequencyBand(INT radioIndex, CHAR *output_string) //T
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioSupportedStandards(INT radioIndex, CHAR *output_string) //Tr181
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"b,g,n":"n,ac");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"b,g,n":"n,ac");
 	return RETURN_OK;
 }
 
@@ -575,18 +551,15 @@ INT wifi_getRadioSupportedStandards(INT radioIndex, CHAR *output_string) //Tr181
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioStandard(INT radioIndex, CHAR *output_string, BOOL *gOnly, BOOL *nOnly, BOOL *acOnly)	//RDKB
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
 	if(radioIndex==0) {
-		rc = strcpy_s(output_string, 64, "n");		//"ht" needs to be translated to "n" or others
-		ERR_CHK(rc);
+		snprintf(output_string, 64, "n");		//"ht" needs to be translated to "n" or others
 		*gOnly=FALSE;
 		*nOnly=TRUE;
 		*acOnly=FALSE;
 	} else {
-		rc = strcpy_s(output_string, 64, "ac");		//"vht" needs to be translated to "ac"
-		ERR_CHK(rc);
+		snprintf(output_string, 64, "ac");		//"vht" needs to be translated to "ac"
 		*gOnly=FALSE;
 		*nOnly=FALSE;
 		*acOnly=FALSE;	
@@ -606,11 +579,9 @@ INT wifi_setRadioChannelMode(INT radioIndex, CHAR *channelMode, BOOL gOnlyFlag, 
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"1-11":"36,40");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"1-11":"36,40");
 	return RETURN_OK;
 }
 
@@ -618,11 +589,9 @@ INT wifi_getRadioPossibleChannels(INT radioIndex, CHAR *output_string)	//RDKB
 //The output_string is a max length 256 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioChannelsInUse(INT radioIndex, CHAR *output_string)	//RDKB
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 256, (radioIndex==0)?"1,6,11":"36,40");
-	ERR_CHK(rc);
+	snprintf(output_string, 256, (radioIndex==0)?"1,6,11":"36,40");
 	return RETURN_OK;
 }
 
@@ -633,7 +602,6 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 	char buf[256]={0};
 	ULONG result;
 	INT apIndex;
-	errno_t rc = -1;
 	
 	if (NULL == output_ulong) 
 		return RETURN_ERR;
@@ -641,11 +609,7 @@ INT wifi_getRadioChannel(INT radioIndex,ULONG *output_ulong)	//RDKB
 	apIndex=(radioIndex==0)?0:1;
 	
 
-	rc = sprintf_s(cmd, sizeof(cmd), "iwlist %s%d channel | grep Current | | cut -d'(' -f2 | cut -d')' -f1 | cut -d' ' -f2", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd), "iwlist %s%d channel | grep Current | | cut -d'(' -f2 | cut -d')' -f1 | cut -d' ' -f2", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 
 	result = 0;
@@ -717,11 +681,9 @@ INT wifi_getRadioDfsSupport(INT radioIndex, BOOL *output_bool) //Tr181
 //The value of this parameter is a comma seperated list of channel number
 INT wifi_getRadioDCSChannelPool(INT radioIndex, CHAR *output_pool)			//RDKB
 {
-	errno_t rc = -1;
 	if (NULL == output_pool) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_pool, 256, "1,2,3,4,5,6,7,8,9,10,11");
-	ERR_CHK(rc);
+	snprintf(output_pool, 256, "1,2,3,4,5,6,7,8,9,10,11");
 	return RETURN_OK;
 }
 
@@ -789,11 +751,9 @@ INT wifi_setRadioDfsRefreshPeriod(INT radioIndex, ULONG seconds) //Tr181
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioOperatingChannelBandwidth(INT radioIndex, CHAR *output_string) //Tr181
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"20MHz":"40MHz");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"20MHz":"40MHz");
 	return RETURN_OK;
 }
 
@@ -807,11 +767,9 @@ INT wifi_setRadioOperatingChannelBandwidth(INT radioIndex, CHAR *bandwidth) //Tr
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioExtChannel(INT radioIndex, CHAR *output_string) //Tr181
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"":"BelowControlChannel");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"":"BelowControlChannel");
 	return RETURN_OK;
 }
 
@@ -825,12 +783,10 @@ INT wifi_setRadioExtChannel(INT radioIndex, CHAR *string) //Tr181	//AP only
 //The output_string is a max length 64 octet string that is allocated by the RDKB code.  Implementations must ensure that strings are not longer than this.
 INT wifi_getRadioGuardInterval(INT radioIndex, CHAR *output_string)	//Tr181
 {
-	errno_t rc = -1;
 	//save config and apply instantly
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, (radioIndex==0)?"400nsec":"400nsec");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (radioIndex==0)?"400nsec":"400nsec");
 	return RETURN_OK;
 }
 
@@ -878,7 +834,6 @@ INT wifi_getRadioTransmitPower(INT radioIndex, ULONG *output_ulong)	//RDKB
 	char cmd[128]={0};
 	char buf[256]={0};
 	INT apIndex;
-	errno_t rc = -1;
 	//save config and apply instantly
 	
 	if (NULL == output_ulong) 
@@ -887,11 +842,7 @@ INT wifi_getRadioTransmitPower(INT radioIndex, ULONG *output_ulong)	//RDKB
 	//zqiu:TODO:save config
 	apIndex=(radioIndex==0)?0:1;
 	
-	rc = sprintf_s(cmd, sizeof(cmd),  "iwlist %s%d txpower | grep Tx-Power | cut -d'=' -f2", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd),  "iwlist %s%d txpower | grep Tx-Power | cut -d'=' -f2", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 	*output_ulong = atol(buf);
 	
@@ -905,15 +856,10 @@ INT wifi_setRadioTransmitPower(INT radioIndex, ULONG TransmitPower)	//RDKB
 	char cmd[128]={0};
 	char buf[256]={0};
 	INT apIndex;	
-	errno_t rc = -1;
 		
 	apIndex=(radioIndex==0)?0:1;
 	
-	rc = sprintf_s(cmd, sizeof(cmd),  "iwconfig %s%d txpower %lu", AP_PREFIX, apIndex, TransmitPower);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd),  "iwconfig %s%d txpower %lu", AP_PREFIX, apIndex, TransmitPower);
 	_syscmd(cmd, buf, sizeof(buf));	
 	
 	return RETURN_OK;
@@ -989,11 +935,9 @@ INT wifi_setRadioBeaconPeriod(INT radioIndex, UINT BeaconPeriod)
 //Comma-separated list of strings. The set of data rates, in Mbps, that have to be supported by all stations that desire to join this BSS. The stations have to be able to receive and transmit at each of the data rates listed inBasicDataTransmitRates. For example, a value of "1,2", indicates that stations support 1 Mbps and 2 Mbps. Most control packets use a data rate in BasicDataTransmitRates.	
 INT wifi_getRadioBasicDataTransmitRates(INT radioIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if (NULL == output) 
 		return RETURN_ERR;
-	rc = strcpy_s(output, 64, (radioIndex==0)?"1,2":"1.5,150");
-	ERR_CHK(rc);
+	snprintf(output, 64, (radioIndex==0)?"1,2":"1.5,150");
 	return RETURN_OK;
 }
 
@@ -1110,18 +1054,12 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 {
 	char cmd[128]={0};
 	char buf[128]={0};
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = sprintf_s(cmd, sizeof(cmd), "ifconfig %s%d | grep %s%d", AP_PREFIX, ssidIndex, AP_PREFIX, ssidIndex);	
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd), "ifconfig %s%d | grep %s%d", AP_PREFIX, ssidIndex, AP_PREFIX, ssidIndex);	
 	_syscmd(cmd, buf, sizeof(buf));
 	
-	rc = strcpy_s(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, (strlen(buf)> 5)?"Enabled":"Disabled");
 
 	return RETURN_OK;
 }
@@ -1129,39 +1067,20 @@ INT wifi_getSSIDStatus(INT ssidIndex, CHAR *output_string) //Tr181
 // Outputs a 32 byte or less string indicating the SSID name.  Sring buffer must be preallocated by the caller.
 INT wifi_getSSIDName(INT apIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if (NULL == output) 
 		return RETURN_ERR;
-	if(apIndex==0)
-	{
-		rc = strcpy_s(output, 64, "HOME-XXXX-2.4");
-		ERR_CHK(rc);
-	}
+	if(apIndex==0) 
+		snprintf(output, 64, "HOME-XXXX-2.4");
 	else if(apIndex==1)
-	{
-		rc = strcpy_s(output, 64, "HOME-XXXX-5");
-		ERR_CHK(rc);
-	}
+		snprintf(output, 64, "HOME-XXXX-5");
 	else if(apIndex==2)
-	{
-		rc = strcpy_s(output, 64, "XHS-XXXXXX");
-		ERR_CHK(rc);
-	}
+		snprintf(output, 64, "XHS-XXXXXX");
 	else if(apIndex==4)
-	{
-		rc = strcpy_s(output, 64, "Xfinitywifi-2.4");
-		ERR_CHK(rc);
-	}
+		snprintf(output, 64, "Xfinitywifi-2.4");
 	else if(apIndex==5)
-	{
-		rc = strcpy_s(output, 64, "Xfinitywifi-5");
-		ERR_CHK(rc);
-	}
+		snprintf(output, 64, "Xfinitywifi-5");	
 	else
-	{
-		rc = strcpy_s(output, 64, "OOS");
-		ERR_CHK(rc);
-	}
+		snprintf(output, 64, "OOS");
 	return RETURN_OK;
 
 }
@@ -1178,16 +1097,11 @@ INT wifi_setSSIDName(INT apIndex, CHAR *ssid_string)
 INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 {
 	char cmd[128]={0};
-	errno_t rc = -1;
 		
 	if (NULL == output_string) 
 		return RETURN_ERR;
 		
-	rc = sprintf_s(cmd, sizeof(cmd), "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
     _syscmd(cmd, output_string, 64);
     
 	return RETURN_OK;
@@ -1197,16 +1111,11 @@ INT wifi_getBaseBSSID(INT ssidIndex, CHAR *output_string)	//RDKB
 INT wifi_getSSIDMACAddress(INT ssidIndex, CHAR *output_string) //Tr181
 {
 	char cmd[128]={0};
-	errno_t rc = -1;
 		
 	if (NULL == output_string) 
 		return RETURN_ERR;
 		
-	rc = sprintf_s(cmd, sizeof(cmd), "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "ifconfig -a %s%d | grep HWaddr | tr -s " " | cut -d' ' -f5", AP_PREFIX, ssidIndex);
     _syscmd(cmd, output_string, 64);
     
 	return RETURN_OK;
@@ -1217,13 +1126,8 @@ INT wifi_getSSIDTrafficStats2(INT ssidIndex, wifi_ssidTrafficStats2_t *output_st
 {
 	char cmd[128]={0};
 	char buf[1024]={0};
-	errno_t rc = -1;
 	
-	rc = sprintf_s(cmd, sizeof(cmd), "ifconfig %s%d ", AP_PREFIX, ssidIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "ifconfig %s%d ", AP_PREFIX, ssidIndex);
     _syscmd(cmd, buf, sizeof(buf));
 	
 	output_struct->ssid_BytesSent		=2048;	//The total number of bytes transmitted out of the interface, including framing characters.
@@ -1270,13 +1174,8 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
 	wifi_neighbor_ap2_t *pt=NULL;
 	char cmd[128]={0};
 	char buf[8192]={0};
-	errno_t rc = -1;
 	
-	rc = sprintf_s(cmd, sizeof(cmd), "iwlist %s%d scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "iwlist %s%d scan",AP_PREFIX,(radioIndex==0)?0:1);	//suppose ap0 mapping to radio0
     _syscmd(cmd, buf, sizeof(buf));
 	
 	
@@ -1284,21 +1183,21 @@ INT wifi_getNeighboringWiFiDiagnosticResult2(INT radioIndex, wifi_neighbor_ap2_t
 	//zqiu: HAL alloc the array and return to caller. Caller response to free it.
 	*neighbor_ap_array=(wifi_neighbor_ap2_t *)calloc(sizeof(wifi_neighbor_ap2_t), *output_array_size);
 	for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++) {
-		pt->ap_SSID[0] = '\0';
-		pt->ap_BSSID[0] = '\0';
-		pt->ap_Mode[0] = '\0';
+		strcpy(pt->ap_SSID,"");
+		strcpy(pt->ap_BSSID,"");
+		strcpy(pt->ap_Mode,"");
 		pt->ap_Channel=1;
 		pt->ap_SignalStrength=0;
-		pt->ap_SecurityModeEnabled[0] = '\0';
-		pt->ap_EncryptionMode[0] = '\0';
-		pt->ap_OperatingFrequencyBand[0] = '\0';
-		pt->ap_SupportedStandards[0] = '\0';
-		pt->ap_OperatingStandards[0] = '\0';
-		pt->ap_OperatingChannelBandwidth[0] = '\0';
+		strcpy(pt->ap_SecurityModeEnabled,"");
+		strcpy(pt->ap_EncryptionMode,"");
+		strcpy(pt->ap_OperatingFrequencyBand,"");
+		strcpy(pt->ap_SupportedStandards,"");
+		strcpy(pt->ap_OperatingStandards,"");
+		strcpy(pt->ap_OperatingChannelBandwidth,"");
 		pt->ap_BeaconPeriod=1;
 		pt->ap_Noise=0;
-		pt->ap_BasicDataTransferRates[0] = '\0';
-		pt->ap_SupportedDataTransferRates[0] = '\0';
+		strcpy(pt->ap_BasicDataTransferRates,"");
+		strcpy(pt->ap_SupportedDataTransferRates,"");
 		pt->ap_DTIMPeriod=1;
 		pt->ap_ChannelUtilization=0;
 	}
@@ -1325,21 +1224,15 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
     char cmd[128];  
 	char buf[1280];
 	char *pos=NULL;
-	errno_t rc = -1;
 	
 	if (NULL == output_struct) {
 		return RETURN_ERR;
 	} 
 	
 
-    rc = memset_s(output_struct, sizeof(wifi_basicTrafficStats_t), 0, sizeof(wifi_basicTrafficStats_t));
-    ERR_CHK(rc);
+    memset(output_struct, 0, sizeof(wifi_basicTrafficStats_t));
 
-    rc = sprintf_s(cmd, sizeof(cmd), "ifconfig %s%d", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd, sizeof(cmd), "ifconfig %s%d", AP_PREFIX, apIndex);
     _syscmd(cmd,buf, sizeof(buf));
 
     pos = buf;
@@ -1359,11 +1252,7 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 		return RETURN_ERR; 
     output_struct->wifi_BytesSent = atoi(pos+strlen("TX bytes:"));
         
-    rc = sprintf_s(cmd, sizeof(cmd), "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    sprintf(cmd, "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 	sscanf(buf,"%lu", &output_struct->wifi_Associations);
 	
@@ -1372,12 +1261,10 @@ INT wifi_getBasicTrafficStats(INT apIndex, wifi_basicTrafficStats_t *output_stru
 
 INT wifi_getWifiTrafficStats(INT apIndex, wifi_trafficStats_t *output_struct)
 {
-	errno_t rc = -1;
 	if (NULL == output_struct) {
 		return RETURN_ERR;
 	} else {
-		rc = memset_s(output_struct, sizeof(wifi_trafficStats_t), 0, sizeof(wifi_trafficStats_t));
-		ERR_CHK(rc);
+		memset(output_struct, 0, sizeof(wifi_trafficStats_t));
 		return RETURN_OK;
 	}
 }
@@ -1407,22 +1294,22 @@ INT wifi_getNeighboringWiFiDiagnosticResult(wifi_neighbor_ap_t **neighbor_ap_arr
 	//zqiu: HAL alloc the array and return to caller. Caller response to free it.
 	*neighbor_ap_array=(wifi_neighbor_ap_t *)calloc(sizeof(wifi_neighbor_ap_t), *output_array_size);
 	for (index = 0, pt=*neighbor_ap_array; index < *output_array_size; index++, pt++) {
-		pt->ap_Radio[0] = '\0';
-		pt->ap_SSID[0] = '\0';
-		pt->ap_BSSID[0] = '\0';
-		pt->ap_Mode[0] = '\0';
+		strcpy(pt->ap_Radio,"");
+		strcpy(pt->ap_SSID,"");
+		strcpy(pt->ap_BSSID,"");
+		strcpy(pt->ap_Mode,"");
 		pt->ap_Channel=1;
 		pt->ap_SignalStrength=0;
-		pt->ap_SecurityModeEnabled[0] = '\0';
-		pt->ap_EncryptionMode[0] = '\0';
-		pt->ap_OperatingFrequencyBand[0] = '\0';
-		pt->ap_SupportedStandards[0] = '\0';
-		pt->ap_OperatingStandards[0] = '\0';
-		pt->ap_OperatingChannelBandwidth[0] = '\0';
+		strcpy(pt->ap_SecurityModeEnabled,"");
+		strcpy(pt->ap_EncryptionMode,"");
+		strcpy(pt->ap_OperatingFrequencyBand,"");
+		strcpy(pt->ap_SupportedStandards,"");
+		strcpy(pt->ap_OperatingStandards,"");
+		strcpy(pt->ap_OperatingChannelBandwidth,"");
 		pt->ap_BeaconPeriod=1;
 		pt->ap_Noise=0;
-		pt->ap_BasicDataTransferRates[0] = '\0';
-		pt->ap_SupportedDataTransferRates[0] = '\0';
+		strcpy(pt->ap_BasicDataTransferRates,"");
+		strcpy(pt->ap_SupportedDataTransferRates,"");
 		pt->ap_DTIMPeriod=1;
 		pt->ap_ChannelUtilization = 1;
 	}
@@ -1447,13 +1334,12 @@ INT wifi_getAllAssociatedDeviceDetail(INT apIndex, ULONG *output_ulong, wifi_dev
 
 INT wifi_getAssociatedDeviceDetail(INT apIndex, INT devIndex, wifi_device_t *output_struct)
 {
-	errno_t rc = -1;
 	if (NULL == output_struct) {
 		return RETURN_ERR;
+	} else {
+		memset(output_struct, 0, sizeof(wifi_device_t));
+		return RETURN_OK;
 	}
-	rc = memset_s(output_struct, sizeof(wifi_device_t), 0, sizeof(wifi_device_t));
-	ERR_CHK(rc);
-	return RETURN_OK;
 }
 
 INT wifi_kickAssociatedDevice(INT apIndex, wifi_device_t *device)
@@ -1487,22 +1373,13 @@ INT wifi_setRadioFragmentationThreshold(INT apIndex, UINT threshold)
 {
 	char cmd[64];
 	char buf[512];
-	errno_t rc = -1;
 	//save config and apply instantly
 	
     //zqiu:TODO: save config
     if (threshold > 0)  {
-        rc = sprintf_s(cmd, sizeof(cmd),  "iwconfig %s%d frag %d", AP_PREFIX, apIndex, threshold);
-        if(rc < EOK)
-        {
-            ERR_CHK(rc);
-        }
+        snprintf(cmd, sizeof(cmd),  "iwconfig %s%d frag %d", AP_PREFIX, apIndex, threshold);
     } else {
-        rc = sprintf_s(cmd, sizeof(cmd),  "iwconfig %s%d frag off", AP_PREFIX, apIndex );
-        if(rc < EOK)
-        {
-            ERR_CHK(rc);
-        }
+        snprintf(cmd, sizeof(cmd),  "iwconfig %s%d frag off", AP_PREFIX, apIndex );
     }
     _syscmd(cmd,buf, sizeof(buf));
 	
@@ -1676,33 +1553,20 @@ INT wifi_createAp(INT apIndex, INT radioIndex, CHAR *essid, BOOL hideSsid)
 {
 	char buf[1024];
     char cmd[128];
-    errno_t rc = -1;
     
 	if (NULL == essid) {
 		return RETURN_ERR;
 	} 
 		
-    rc = sprintf_s(cmd,sizeof(cmd), "wlanconfig %s%d create wlandev %s%d wlanmode ap", AP_PREFIX, apIndex, RADIO_PREFIX, radioIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd,sizeof(cmd), "wlanconfig %s%d create wlandev %s%d wlanmode ap", AP_PREFIX, apIndex, RADIO_PREFIX, radioIndex);
     _syscmd(cmd, buf, sizeof(buf));
 
-    rc = sprintf_s(cmd,sizeof(cmd), "iwconfig %s%d essid %s mode master", AP_PREFIX, apIndex, essid);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd,sizeof(cmd), "iwconfig %s%d essid %s mode master", AP_PREFIX, apIndex, essid);
     _syscmd(cmd, buf, sizeof(buf));
 
 	wifi_pushSsidAdvertisementEnable(apIndex, !hideSsid);    
     
-    rc = sprintf_s(cmd,sizeof(cmd), "ifconfig %s%d txqueuelen 1000", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd,sizeof(cmd), "ifconfig %s%d txqueuelen 1000", AP_PREFIX, apIndex);
     _syscmd(cmd, buf, sizeof(buf));
 		
 	return RETURN_OK;
@@ -1714,13 +1578,8 @@ INT wifi_deleteAp(INT apIndex)
 {	
 	char buf[1024];
     char cmd[128];
-    errno_t rc = -1;
     
-    rc = sprintf_s(cmd,sizeof(cmd),  "wlanconfig %s%d destroy", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd,sizeof(cmd),  "wlanconfig %s%d destroy", AP_PREFIX, apIndex);
     _syscmd(cmd, buf, sizeof(buf));
 
 	wifi_removeApSecVaribles(apIndex);
@@ -1731,14 +1590,9 @@ INT wifi_deleteAp(INT apIndex)
 // Outputs a 16 byte or less name assocated with the AP.  String buffer must be pre-allocated by the caller
 INT wifi_getApName(INT apIndex, CHAR *output_string)
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = sprintf_s(output_string, 16, "%s%d", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(output_string, 16, "%s%d", AP_PREFIX, apIndex);
 	return RETURN_OK;
 }     
        
@@ -1759,11 +1613,9 @@ INT wifi_getIndexFromName(CHAR *inputSsidString, INT *ouput_int)
 // Outputs a 32 byte or less string indicating the beacon type as "None", "Basic", "WPA", "11i", "WPAand11i"
 INT wifi_getApBeaconType(INT apIndex, CHAR *output_string)
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 32, "WPA");
-	ERR_CHK(rc);
+	snprintf(output_string, 32, "WPA");
 	return RETURN_OK;
 
 }
@@ -1803,20 +1655,11 @@ INT wifi_setApRtsThreshold(INT apIndex, UINT threshold)
 {
 	char cmd[128];
 	char buf[512];
-	errno_t rc = -1;
     
     if (threshold > 0) {
-        rc = sprintf_s(cmd, sizeof(cmd), "iwconfig %s%d rts %d", AP_PREFIX, apIndex, threshold);
-        if(rc < EOK)
-        {
-            ERR_CHK(rc);
-        }
+        snprintf(cmd, sizeof(cmd), "iwconfig %s%d rts %d", AP_PREFIX, apIndex, threshold);
     } else {
-        rc = sprintf_s(cmd, sizeof(cmd), "iwconfig %s%d rts off", AP_PREFIX, apIndex);
-        if(rc < EOK)
-        {
-            ERR_CHK(rc);
-        }
+        snprintf(cmd, sizeof(cmd), "iwconfig %s%d rts off", AP_PREFIX, apIndex);
     }
     _syscmd(cmd,buf, sizeof(buf));
 	
@@ -1826,11 +1669,9 @@ INT wifi_setApRtsThreshold(INT apIndex, UINT threshold)
 // ouputs up to a 32 byte string as either "TKIPEncryption", "AESEncryption", or "TKIPandAESEncryption"
 INT wifi_getApWpaEncryptoinMode(INT apIndex, CHAR *output_string)
 {
-	errno_t rc = -1;
 	if (NULL == output_string) 
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 32, "TKIPandAESEncryption");
-	ERR_CHK(rc);
+	snprintf(output_string, 32, "TKIPandAESEncryption");
 	return RETURN_OK;
 
 }
@@ -1881,13 +1722,8 @@ INT wifi_getApNumDevicesAssociated(INT apIndex, ULONG *output_ulong)
 {
 	char cmd[128]={0};
 	char buf[128]={0};
-	errno_t rc = -1;
 		
-	rc = sprintf_s(cmd, sizeof(cmd), "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "wlanconfig %s%d list sta | grep -v HTCAP | wc -l", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 	sscanf(buf,"%lu", output_ulong);
 	return RETURN_OK;
@@ -1916,9 +1752,7 @@ INT wifi_setApRadioIndex(INT apIndex, INT radioIndex)
 // Get the ACL MAC list per AP
 INT wifi_getApAclDevices(INT apIndex, CHAR *macArray, UINT buf_size) 
 {		
-	errno_t rc = -1;
-	rc = strcpy_s(macArray, buf_size, "11:22:33:44:55:66\n11:22:33:44:55:67\n");
-	ERR_CHK(rc);
+	snprintf(macArray, buf_size, "11:22:33:44:55:66\n11:22:33:44:55:67\n");		
 	return RETURN_OK;
 }
 	
@@ -1926,13 +1760,8 @@ INT wifi_getApAclDevices(INT apIndex, CHAR *macArray, UINT buf_size)
 INT wifi_getApDevicesAssociated(INT apIndex, CHAR *macArray, UINT buf_size) 
 {
 	char cmd[128];
-	errno_t rc = -1;
 		
-	rc = sprintf_s(cmd, sizeof(cmd), "wlanconfig %s%d list sta | grep -v HTCAP | cut -d' ' -f1", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "wlanconfig %s%d list sta | grep -v HTCAP | cut -d' ' -f1", AP_PREFIX, apIndex);
 	_syscmd(cmd, macArray, buf_size);
 		
 	return RETURN_OK;
@@ -2033,13 +1862,9 @@ INT wifi_setApVlanID(INT apIndex, INT vlanId)
 // gets bridgeName, IP address and Subnet. bridgeName is a maximum of 32 characters,
 INT wifi_getApBridgeInfo(INT index, CHAR *bridgeName, CHAR *IP, CHAR *subnet)
 {	
-	errno_t rc = -1;
-	rc = strcpy_s(bridgeName, 32, "br0");
-	ERR_CHK(rc);
-	rc = strcpy_s(IP, 64, "10.0.0.2");
-	ERR_CHK(rc);
-	rc = strcpy_s(subnet, 64, "255.255.255.0");
-	ERR_CHK(rc);
+	snprintf(bridgeName, 32, "br0");
+	snprintf(IP, 64, "10.0.0.2");
+	snprintf(subnet, 64, "255.255.255.0");
 	
 	return RETURN_ERR;
 }
@@ -2073,10 +1898,8 @@ INT wifi_startHostApd()
 {
 	char cmd[128] = {0};
 	char buf[128] = {0};
-	errno_t rc = -1;
 	
-	rc = strcpy_s(cmd, sizeof(cmd), "hostapd  -B `cat /tmp/conf_filename` -e /nvram/etc/wpa2/entropy -P /tmp/hostapd.pid 1>&2");
-	ERR_CHK(rc);
+	sprintf(cmd,"hostapd  -B `cat /tmp/conf_filename` -e /nvram/etc/wpa2/entropy -P /tmp/hostapd.pid 1>&2");
 	_syscmd(cmd, buf, sizeof(buf));
 	return RETURN_OK;
 }
@@ -2086,10 +1909,8 @@ INT wifi_stopHostApd()
 {
 	char cmd[128] = {0};
 	char buf[128] = {0};
-	errno_t rc = -1;
 	
-	rc = strcpy_s(cmd, sizeof(cmd), "killall hostapd");
-	ERR_CHK(rc);
+	sprintf(cmd,"killall hostapd");
 	_syscmd(cmd, buf, sizeof(buf));
 	
 	return RETURN_OK;	
@@ -2116,25 +1937,14 @@ INT wifi_getApStatus(INT apIndex, CHAR *output_string)
 {
 	char cmd[128] = {0};
 	char buf[128] = {0};
-	errno_t rc = -1;
 	
-	rc = sprintf_s(cmd, sizeof(cmd), "ifconfig  | grep %s%d", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd,"ifconfig  | grep %s%d", AP_PREFIX, apIndex);
 	_syscmd(cmd, buf, sizeof(buf));
 	
 	if(strlen(buf)>3) 
-	{
-		rc = strcpy_s(output_string, 32, "Up");
-		ERR_CHK(rc);
-	}
+		snprintf(output_string, 32, "Up");
 	else
-	{
-		rc = strcpy_s(output_string, 32, "Disable");
-		ERR_CHK(rc);
-	}
+		snprintf(output_string, 32, "Disable");
 	return RETURN_OK;
 }
 
@@ -2310,22 +2120,18 @@ INT wifi_getApAssociatedDevicesHighWatermarkDate(INT apIndex, ULONG *output_in_s
 //Comma-separated list of strings. Indicates which security modes this AccessPoint instance is capable of supporting. Each list item is an enumeration of: None,WEP-64,WEP-128,WPA-Personal,WPA2-Personal,WPA-WPA2-Personal,WPA-Enterprise,WPA2-Enterprise,WPA-WPA2-Enterprise
 INT wifi_getApSecurityModesSupported(INT apIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if(!output)
 		return RETURN_ERR;
-	rc = strcpy_s(output, 128, "None,WPA-Personal,WPA2-Personal,WPA-WPA2-Personal,WPA-Enterprise,WPA2-Enterprise,WPA-WPA2-Enterprise");
-	ERR_CHK(rc);
+	snprintf(output, 128, "None,WPA-Personal,WPA2-Personal,WPA-WPA2-Personal,WPA-Enterprise,WPA2-Enterprise,WPA-WPA2-Enterprise");
 	return RETURN_OK;
 }		
 
 //The value MUST be a member of the list reported by the ModesSupported parameter. Indicates which security mode is enabled.
 INT wifi_getApSecurityModeEnabled(INT apIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if(!output)
 		return RETURN_ERR;
-	rc = strcpy_s(output, 128, "WPA-WPA2-Personal");
-	ERR_CHK(rc);
+	snprintf(output, 128, "WPA-WPA2-Personal");
 	return RETURN_OK;
 }
   
@@ -2341,11 +2147,9 @@ INT wifi_setApSecurityModeEnabled(INT apIndex, CHAR *encMode)
 // PSK Key of 8 to 63 characters is considered an ASCII string, and 64 characters are considered as HEX value
 INT wifi_getApSecurityPreSharedKey(INT apIndex, CHAR *output_string)
 {	
-	errno_t rc = -1;
 	if(!output_string)
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 64, "E4A7A43C99DFFA57");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, "E4A7A43C99DFFA57");
 	return RETURN_OK;
 }
 
@@ -2361,11 +2165,9 @@ INT wifi_setApSecurityPreSharedKey(INT apIndex, CHAR *preSharedKey)
 // outputs the passphrase, maximum 63 characters
 INT wifi_getApSecurityKeyPassphrase(INT apIndex, CHAR *output_string)
 {	
-	errno_t rc = -1;
 	if(!output_string)
 		return RETURN_ERR;
-	rc = strcpy_s(output_string, 63, "12345678");
-	ERR_CHK(rc);
+	snprintf(output_string, 63, "12345678");
 	return RETURN_OK;
 }
 
@@ -2386,15 +2188,18 @@ INT wifi_setApSecurityReset(INT apIndex)
 //The IP Address and port number of the RADIUS server used for WLAN security. RadiusServerIPAddr is only applicable when ModeEnabled is an Enterprise type (i.e. WPA-Enterprise, WPA2-Enterprise or WPA-WPA2-Enterprise).
 INT wifi_getApSecurityRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
 {
-	errno_t rc = -1;
+	UINT port = 123;
 
 	if(!IP_output || !Port_output || !RadiusSecret_output)
 		return RETURN_ERR;
-	rc = strcpy_s(IP_output, 64, "75.56.77.78");
-	ERR_CHK(rc);
-	*Port_output=123;
-	rc = strcpy_s(RadiusSecret_output, 64, "12345678");
-	ERR_CHK(rc);
+	snprintf(IP_output, 64, "75.56.77.78");
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into Port_output,
+	   which is always safe to do.
+	*/
+	memcpy (Port_output, &port, sizeof(*Port_output));
+	snprintf(RadiusSecret_output, 64, "12345678");
 	return RETURN_OK;
 }
 
@@ -2406,14 +2211,18 @@ INT wifi_setApSecurityRadiusServer(INT apIndex, CHAR *IPAddress, UINT port, CHAR
 
 INT wifi_getApSecuritySecondaryRadiusServer(INT apIndex, CHAR *IP_output, UINT *Port_output, CHAR *RadiusSecret_output)
 {
-	errno_t rc = -1;
+	UINT port = 123;
+
 	if(!IP_output || !Port_output || !RadiusSecret_output)
 		return RETURN_ERR;
-	rc = strcpy_s(IP_output, 64, "75.56.77.78");
-	ERR_CHK(rc);
-	*Port_output=123;
-	rc = strcpy_s(RadiusSecret_output, 64, "12345678");
-	ERR_CHK(rc);
+	snprintf(IP_output, 64, "75.56.77.78");
+	/*
+	   struct _COSA_DML_WIFI_RADIO_CFG is packed, so we can't rely on the elements
+	   within it being correctly aligned. Therefore memcpy into Port_output,
+	   which is always safe to do.
+	*/
+	memcpy (Port_output, &port, sizeof(*Port_output));
+	snprintf(RadiusSecret_output, 64, "12345678");
 	return RETURN_OK;
 }
 
@@ -2469,11 +2278,9 @@ INT wifi_setApWpsEnable(INT apIndex, BOOL enableValue)
 //Comma-separated list of strings. Indicates WPS configuration methods supported by the device. Each list item is an enumeration of: USBFlashDrive,Ethernet,ExternalNFCToken,IntegratedNFCToken,NFCInterface,PushButton,PIN
 INT wifi_getApWpsConfigMethodsSupported(INT apIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if(!output)
 		return RETURN_ERR;
-	rc = strcpy_s(output, 128, "PushButton,PIN");
-	ERR_CHK(rc);
+	snprintf(output, 128, "PushButton,PIN");
 	return RETURN_OK;
 }			
 
@@ -2481,11 +2288,9 @@ INT wifi_getApWpsConfigMethodsSupported(INT apIndex, CHAR *output)
 // Outputs a common separated list of the enabled WPS config methods, 64 bytes max
 INT wifi_getApWpsConfigMethodsEnabled(INT apIndex, CHAR *output)
 {
-	errno_t rc = -1;
 	if(!output)
 		return RETURN_ERR;
-	rc = strcpy_s(output, 128, "PushButton,PIN");
-	ERR_CHK(rc);
+	snprintf(output, 128, "PushButton,PIN");
 	return RETURN_OK;
 }
 
@@ -2518,24 +2323,15 @@ INT wifi_getApWpsConfigurationState(INT apIndex, CHAR *output_string)
 	char cmd[64];
 	char buf[512]={0};
 	char *pos=NULL;
-	errno_t rc = -1;
 
-	rc = strcpy_s(output_string, 64, "Not configured");
-	ERR_CHK(rc);
+	snprintf(output_string, 64, "Not configured");
 
-	rc = sprintf_s(cmd, sizeof(cmd), "hostapd_cli -i %s%d get_config", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	sprintf(cmd, "hostapd_cli -i %s%d get_config", AP_PREFIX, apIndex);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((pos=strstr(buf, "wps_state="))!=NULL) {
 		if (strstr(pos, "configured")!=NULL)
-		{
-			rc = strcpy_s(output_string, 64, "Configured");
-			ERR_CHK(rc);
-		}
+			snprintf(output_string, 64, "Configured");
 	}
 	return RETURN_OK;
 }
@@ -2546,7 +2342,6 @@ INT wifi_setApWpsEnrolleePin(INT apIndex, CHAR *pin)
 	char cmd[64];
 	char buf[256]={0};
 	BOOL enable;
-	errno_t rc = -1;
 
 	wifi_getApEnable(apIndex, &enable);
 	if (!enable) 
@@ -2556,11 +2351,7 @@ INT wifi_setApWpsEnrolleePin(INT apIndex, CHAR *pin)
 	if (!enable) 
 		return RETURN_ERR; 
 
-	rc = sprintf_s(cmd, 64, "hostapd_cli -i%s%d wps_pin any %s", AP_PREFIX, apIndex, pin);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_pin any %s", AP_PREFIX, apIndex, pin);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
@@ -2575,7 +2366,6 @@ INT wifi_setApWpsButtonPush(INT apIndex)
 	char cmd[64];
 	char buf[256]={0};
 	BOOL enable;
-	errno_t rc = -1;
 
 	wifi_getApEnable(apIndex, &enable);
 	if (!enable) 
@@ -2585,11 +2375,7 @@ INT wifi_setApWpsButtonPush(INT apIndex)
 	if (!enable) 
 		return RETURN_ERR; 
 
-	rc = sprintf_s(cmd, 64, "hostapd_cli -i%s%d wps_cancel; hostapd_cli -i%s%d wps_pbc", AP_PREFIX, apIndex, AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_cancel; hostapd_cli -i%s%d wps_pbc", AP_PREFIX, apIndex, AP_PREFIX, apIndex);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
@@ -2603,13 +2389,8 @@ INT wifi_cancelApWPS(INT apIndex)
 {
 	char cmd[64];
 	char buf[256]={0};
-	errno_t rc = -1;
 
-	rc = sprintf_s(cmd, 64, "hostapd_cli -i%s%d wps_cancel", AP_PREFIX, apIndex);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, 64, "hostapd_cli -i%s%d wps_cancel", AP_PREFIX, apIndex);
 	_syscmd(cmd,buf, sizeof(buf));
 	
 	if((strstr(buf, "OK"))!=NULL) 
@@ -2646,7 +2427,6 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
 	char *txrate = NULL;
 	char *rxrate = NULL;
 	char *rssi = NULL;
-	errno_t rc = -1;
     
     *output_array_size = 0;
     *associated_dev_array = NULL;
@@ -2655,11 +2435,7 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
         return RETURN_ERR;
     }
 
-    rc = sprintf_s(cmd, sizeof(cmd), "wlanconfig %s%d list sta  2>/dev/null | grep -v HTCAP >/tmp/ap_%d_cli.txt; cat /tmp/ap_%d_cli.txt | wc -l" , AP_PREFIX, apIndex, apIndex, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    sprintf(cmd,  "wlanconfig %s%d list sta  2>/dev/null | grep -v HTCAP >/tmp/ap_%d_cli.txt; cat /tmp/ap_%d_cli.txt | wc -l" , AP_PREFIX, apIndex, apIndex, apIndex);
     _syscmd(cmd,buf,sizeof(buf));
 
     *output_array_size = atoi(buf);
@@ -2670,11 +2446,7 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
 	dev=(wifi_associated_dev_t *) calloc (*output_array_size, sizeof(wifi_associated_dev_t));
 	*associated_dev_array = dev;      
 
-    rc = sprintf_s(cmd, sizeof(cmd), "cat /tmp/ap_%d_cli.txt" , apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    sprintf(cmd, "cat /tmp/ap_%d_cli.txt" , apIndex);
     if ((f = popen(cmd, "r")) == NULL) {
         printf("%s: popen %s error\n",__func__, cmd);
         return -1;
@@ -2712,8 +2484,7 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
 				   (unsigned int *)&dev[assoc_cnt].cli_MACAddress[5] );
 		}
 
-		rc = memset_s(dev[assoc_cnt].cli_IPAddress, 64, 0, 64);
-		ERR_CHK(rc);
+		memset(dev[assoc_cnt].cli_IPAddress, 0, 64);
 		dev[assoc_cnt].cli_AuthenticationState = 1;
 
 		dev[assoc_cnt].cli_AuthenticationState =  (rssi != NULL) ? atoi(rssi) - 100 : 0;
@@ -2724,13 +2495,10 @@ INT wifi_getApAssociatedDeviceDiagnosticResult(INT apIndex, wifi_associated_dev_
 		dev[assoc_cnt].cli_SignalStrength=-100;
 		dev[assoc_cnt].cli_Retransmissions=0;
 		dev[assoc_cnt].cli_Active=TRUE;
-		rc = strcpy_s(dev[assoc_cnt].cli_OperatingStandard, 64, "");
-		ERR_CHK(rc);
-		rc = strcpy_s(dev[assoc_cnt].cli_OperatingChannelBandwidth, 64, "20MHz");
-		ERR_CHK(rc);
+		strncpy(dev[assoc_cnt].cli_OperatingStandard, "", 64);
+		strncpy(dev[assoc_cnt].cli_OperatingChannelBandwidth, "20MHz", 64);
 		dev[assoc_cnt].cli_SNR=20;
-		rc = strcpy_s(dev[assoc_cnt].cli_InterferenceSources, 64, "");
-		ERR_CHK(rc);
+		strncpy(dev[assoc_cnt].cli_InterferenceSources, "", 64);
 		dev[assoc_cnt].cli_DataFramesSentAck=0;
 		dev[assoc_cnt].cli_DataFramesSentNoAck=0;
 		dev[assoc_cnt].cli_BytesSent=0;
@@ -2771,13 +2539,10 @@ INT wifi_setBandSteeringEnable(BOOL enable) {
 //To get Band Steering AP group
 INT wifi_getBandSteeringApGroup(char *output_ApGroup) {
 
-        errno_t rc = -1;
         if(NULL == output_ApGroup)
                 return RETURN_ERR;
 
-        /*output_ApGroup is obtained as 64 bytes data*/
-        rc = strcpy_s(output_ApGroup, 64, "1,2");
-        ERR_CHK(rc);
+        strcpy(output_ApGroup,"1,2");
         return RETURN_OK;
 }
 
@@ -2854,11 +2619,8 @@ INT wifi_setBandSteeringIdleInactiveTime (INT radioIndex, INT prThreshold) {
 //pDestSSIDIndex[64]
 //pSteeringReason[256]
 INT wifi_getBandSteeringLog(INT record_index, ULONG *pSteeringTime, CHAR *pClientMAC, INT *pSourceSSIDIndex, INT *pDestSSIDIndex, INT *pSteeringReason) { //if no steering or redord_index is out of boundary, return -1. pSteeringTime returns the UTC time in seconds. pClientMAC is pre allocated as 64bytes. pSteeringReason returns the predefined steering trigger reason 
-	errno_t rc = -1;
 	*pSteeringTime=1454685924;
-	/*As pClientMAC is pre allocated as 64 bytes*/
-	rc = strcpy_s(pClientMAC, 64, "14:CF:E2:13:CD:AE");
-	ERR_CHK(rc);
+	strcpy(pClientMAC, "14:CF:E2:13:CD:AE");
 	*pSourceSSIDIndex = 0;
 	*pDestSSIDIndex = 1;
 	*pSteeringReason = 2;
@@ -2869,13 +2631,8 @@ INT wifi_ifConfigUp(INT apIndex)
 {
     char cmd[128];
 	char buf[1024];  
-	errno_t rc = -1;
 
-    rc = sprintf_s(cmd, sizeof(cmd), "ifconfig %s%d up 2>/dev/null", AP_PREFIX, apIndex);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd, sizeof(cmd), "ifconfig %s%d up 2>/dev/null", AP_PREFIX, apIndex);
     _syscmd(cmd, buf, sizeof(buf));
     return 0;
 }
@@ -2889,16 +2646,11 @@ INT wifi_pushBridgeInfo(INT apIndex)
     int vlanId;
     char cmd[128];
     char buf[1024];
-    errno_t rc = -1;
 
     wifi_getApBridgeInfo(apIndex,bridge,ip,subnet);
     wifi_getApVlanID(apIndex,&vlanId);
 
-    rc = sprintf_s(cmd, sizeof(cmd), "cfgVlan %s%d %s %d %s ", AP_PREFIX, apIndex, bridge, vlanId, ip);
-    if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+    snprintf(cmd, sizeof(cmd), "cfgVlan %s%d %s %d %s ", AP_PREFIX, apIndex, bridge, vlanId, ip);
     _syscmd(cmd,buf, sizeof(buf));
 
     return 0;
@@ -2909,14 +2661,9 @@ INT wifi_pushChannel(INT radioIndex, UINT channel)
     char cmd[128];
     char buf[1024];
 	int  apIndex;
-	errno_t rc = -1;
 	
 	apIndex=(radioIndex==0)?0:1;	
-	rc = sprintf_s(cmd, sizeof(cmd), "iwconfig %s%d freq %d",AP_PREFIX, apIndex,channel);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd), "iwconfig %s%d freq %d",AP_PREFIX, apIndex,channel);
 	_syscmd(cmd,buf, sizeof(buf));
 
     return 0;
@@ -2956,13 +2703,8 @@ INT wifi_pushSSID(INT apIndex, CHAR *ssid)
 {
     char cmd[128];
     char buf[1024];
-    errno_t rc = -1;
     
-	rc = sprintf_s(cmd, sizeof(cmd), "iwconfig %s%d essid \"%s\"",AP_PREFIX, apIndex, ssid);
-	if(rc < EOK)
-    {
-        ERR_CHK(rc);
-    }
+	snprintf(cmd, sizeof(cmd), "iwconfig %s%d essid \"%s\"",AP_PREFIX, apIndex, ssid);
     _syscmd(cmd, buf, sizeof(buf));
 
     return RETURN_OK;
