@@ -560,3 +560,13 @@ int platform_hal_SetSpeedUpMTARFLossDetection(BOOLEAN bValue)
 {
     return RETURN_OK;
 }
+
+int platform_hal_GetDhcpv4_Options (dhcp_opt_list **req_opt_list, dhcp_opt_list **send_opt_list)
+{
+    return RETURN_ERR;
+}
+
+int platform_hal_GetDhcpv6_Options (dhcp_opt_list **req_opt_list, dhcp_opt_list **send_opt_list)
+{
+    return RETURN_ERR;
+}
