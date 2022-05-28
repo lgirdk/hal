@@ -239,20 +239,23 @@ INT platform_hal_GetRouterRegion(CHAR* pValue)
     return RETURN_ERR;
 }
 
-INT platform_hal_GetDhcpv6_Options ( dhcp_opt_list ** req_opt_list, dhcp_opt_list ** send_opt_list)
+INT platform_hal_GetDhcpv6_Options (dhcp_opt_list **req_opt_list, dhcp_opt_list **send_opt_list)
 {
-
-    if(req_opt_list == NULL || send_opt_list == NULL){
-        return -1;
+    if (req_opt_list == NULL || send_opt_list == NULL)
+    {
+        return RETURN_ERR;
     }
-    return 0;
+
+    return RETURN_ERR;
 }
-INT platform_hal_GetDhcpv4_Options ( dhcp_opt_list ** req_opt_list, dhcp_opt_list ** send_opt_list)
-{
 
-    if(req_opt_list == NULL || send_opt_list == NULL){
-        return -1;
+INT platform_hal_GetDhcpv4_Options (dhcp_opt_list **req_opt_list, dhcp_opt_list **send_opt_list)
+{
+    if (req_opt_list == NULL || send_opt_list == NULL)
+    {
+        return RETURN_ERR;
     }
-    return 0;
+
+    return RETURN_ERR;
 }
 
