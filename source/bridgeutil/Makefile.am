@@ -25,6 +25,6 @@ ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libbridge_utils.la
 
-libbridge_utils_la_CPPFLAGS = -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/ccsp
+libbridge_utils_la_CPPFLAGS =
 libbridge_utils_la_SOURCES = bridge_util_oem.c
 libbridge_utils_la_LDFLAGS = -lpthread
