@@ -580,3 +580,33 @@ int platform_hal_SetSpeedUpMTARFLossDetection(BOOLEAN bValue)
 {
     return RETURN_OK;
 }
+
+int platform_hal_GetLedPONRegistrationErrorTimer (void)
+{
+    return 30;
+}
+
+int platform_hal_SetLedPONRegistrationErrorTimer (int value)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_GetLedOLTProvisioningErrorTimer (void)
+{
+    return 30;
+}
+
+int platform_hal_SetLedOLTProvisioningErrorTimer (int value)
+{
+    return RETURN_OK;
+}
+
+int platform_hal_GetLedWanDhcpErrorTimer (void)
+{
+    return 30;
+}
+
+int platform_hal_SetLedWanDhcpErrorTimer (int value)
+{
+    return RETURN_OK;
+}
