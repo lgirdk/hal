@@ -692,6 +692,13 @@ int docsis_getDownstreamPrimaryChannelID (int *dsPrimChannelId)
     return RETURN_ERR;
 }
 
+int docsis_getDownstreamPrimaryChannelType (int *dsPrimChannelType)
+{
+    *dsPrimChannelType = CM_CHANNEL_TYPE_SC_QAM;
+
+    return RETURN_OK;
+}
+
 int cm_getSoftwareOperStatus (int *swOperStatus)
 {
     cmDownloadState_t status;
