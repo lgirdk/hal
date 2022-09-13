@@ -571,6 +571,11 @@ int platform_hal_SetLedRegistrationErrorTimer(int value)
     return RETURN_OK;
 }
 
+int platform_hal_SetLedBrightness(int value)
+{
+    return RETURN_OK;
+}
+
 int platform_hal_SetLedMaxBrightness(int value)
 {
     return RETURN_OK;
