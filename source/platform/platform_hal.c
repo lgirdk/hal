@@ -443,3 +443,23 @@ int platform_hal_SetLedWanDhcpErrorTimer (int value)
 {
     return RETURN_OK;
 }
+
+int platform_hal_GetManufacturer (char *pValue)
+{
+    return RETURN_ERR;
+}
+
+int platform_hal_GetDescription (char *pValue)
+{
+    return RETURN_ERR;
+}
+
+int platform_hal_GetProductClass (char *pValue)
+{
+    return RETURN_ERR;
+}
+
+int platform_hal_GetManufacturerOUI (char *pValue)
+{
+    return RETURN_ERR;
+}
