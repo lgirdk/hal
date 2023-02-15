@@ -121,11 +121,6 @@ INT wifi_getApAssociatedClientDiagnosticResult(INT apIndex, char *mac_addr, wifi
     return RETURN_OK;
 }
 
-INT wifi_getApWpaEncryptionMode(INT apIndex, CHAR *output_string)
-{
-    return RETURN_OK;
-}
-
 void GetInterfaceName(char *interface_name, char *conf_file)
 {
 }
@@ -1824,7 +1819,7 @@ INT wifi_setApRtsThreshold(INT apIndex, UINT threshold)
 }
 
 // ouputs up to a 32 byte string as either "TKIPEncryption", "AESEncryption", or "TKIPandAESEncryption"
-INT wifi_getApWpaEncryptoinMode(INT apIndex, CHAR *output_string)
+INT wifi_getApWpaEncryptionMode(INT apIndex, CHAR *output_string)
 {
 	errno_t rc = -1;
 	if (NULL == output_string) 
