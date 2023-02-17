@@ -58,6 +58,7 @@ AC_CONFIG_FILES(
         source/mso_mgmt/Makefile
 	source/ethsw/Makefile
 	source/fwupgrade/Makefile
+	source/gwprovappabs/Makefile
 	source/vlan/Makefile
 	source/Makefile
 	Makefile
