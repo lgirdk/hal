@@ -16,4 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-SUBDIRS = moca wifi dhcpv4c platform cm mta mso_mgmt ethsw fwupgrade gwprovappabs vlan
+
+ACLOCAL_AMFLAGS = -I m4
+
+lib_LTLIBRARIES = libgwprovappabs.la
+
+libgwprovappabs_la_CFLAGS =
+libgwprovappabs_la_CPPFLAGS =
+libgwprovappabs_la_SOURCES = gwprovappabs.c
+libgwprovappabs_la_LDFLAGS =
