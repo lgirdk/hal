@@ -585,7 +585,7 @@ static int query_all_in_progress = 0;
 INT dhcpv4c_get_ert_lease_time(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -606,7 +606,7 @@ INT dhcpv4c_get_ert_lease_time(UINT *pValue)
 INT dhcpv4c_get_ert_remain_lease_time(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if(pValue==NULL)
     {
        return(STATUS_FAILURE);
@@ -627,7 +627,7 @@ INT dhcpv4c_get_ert_remain_lease_time(UINT *pValue)
 INT dhcpv4c_get_ert_remain_renew_time(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -648,7 +648,7 @@ INT dhcpv4c_get_ert_remain_renew_time(UINT *pValue)
 INT dhcpv4c_get_ert_remain_rebind_time(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -669,7 +669,7 @@ INT dhcpv4c_get_ert_remain_rebind_time(UINT *pValue)
 INT dhcpv4c_get_ert_config_attempts(INT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -690,7 +690,7 @@ INT dhcpv4c_get_ert_config_attempts(INT *pValue)
 INT dhcpv4c_get_ert_ifname(CHAR *pName)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pName)
     {
         return STATUS_FAILURE;
@@ -711,7 +711,7 @@ INT dhcpv4c_get_ert_ifname(CHAR *pName)
 INT dhcpv4c_get_ert_fsm_state(INT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if(pValue==NULL)
     {
        return(STATUS_FAILURE);
@@ -732,7 +732,7 @@ INT dhcpv4c_get_ert_fsm_state(INT *pValue)
 INT dhcpv4c_get_ert_ip_addr(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -753,7 +753,7 @@ INT dhcpv4c_get_ert_ip_addr(UINT *pValue)
 INT dhcpv4c_get_ert_mask(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
@@ -774,7 +774,7 @@ INT dhcpv4c_get_ert_mask(UINT *pValue)
 INT dhcpv4c_get_ert_gw(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if(pValue==NULL)
     {
        return(STATUS_FAILURE);
@@ -795,7 +795,7 @@ INT dhcpv4c_get_ert_gw(UINT *pValue)
 INT dhcpv4c_get_ert_dns_svrs(dhcpv4c_ip_list_t *pList)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pList)
     {
         return STATUS_FAILURE;
@@ -816,7 +816,7 @@ INT dhcpv4c_get_ert_dns_svrs(dhcpv4c_ip_list_t *pList)
 INT dhcpv4c_get_ert_dhcp_svr(UINT *pValue)
 {
     char udhcpflag[10]="";
-    syscfg_get( NULL, "UDHCPEnable", udhcpflag, sizeof(udhcpflag));
+    syscfg_get( NULL, "UDHCPEnable_v2", udhcpflag, sizeof(udhcpflag));
     if (NULL == pValue)
     {
         return STATUS_FAILURE;
