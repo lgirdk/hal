@@ -345,6 +345,11 @@ INT platform_hal_SetLowPowerModeState(PPSM_STATE pState)
     return RETURN_OK;
 }
 
+INT platform_hal_GetFirmwareBankInfo(FW_BANK bankIndex, PFW_BANK_INFO pFW_Bankinfo)
+{
+    return RETURN_ERR;
+}
+
 INT platform_hal_GetRouterRegion(CHAR* pValue)
 {
     return RETURN_ERR;
