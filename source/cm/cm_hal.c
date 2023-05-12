@@ -599,6 +599,11 @@ int docsis_GetStatusOfdmaUsTable (PDOCSIF31_CMSTATUSOFDMA_US *ppinfo, int *outpu
     return RETURN_OK;
 }
 
+int docsis_LLDgetEnableStatus (void)
+{
+    return DISABLE;
+}
+
 int cm_hal_snmpv3_kickstart_initialize (snmpv3_kickstart_table_t *pKickstart_Table)
 {
     return RETURN_OK;
