@@ -71,12 +71,12 @@ INT wifi_setRadioStatsEnable(INT radioIndex, BOOL enable)
 
 INT wifi_getApSecurityMFPConfig(INT apIndex, CHAR *output_string)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_getRadioSupportedDataTransmitRates(INT wlanIndex,CHAR *output)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_setRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
@@ -106,7 +106,7 @@ INT wifi_restartHostApd()
 
 INT wifi_getRadioOperationalDataTransmitRates(INT wlanIndex,CHAR *output)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_setApSecurityMFPConfig(INT apIndex, CHAR *MfpConfig)
@@ -116,12 +116,12 @@ INT wifi_setApSecurityMFPConfig(INT apIndex, CHAR *MfpConfig)
 
 INT wifi_getApInactiveAssociatedDeviceDiagnosticResult(char *filename,wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_getApAssociatedClientDiagnosticResult(INT apIndex, char *mac_addr, wifi_associated_dev3_t *dev_conn)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 void GetInterfaceName(char *interface_name, char *conf_file)
@@ -139,22 +139,22 @@ void wifi_newApAssociatedDevice_callback_register(wifi_newApAssociatedDevice_cal
 
 INT wifi_getApBasicAuthenticationMode(INT apIndex, CHAR *authMode)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_getRadioBandUtilization (INT radioIndex, INT *output_percentage)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_getRadioTransmitPowerSupported(INT radioIndex, CHAR *output_list)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_getRadioAutoChannelEnable(INT radioIndex, BOOL *output_bool)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_setPreferPrivateConnection(BOOL enable)
@@ -169,7 +169,7 @@ INT wifi_setBSSTransitionActivation(UINT apIndex, BOOL activate)
 
 INT wifi_getApAssociatedDeviceDiagnosticResult3(INT apIndex, wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
