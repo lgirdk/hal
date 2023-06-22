@@ -167,7 +167,7 @@ INT wifi_setBSSTransitionActivation(UINT apIndex, BOOL activate)
 
 INT wifi_getApAssociatedDeviceDiagnosticResult3(INT apIndex, wifi_associated_dev3_t **associated_dev_array, UINT *output_array_size)
 {
-    return RETURN_OK;
+    return RETURN_ERR;
 }
 
 INT wifi_switchBand(char *interface_name, INT radioIndex, char *freqBand)
